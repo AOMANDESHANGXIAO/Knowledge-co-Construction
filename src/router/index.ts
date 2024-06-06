@@ -20,6 +20,14 @@ const routes: Array<RouteRecordRaw> = [
     },
     component: () => import('@/views/Error/404.vue'),
   },
+  {
+    name:'demo',
+    path:'/demo',
+    meta: {
+      title:'demo',
+    },
+    component: () => import('@/views/Demo/index.vue')
+  }
 ];
 
 const router = createRouter({
