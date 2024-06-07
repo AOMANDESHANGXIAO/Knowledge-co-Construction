@@ -7,10 +7,13 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    ElButton: typeof import('element-plus/es')['ElButton']
     HelloWorld: typeof import('./../components/HelloWorld.vue')['default']
-    NButton: typeof import('naive-ui')['NButton']
+    NFlex: typeof import('naive-ui')['NFlex']
+    NFloatButton: typeof import('naive-ui')['NFloatButton']
+    NFloatButtonGroup: typeof import('naive-ui')['NFloatButtonGroup']
+    NIcon: typeof import('naive-ui')['NIcon']
     NSpace: typeof import('naive-ui')['NSpace']
+    NText: typeof import('naive-ui')['NText']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

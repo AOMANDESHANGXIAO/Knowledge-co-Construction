@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import {Graph} from '@antv/x6';
-import {onMounted} from 'vue'
+import useGraph from "@/views/Demo/useGraph.ts";
+import { graphOptions } from "@/views/Demo/graphOption.ts";
 
 const data = {
   // 节点
@@ -29,34 +29,26 @@ const data = {
       target: 'node2', // String，必须，目标节点 id
     },
   ],
+  graphOptions
 };
-// const graph = ref<HTMLDivElement>()
+const { container } = useGraph(data)
 
-onMounted(() => {
-  const container = document.getElementById('container');
-  let g
-  if(container) {
-    g = new Graph({
-      container: container,
-      width: 800,
-      height: 600,
-      background: {
-        color: '#fffbe6',
-      },
-      grid: {
-        size:10,
-        visible: true
-      }
-    });
-    g.fromJSON(data)
-  }else {
-    console.log('绘制失败了')
-  }
-})
+const handleProposeIdea = () => {
+  console.log('handleProposeIdea')
+}
 </script>
 
 <template>
-  <div id="container"></div>
+  <n-flex align="flex-start">
+    <n-float-button-group shape="square" position="fixed" style="bottom: 80px;right: 20px;z-index:10">
+      <n-float-button  width="200">刷新页面</n-float-button>
+      <n-float-button  width="200">提出问题</n-float-button>
+      <n-float-button  width="200" @click="handleProposeIdea">新建观点</n-float-button>
+      <n-float-button  width="200">提交请求</n-float-button>
+      <n-float-button  width="200">总结观点</n-float-button>
+    </n-float-button-group>
+  </n-flex>
+  <div ref="container" style="width: 100vw;height: 100vh"></div>
 </template>
 
 <style scoped lang="scss">
