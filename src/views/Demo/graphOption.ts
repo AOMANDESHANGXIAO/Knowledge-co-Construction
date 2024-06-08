@@ -10,5 +10,15 @@ export const graphOptions = {
         size: 10,
         visible: true,
         color: '#ccc'
-    }
+    },
+    scroller: {
+        enabled: true,
+        pannable: true,
+        pageVisible: true,
+        pageBreak: false,
+    },
+    mousewheel: {
+        enabled: true,
+        modifiers: ['ctrl', 'meta'],
+    },
 }
