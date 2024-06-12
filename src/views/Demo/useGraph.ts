@@ -8,6 +8,7 @@ export interface Node {
     width?:number;
     height?:number;
     label?: string;
+    shape?: string;
 }
 export interface Edge {
     source: string;

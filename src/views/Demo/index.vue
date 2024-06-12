@@ -11,7 +11,8 @@ const data = {
       y: 40,       // Number，必选，节点位置的 y 值
       width: 80,   // Number，可选，节点大小的 width 值
       height: 40,  // Number，可选，节点大小的 height 值
-      label: 'hello', // String，节点标签
+      label: 'hello', // String，节点标签,
+      shape: 'circle'
     },
     {
       id: 'node2', // String，节点的唯一标识
@@ -20,6 +21,7 @@ const data = {
       width: 80,   // Number，可选，节点大小的 width 值
       height: 40,  // Number，可选，节点大小的 height 值
       label: 'world', // String，节点标签
+      shape: 'circle'
     },
   ],
   // 边
