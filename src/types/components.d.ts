@@ -7,9 +7,18 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    Demo: typeof import('./../components/Node/demo.vue')['default']
+    ElButton: typeof import('element-plus/es')['ElButton']
+    ElDialog: typeof import('element-plus/es')['ElDialog']
+    ElForm: typeof import('element-plus/es')['ElForm']
+    ElFormItem: typeof import('element-plus/es')['ElFormItem']
+    ElInput: typeof import('element-plus/es')['ElInput']
+    ElProgress: typeof import('element-plus/es')['ElProgress']
+    ElText: typeof import('element-plus/es')['ElText']
     FloatButtonGroup: typeof import('./../components/common/floatButtonGroup.vue')['default']
     HelloWorld: typeof import('./../components/HelloWorld.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    TeacherQuestionNode: typeof import('./../components/Node/teacherQuestionNode.vue')['default']
   }
 }

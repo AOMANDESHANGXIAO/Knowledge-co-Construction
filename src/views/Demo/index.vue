@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import useGraph from '@/views/Demo/useGraph.ts'
-import { graphOptions } from '@/views/Demo/graphOption.ts'
-import type { useGraphProps } from './useGraph.ts'
+import useGraph from '@/hooks/Graph/useGraph.ts'
+import { graphOptions } from '@/hooks/graphOption.ts'
+import type { useGraphProps } from '../../hooks/Graph/useGraph.ts'
 import floatButtonGroup from '@/components/common/floatButtonGroup.vue'
 import { ref } from 'vue'
-import { useDivDrag } from './useDivDrag.ts'
+import { useDivDrag } from '../../hooks/Element/useDivDrag.ts'
 
 const data = ref<useGraphProps>({
   // 节点
