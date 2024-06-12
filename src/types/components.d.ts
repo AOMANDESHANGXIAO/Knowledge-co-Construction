@@ -16,9 +16,11 @@ declare module 'vue' {
     ElProgress: typeof import('element-plus/es')['ElProgress']
     ElText: typeof import('element-plus/es')['ElText']
     FloatButtonGroup: typeof import('./../components/common/floatButtonGroup.vue')['default']
+    GroupNode: typeof import('./../components/Node/groupNode.vue')['default']
     HelloWorld: typeof import('./../components/HelloWorld.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     TeacherQuestionNode: typeof import('./../components/Node/teacherQuestionNode.vue')['default']
+    TopicNode: typeof import('./../components/Node/topicNode.vue')['default']
   }
 }

@@ -26,27 +26,36 @@ const handleClick = () => {
 
 <template>
   <div class="container" @click="handleClick">
-    <div>发布话题</div>
-    <el-text>本次讨论的问题:{{props.data.text}}</el-text>
+    <div class="title">😯讨论话题😯</div>
+    <div class="content">
+      <el-text>{{props.data.text}}</el-text>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  //width: 250px;
-  //height: 150px;
-  padding: 20px;
-  //border-radius: 75px;
-  max-width: 200px;
+  width: 180px;
   border-radius: 10px;
-  border: 5px solid #67c23a;
-  background-color:#f0f9eb;
-  //transform: scale(.6);
-  span {
+  background-color:#F3F7EC;
+  &:hover {
+    background-color: darken(#F3F7EC, 10%);
+  }
+  .title {
+    width: 100%;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    color: #f9f9f9;
+    background-color: #67c23a;
+  }
+  .content {
+    width: 100%;
+    max-height: 300px;
+    overflow: hidden;
+    padding: 10px;
     font-size: 20px;
+    color: #242424;
   }
 }
 </style>

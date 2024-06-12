@@ -37,7 +37,7 @@ source指定从哪里指， target指定到哪里指。animated表示是否需�
 <script setup>
   import { VueFlow } from '@vue-flow/core'
 
-  import SpecialNode from '@/components/Node/teacherQuestionNode.vue'
+  import SpecialNode from '@/components/Node/topicNode.vue'
 
   const elements = ref([
     // nodes
