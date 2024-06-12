@@ -56,9 +56,15 @@ const groupColor = computed(():string => {
   }
   .content {
     width: 100%;
+    max-height: 300px;
+    overflow: hidden;
     padding: 10px;
     font-size: 20px;
     color: #242424;
+    text-overflow: ellipsis;
+    -webkit-line-clamp: 3;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
   }
 }
 </style>

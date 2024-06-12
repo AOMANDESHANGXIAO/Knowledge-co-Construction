@@ -5,12 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
-  '@antv/x6':
-    specifier: 2.1.6
-    version: 2.1.6
-  '@antv/x6-vue-shape':
-    specifier: 2.0.9
-    version: 2.0.9(@antv/x6@2.1.6)(vue@3.4.27)
+  '@dagrejs/dagre':
+    specifier: ^1.1.2
+    version: 1.1.2
   '@element-plus/icons-vue':
     specifier: ^2.3.1
     version: 2.3.1(vue@3.4.27)
@@ -71,40 +68,6 @@ packages:
     resolution: {integrity: sha512-rWQkqXRESdjXtc+7NRfK9lASQjpXJu1ayp7qi1d23zZorY+wBHVLHHoVcMsEnkqEBWTFqbztO7/QdJFzyEcLTg==}
     dev: true
 
-  /@antv/x6-common@2.0.17:
-    resolution: {integrity: sha512-37g7vmRkNdYzZPdwjaMSZEGv/MMH0S4r70/Jwoab1mioycmuIBN73iyziX8m56BvJSDucZ3J/6DU07otWqzS6A==}
-    dependencies:
-      lodash-es: 4.17.21
-      utility-types: 3.11.0
-    dev: false
-
-  /@antv/x6-geometry@2.0.5:
-    resolution: {integrity: sha512-MId6riEQkxphBpVeTcL4ZNXL4lScyvDEPLyIafvWMcWNTGK0jgkK7N20XSzqt8ltJb0mGUso5s56mrk8ysHu2A==}
-    dev: false
-
-  /@antv/x6-vue-shape@2.0.9(@antv/x6@2.1.6)(vue@3.4.27):
-    resolution: {integrity: sha512-2cXNI2r4IyWxG9UjDCjnXcofgMpDbvBqvhlYWgeu/b69PzPF9NocgI1NXWKozJmyHRubNrgjJqGwC0X1P3ksug==}
-    peerDependencies:
-      '@antv/x6': ^2.x
-      '@vue/composition-api': ^1.0.0-rc.1
-      vue: ^2.0.0 || >=3.0.0
-    peerDependenciesMeta:
-      '@vue/composition-api':
-        optional: true
-    dependencies:
-      '@antv/x6': 2.1.6
-      vue: 3.4.27(typescript@5.4.5)
-      vue-demi: 0.14.8(vue@3.4.27)
-    dev: false
-
-  /@antv/x6@2.1.6:
-    resolution: {integrity: sha512-Nsy3VXa6WAUPB9w8QbRSiIfBaTWH0qia0f7uMK3TVRnaT5HSpio6XxDsxil/xqCwqpv83SMqcruuDHuSa2pI/Q==}
-    dependencies:
-      '@antv/x6-common': 2.0.17
-      '@antv/x6-geometry': 2.0.5
-      utility-types: 3.11.0
-    dev: false
-
   /@babel/helper-string-parser@7.24.6:
     resolution: {integrity: sha512-WdJjwMEkmBicq5T9fm/cHND3+UlFa2Yj8ALLgmoSQAJZysYbBjw+azChSGPN4DSPLXOcooGRvDwZWMcF/mLO2Q==}
     engines: {node: '>=6.9.0'}
@@ -131,6 +94,17 @@ packages:
   /@ctrl/tinycolor@3.6.1:
     resolution: {integrity: sha512-SITSV6aIXsuVNV3f3O0f2n/cgyEDWoSqtZMYiAmcsYHydcKrOz3gUxB/iXd/Qf08+IZX4KpgNbvUdMBmWz+kcA==}
     engines: {node: '>=10'}
+    dev: false
+
+  /@dagrejs/dagre@1.1.2:
+    resolution: {integrity: sha512-F09dphqvHsbe/6C2t2unbmpr5q41BNPEfJCdn8Z7aEBpVSy/zFQ/b4SWsweQjWNsYMDvE2ffNUN8X0CeFsEGNw==}
+    dependencies:
+      '@dagrejs/graphlib': 2.2.2
+    dev: false
+
+  /@dagrejs/graphlib@2.2.2:
+    resolution: {integrity: sha512-CbyGpCDKsiTg/wuk79S7Muoj8mghDGAESWGxcSyhHX5jD35vYMBZochYVFzlHxynpE9unpu6O+4ZuhrLxASsOg==}
+    engines: {node: '>17.0.0'}
     dev: false
 
   /@element-plus/icons-vue@2.3.1(vue@3.4.27):
@@ -1480,11 +1454,6 @@ packages:
       webpack-sources: 3.2.3
       webpack-virtual-modules: 0.6.2
     dev: true
-
-  /utility-types@3.11.0:
-    resolution: {integrity: sha512-6Z7Ma2aVEWisaL6TvBCy7P8rm2LQoPv6dJ7ecIaIixHcwfbJ0x7mWdbcwlIM5IGQxPZSFYeqRCqlOOeKoJYMkw==}
-    engines: {node: '>= 4'}
-    dev: false
 
   /vite@5.2.12(sass@1.77.4):
     resolution: {integrity: sha512-/gC8GxzxMK5ntBwb48pR32GGhENnjtY30G4A0jemunsBkiEZFw60s8InGpN8gkhHEkjnRK1aSAxeQgwvFhUHAA==}

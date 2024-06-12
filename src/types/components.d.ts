@@ -8,19 +8,21 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Demo: typeof import('./../components/Node/demo.vue')['default']
-    ElButton: typeof import('element-plus/es')['ElButton']
-    ElDialog: typeof import('element-plus/es')['ElDialog']
-    ElForm: typeof import('element-plus/es')['ElForm']
-    ElFormItem: typeof import('element-plus/es')['ElFormItem']
+    ElCol: typeof import('element-plus/es')['ElCol']
+    ElIcon: typeof import('element-plus/es')['ElIcon']
     ElInput: typeof import('element-plus/es')['ElInput']
-    ElProgress: typeof import('element-plus/es')['ElProgress']
+    ElMenu: typeof import('element-plus/es')['ElMenu']
+    ElMenuItem: typeof import('element-plus/es')['ElMenuItem']
+    ElMenuItemGroup: typeof import('element-plus/es')['ElMenuItemGroup']
+    ElRow: typeof import('element-plus/es')['ElRow']
+    ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
     ElText: typeof import('element-plus/es')['ElText']
     FloatButtonGroup: typeof import('./../components/common/floatButtonGroup.vue')['default']
+    FlowIcon: typeof import('./../components/Icon/flowIcon.vue')['default']
     GroupNode: typeof import('./../components/Node/groupNode.vue')['default']
-    HelloWorld: typeof import('./../components/HelloWorld.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    TeacherQuestionNode: typeof import('./../components/Node/teacherQuestionNode.vue')['default']
     TopicNode: typeof import('./../components/Node/topicNode.vue')['default']
+    VueFlow: typeof import('./../components/vueFlow/index.vue')['default']
   }
 }
