@@ -7,13 +7,8 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    FloatButtonGroup: typeof import('./../components/common/floatButtonGroup.vue')['default']
     HelloWorld: typeof import('./../components/HelloWorld.vue')['default']
-    NFlex: typeof import('naive-ui')['NFlex']
-    NFloatButton: typeof import('naive-ui')['NFloatButton']
-    NFloatButtonGroup: typeof import('naive-ui')['NFloatButtonGroup']
-    NIcon: typeof import('naive-ui')['NIcon']
-    NSpace: typeof import('naive-ui')['NSpace']
-    NText: typeof import('naive-ui')['NText']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
