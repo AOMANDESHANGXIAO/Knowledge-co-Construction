@@ -1,15 +1,20 @@
 <script setup lang='ts'>
 import { computed } from 'vue'
+import {Handle, Position} from "@vue-flow/core";
 interface GroupNodeProps {
   data: {
     groupName: string
     groupConclusion: string
+    sourcePosition: string
+    targetPosition: string
   }
 }
 const props = withDefaults(defineProps<GroupNodeProps>(), {
   data: () => ({
     groupName: '小组A',
-    groupConclusion: '暂时没有讨论结果...'
+    groupConclusion: '暂时没有讨论结果...',
+    sourcePosition: Position.Bottom, // 出来
+    targetPosition: Position.Top // 进来
   })
 })
 
@@ -31,6 +36,8 @@ const groupColor = computed(():string => {
 
 <template>
   <div class="container" @click="handleClick">
+    <Handle type="target" :position="props.data.targetPosition"/>
+    <Handle type="source" :position="props.data.sourcePosition"/>
     <div class="title" :style="{backgroundColor:groupColor}">{{props.data.groupName}}</div>
     <div class="content">
       <el-text>{{props.data.groupConclusion}}</el-text>

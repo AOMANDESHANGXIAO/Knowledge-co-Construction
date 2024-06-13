@@ -1,21 +1,18 @@
 <script setup lang='ts'>
-// import { ref } from 'vue'
-// interface NodeDTO {
-//   nodeId?: string
-//   text: string
-// }
-
-const props = defineProps({
-  text: {
-    type: String,
-    default: 'Node Special'
-  },
-  data: {
-    type: Object,
-    default: () => {
-      return {
-        text: '默认话题'
-      }
+import { Position, Handle } from '@vue-flow/core'
+interface TopicNodeProps {
+ data: {
+   text: string
+   sourcePosition: string,
+   targetPosition: string
+ }
+}
+const props = withDefaults(defineProps<TopicNodeProps>(), {
+  data: () => {
+    return {
+      text: 'Node Special',
+      sourcePosition: Position.Bottom,
+      targetPosition: Position.Top
     }
   }
 })
@@ -26,6 +23,8 @@ const handleClick = () => {
 
 <template>
   <div class="container" @click="handleClick">
+    <Handle type="target" :position="props.data.targetPosition"/>
+    <Handle type="source" :position="props.data.sourcePosition"/>
     <div class="title">😯讨论话题😯</div>
     <div class="content">
       <el-text>{{props.data.text}}</el-text>
