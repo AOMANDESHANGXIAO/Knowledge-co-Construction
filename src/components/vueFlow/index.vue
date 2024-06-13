@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {VueFlow, Panel, useVueFlow, Position} from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
-import Icon from '@/components/Icon/flowIcon.vue'
 import { ref, nextTick } from 'vue'
 import topicNode from '@/components/Node/topicNode.vue'
 import groupNode from '@/components/Node/groupNode.vue'
@@ -12,72 +11,22 @@ defineOptions({
   name: 'flow-component'
 })
 
-const position = {x:0, y:0}
-const nodes = ref([ // an input node, specified by using `type: 'input'`
-  {
-    id: '1',
-    type: 'special',
-    label: 'Node 4',
-    position,
-    data: {
-      text: '人工智能技术应当如何被应用于教学当中?',
-      // sourcePosition: Position.Left,
-      // targetPosition: Position.Right
-    },
+const props = defineProps({
+  nodes: {
+    type: Array,
+    required: true,
+    default: () => ([])
   },
-  { id: '2', type: 'group', label: 'Node 3', position, data: {
-      groupName:'小组B',
-      groupConclusion:'人工智能在教学中的应用旨在提升教育的质量与效率，增强个性化学习体验，并支持教育工作者进行更有效的教学管理和决策。以下是一些关键的应用方式：\n' +
-          '个性化学习路径：通过分析学生的学习习惯、进度和能力，AI可以定制个性化的学习计划，推荐适合每个学生的教育资源和练习，以适应他们的学习速度和风格。\n' +
-          '智能辅导系统：利用自然语言处理和机器学习技术，AI可以作为虚拟助教，解答学生的问题，提供即时反馈，甚至进行对话式学习辅导，帮助学生深化理解。\n' +
-          '智能组卷与阅卷：自动根据课程大纲和学生掌握情况生成个性化试卷，并通过图像识别和自然语言理解技术自动批改客观题，减轻教师负担，同时提供详细的评估报告。\n' +
-          '学习成效预测与干预：通过分析大量学习数据，AI能够预测学生的学习成果，识别潜在的学习困难，及时向教师或学生本人发出预警，采取干预措施，预防学业滑坡。\n' +
-          '课堂互动增强：利用语音识别、面部识别等技术，AI可以监测课堂参与度，分析学生的情绪反应，帮助教师调整教学策略，使课堂更加生动和互动。\n' +
-          '教育管理与资源配置：AI可以优化学校管理，如通过数据分析优化课程安排、教室分配和资源调度，以及利用人脸识别技术进行考勤管理，提高管理效率。\n' +
-          '辅助特殊教育：对于有特殊需求的学生，AI可以提供定制化的学习材料和交互方式，比如使'
-    } },
-  { id: '3', type: 'group', label: 'Node 3', position, data: {
-      groupName:'小组C',
-      groupConclusion:'人工智能在教学中的应用旨在提升教育的质量与效率，增强个性化学习体验，并支持教育工作者进行更有效的教学管理和决策。以下是一些关键的应用方式：\n' +
-          '个性化学习路径：通过分析学生的学习习惯、进度和能力，AI可以定制个性化的学习计划，推荐适合每个学生的教育资源和练习，以适应他们的学习速度和风格。\n' +
-          '智能辅导系统：利用自然语言处理和机器学习技术，AI可以作为虚拟助教，解答学生的问题，提供即时反馈，甚至进行对话式学习辅导，帮助学生深化理解。\n' +
-          '智能组卷与阅卷：自动根据课程大纲和学生掌握情况生成个性化试卷，并通过图像识别和自然语言理解技术自动批改客观题，减轻教师负担，同时提供详细的评估报告。\n' +
-          '学习成效预测与干预：通过分析大量学习数据，AI能够预测学生的学习成果，识别潜在的学习困难，及时向教师或学生本人发出预警，采取干预措施，预防学业滑坡。\n' +
-          '课堂互动增强：利用语音识别、面部识别等技术，AI可以监测课堂参与度，分析学生的情绪反应，帮助教师调整教学策略，使课堂更加生动和互动。\n' +
-          '教育管理与资源配置：AI可以优化学校管理，如通过数据分析优化课程安排、教室分配和资源调度，以及利用人脸识别技术进行考勤管理，提高管理效率。\n' +
-          '辅助特殊教育：对于有特殊需求的学生，AI可以提供定制化的学习材料和交互方式，比如使'
-    } },
-  { id: '4', type: 'group', label: 'Node 3', position, data: {
-      groupName:'小组A',
-      groupConclusion:'人工智能在教学中的应用旨在提升教育的质量与效率，增强个性化学习体验，并支持教育工作者进行更有效的教学管理和决策。以下是一些关键的应用方式：\n' +
-          '个性化学习路径：通过分析学生的学习习惯、进度和能力，AI可以定制个性化的学习计划，推荐适合每个学生的教育资源和练习，以适应他们的学习速度和风格。\n' +
-          '智能辅导系统：利用自然语言处理和机器学习技术，AI可以作为虚拟助教，解答学生的问题，提供即时反馈，甚至进行对话式学习辅导，帮助学生深化理解。\n' +
-          '智能组卷与阅卷：自动根据课程大纲和学生掌握情况生成个性化试卷，并通过图像识别和自然语言理解技术自动批改客观题，减轻教师负担，同时提供详细的评估报告。\n' +
-          '学习成效预测与干预：通过分析大量学习数据，AI能够预测学生的学习成果，识别潜在的学习困难，及时向教师或学生本人发出预警，采取干预措施，预防学业滑坡。\n' +
-          '课堂互动增强：利用语音识别、面部识别等技术，AI可以监测课堂参与度，分析学生的情绪反应，帮助教师调整教学策略，使课堂更加生动和互动。\n' +
-          '教育管理与资源配置：AI可以优化学校管理，如通过数据分析优化课程安排、教室分配和资源调度，以及利用人脸识别技术进行考勤管理，提高管理效率。\n' +
-          '辅助特殊教育：对于有特殊需求的学生，AI可以提供定制化的学习材料和交互方式，比如使'
-    } },
-  //   模拟几个学生的观点节点，指向小组节点
-  { id: 'idea1', type: 'idea', position, data: {name:'Jack'}},
-  { id: 'idea2', type: 'idea', position, data: {name:'Tom'}},
-  { id: 'idea3', type: 'idea', position, data: {name:'Jerry'}},
-  { id: 'idea4', type: 'idea', position, data: {name:'Mary'}},
-  { id: 'idea5', type: 'idea', position, data: {name:'Lucy'}},
-  { id: 'idea6', type: 'idea', position, data: {name:'Lily'}},
-])
+  edges: {
+    type: Array,
+    required: true,
+    default: () => ([])
+  }
+})
 
-const edges = ref([
-  { id: 'e1-2', source: '2', target: '1', animated: true, style: { stroke: '#10b981', strokeWidth: 5 } },
-  { id: 'e2-2', source: '3', target: '1', animated: true, style: { stroke: '#10b981' } },
-  { id: 'e2-3', source: '4', target: '1', animated: true, style: { stroke: '#10b981' } },
-  { id: 'lianjie1', source: 'idea1', target: '2', animated: true, style: { stroke: '#10b981'}},
-  { id: 'lianjie2', source: 'idea2', target: '2', animated: true, style: { stroke: '#10b981'}},
-  { id: 'lianjie3', source: 'idea3', target: '3', animated: true, style: { stroke: '#10b981'}},
-  { id: 'lianjie4', source: 'idea4', target: 'idea1', animated: true, style: { stroke: '#10b981'}},
-  { id: 'lianjie5', source: 'idea5', target: '3', animated: true, style: { stroke: '#10b981'}},
-  { id: 'lianjie6', source: 'idea6', target: '4', animated: true, style: { stroke: '#10b981'}},
-])
+const nodes = ref(props.nodes)
+
+const edges = ref(props.edges)
 
 
 const { layout } = useLayout()
@@ -124,6 +73,10 @@ const { onPaneReady } = useVueFlow()
 onPaneReady(() => {
   layoutGraph('TB')
 })
+
+defineExpose({
+  layoutGraph
+})
 </script>
 
 <template>
@@ -143,14 +96,7 @@ onPaneReady(() => {
       <Background  :variant="'lines'" :size="200" patternColor="#fff" :gap="180"/>
 
       <Panel class="process-panel" position="top-right">
-        <div class="layout-panel">
-          <button title="set horizontal layout" @click="layoutGraph('LR')">
-            <Icon name="horizontal" />
-          </button>
-          <button title="set vertical layout" @click="layoutGraph('TB')">
-            <Icon name="vertical" />
-          </button>
-        </div>
+        <slot></slot>
       </Panel>
     </VueFlow>
   </div>
