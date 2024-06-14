@@ -36,7 +36,27 @@ const handleViewIdeaDialog = () => {
 // 控制按钮加载状态
 const loading = ref(false)
 
-const handleProposeIdea = () => {
+// 控制不同的弹窗显示
+enum Action {
+  proposal,
+  oppose,
+  approve,
+  summary
+}
+
+const action = ref<Action>(Action.proposal)
+
+const handleSwitchCallback = () => {
+  if(action.value === Action.proposal) {
+    proposeIdeaCallback()
+  } else if(action.value === Action.oppose) {
+    replyOpposeCallback()
+  } else if(action.value === Action.approve) {
+    replyApproveCallback()
+  }
+}
+
+const proposeIdeaCallback = () => {
   // FIXME: 模拟与后端交互发表观点
   // 发表的观点应该挂到小组节点上
   loading.value = true
@@ -54,7 +74,7 @@ const handleProposeIdea = () => {
       source: `idea${nodes.length + 1}`,
       target: '2',
       animated: true,
-      style: {stroke: '#10b981'}
+      style: {stroke: vueFlowRef?.value.lineNormalColor || ''}
     }
     // 后面要调后端的接口
     nodes.push(node)
@@ -62,20 +82,85 @@ const handleProposeIdea = () => {
     loading.value = false
     handleViewIdeaDialog()
     vueFlowRef.value?.drawFlow(nodes, edges)
+    ElMessage({
+      message: '发布观点成功!',
+      type: 'success',
+    })
   }, 2000)
 }
 
-// 控制不同的弹窗显示
-enum Action {
-  proposal,
-  oppose,
-  approve,
-  summary
+const replyOpposeCallback = () => {
+  // FIXME: 模拟与后端交互发表观点
+  // 发表的观点应该挂到小组节点上
+  loading.value = true
+  console.log('回复的id是', replyId.value)
+  setTimeout(() => {
+    const position = {x: 0, y: 0}
+    const {nodes, edges} = vueFlowRef.value?.getNodesAndEdges()
+    const node = {
+      id: `idea${nodes.length + 1}`,
+      type: 'idea',
+      position,
+      data: {name: 'XieBin'}
+    }
+    const edge = {
+      id: `lianjie${nodes.length + 1}`,
+      source: `idea${nodes.length + 1}`,
+      target: replyId.value,
+      animated: true,
+      style: {stroke: vueFlowRef?.value.lineOpposeColor || ''}
+    }
+    // 后面要调后端的接口
+    nodes.push(node)
+    edges.push(edge)
+    loading.value = false
+    handleViewIdeaDialog()
+    vueFlowRef.value?.drawFlow(nodes, edges)
+    ElMessage({
+      message: '反馈成功!',
+      type: 'success',
+    })
+  }, 2000)
 }
 
-const action = ref<Action>(Action.proposal)
+const replyApproveCallback = () => {
+  // FIXME: 模拟与后端交互发表观点
+  // 发表的观点应该挂到小组节点上
+  loading.value = true
+  console.log('回复的id是', replyId.value)
+  setTimeout(() => {
+    const position = {x: 0, y: 0}
+    const {nodes, edges} = vueFlowRef.value?.getNodesAndEdges()
+    const node = {
+      id: `idea${nodes.length + 1}`,
+      type: 'idea',
+      position,
+      data: {name: 'XieBin'}
+    }
+    const edge = {
+      id: `lianjie${nodes.length + 1}`,
+      source: `idea${nodes.length + 1}`,
+      target: replyId.value,
+      animated: true,
+      style: {stroke: vueFlowRef?.value.lineApproveColor || ''}
+    }
+    // 后面要调后端的接口
+    nodes.push(node)
+    edges.push(edge)
+    loading.value = false
+    handleViewIdeaDialog()
+    vueFlowRef.value?.drawFlow(nodes, edges)
+    ElMessage({
+      message: '反馈成功!',
+      type: 'success',
+    })
+  }, 2000)
+}
+
 
 const title = ref('')
+
+const replyId = ref('')
 
 const formItemList = ref([
   {
@@ -128,6 +213,7 @@ const handleReplyOppose = (data: any) => {
   console.log(data)
   action.value = Action.oppose
   title.value = '不支持该观点'
+  replyId.value = data
   ideaForm.value = {
     disagreeOption: '',
     myOpinion: '',
@@ -156,6 +242,7 @@ const handleReplyOppose = (data: any) => {
 const handleReplyApprove = (data: any) => {
   action.value = Action.approve
   title.value = '支持观点'
+  replyId.value = data
   ideaForm.value = {
     agreeOption: '',
     myOpinion: '',
@@ -209,7 +296,7 @@ const handleReplyApprove = (data: any) => {
             <el-button
                 :color="themeColor"
                 style="margin-left: 10px"
-                @click="handleProposeIdea"
+                @click="handleSwitchCallback"
                 :loading="loading"
             >确定
             </el-button
@@ -232,10 +319,10 @@ const handleReplyApprove = (data: any) => {
         <button title="设置" @click="handleGoHome">
           <Icon name="setting"/>
         </button>
-        <button title="set horizontal layout" @click="handleLayoutGraph('LR')">
+        <button title="垂直排列" @click="handleLayoutGraph('LR')">
           <Icon name="horizontal"/>
         </button>
-        <button title="set vertical layout" @click="handleLayoutGraph('TB')">
+        <button title="水平排列" @click="handleLayoutGraph('TB')">
           <Icon name="vertical"/>
         </button>
       </div>

@@ -8,7 +8,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Demo: typeof import('./../components/Node/demo.vue')['default']
-    DialogForm: typeof import('./../components/common/dialogForm/index.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCard: typeof import('element-plus/es')['ElCard']
     ElDialog: typeof import('element-plus/es')['ElDialog']
@@ -16,12 +15,9 @@ declare module 'vue' {
     ElForm: typeof import('element-plus/es')['ElForm']
     ElFormItem: typeof import('element-plus/es')['ElFormItem']
     ElInput: typeof import('element-plus/es')['ElInput']
-    ElSkeleton: typeof import('element-plus/es')['ElSkeleton']
     ElText: typeof import('element-plus/es')['ElText']
-    FloatButtonGroup: typeof import('./../components/common/floatButtonGroup.vue')['default']
     FlowIcon: typeof import('./../components/Icon/flowIcon.vue')['default']
     GroupNode: typeof import('./../components/Node/groupNode.vue')['default']
-    IdeaContent: typeof import('./../components/common/ideaContent.vue')['default']
     IdeaNode: typeof import('./../components/Node/ideaNode.vue')['default']
     Lottie: typeof import('./../components/common/lottie/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
