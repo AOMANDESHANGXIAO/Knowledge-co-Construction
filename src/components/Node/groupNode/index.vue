@@ -1,15 +1,13 @@
 <script setup lang='ts'>
 import { computed } from 'vue'
 import {Handle, Position} from "@vue-flow/core";
-interface GroupNodeProps {
-  data: {
-    groupName: string
-    groupConclusion: string
-    sourcePosition: string
-    targetPosition: string
-  }
+import { GroupNodeProps } from './type.ts'
+
+interface Props {
+  data: GroupNodeProps
 }
-const props = withDefaults(defineProps<GroupNodeProps>(), {
+
+const props = withDefaults(defineProps<Props>(), {
   data: () => ({
     groupName: '小组A',
     groupConclusion: '暂时没有讨论结果...',

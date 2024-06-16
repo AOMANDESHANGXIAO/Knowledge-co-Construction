@@ -6,11 +6,13 @@ import '@vue-flow/minimap/dist/style.css'
 import { Controls } from '@vue-flow/controls'
 import '@vue-flow/controls/dist/style.css'
 import { ref, nextTick } from 'vue'
-import topicNode from '@/components/Node/topicNode.vue'
-import groupNode from '@/components/Node/groupNode.vue'
-import ideaNode from '@/components/Node/ideaNode.vue'
+import topicNode from '@/components/Node/topicNode/index.vue'
+import groupNode from '@/components/Node/groupNode/index.vue'
+import ideaNode from '@/components/Node/ideaNode/index.vue'
 import { useLayout } from '@/hooks/VueFlow/useLayout'
 import { useCssVar } from '@vueuse/core'
+
+import { LayoutDirection, VueFlowNode, VueFlowEdge, NodeType } from './type.ts'
 
 
 defineOptions({
@@ -24,20 +26,18 @@ const lineApproveColor = useCssVar('--approve-line-color')
 const lineOpposeColor = useCssVar('--oppose-line-color')
 
 
-const nodes = ref([ // an input node, specified by using `type: 'input'`
+const nodes = ref<VueFlowNode[]>([ // an input node, specified by using `type: 'input'`
   {
     id: '1',
-    type: 'special',
+    type: NodeType.Topic,
     label: 'Node 4',
     position,
     data: {
       text: '人工智能技术应当如何被应用于教学当中?',
-      // sourcePosition: Position.Left,
-      // targetPosition: Position.Right
     },
   },
   {
-    id: '2', type: 'group', label: 'Node 3', position, data: {
+    id: '2', type: NodeType.Group, label: 'Node 3', position, data: {
       groupName: '小组B',
       groupConclusion: '人工智能在教学中的应用旨在提升教育的质量与效率，增强个性化学习体验，并支持教育工作者进行更有效的教学管理和决策。以下是一些关键的应用方式：\n' +
           '个性化学习路径：通过分析学生的学习习惯、进度和能力，AI可以定制个性化的学习计划，推荐适合每个学生的教育资源和练习，以适应他们的学习速度和风格。\n' +
@@ -50,7 +50,7 @@ const nodes = ref([ // an input node, specified by using `type: 'input'`
     }
   },
   {
-    id: '3', type: 'group', label: 'Node 3', position, data: {
+    id: '3', type: NodeType.Group, label: 'Node 3', position, data: {
       groupName: '小组C',
       groupConclusion: '人工智能在教学中的应用旨在提升教育的质量与效率，增强个性化学习体验，并支持教育工作者进行更有效的教学管理和决策。以下是一些关键的应用方式：\n' +
           '个性化学习路径：通过分析学生的学习习惯、进度和能力，AI可以定制个性化的学习计划，推荐适合每个学生的教育资源和练习，以适应他们的学习速度和风格。\n' +
@@ -63,7 +63,7 @@ const nodes = ref([ // an input node, specified by using `type: 'input'`
     }
   },
   {
-    id: '4', type: 'group', label: 'Node 3', position, data: {
+    id: '4', type: NodeType.Group, label: 'Node 3', position, data: {
       groupName: '小组A',
       groupConclusion: '人工智能在教学中的应用旨在提升教育的质量与效率，增强个性化学习体验，并支持教育工作者进行更有效的教学管理和决策。以下是一些关键的应用方式：\n' +
           '个性化学习路径：通过分析学生的学习习惯、进度和能力，AI可以定制个性化的学习计划，推荐适合每个学生的教育资源和练习，以适应他们的学习速度和风格。\n' +
@@ -76,16 +76,16 @@ const nodes = ref([ // an input node, specified by using `type: 'input'`
     }
   },
   //   模拟几个学生的观点节点，指向小组节点
-  {id: 'idea1', type: 'idea', position, data: {name: 'Jack', id:'idea1'}},
-  {id: 'idea2', type: 'idea', position, data: {name: 'Tom', id:'idea2'}},
-  {id: 'idea3', type: 'idea', position, data: {name: 'Jerry', id: 'idea3'}},
-  {id: 'idea4', type: 'idea', position, data: {name: 'Mary', id: 'idea4'}},
-  {id: 'idea5', type: 'idea', position, data: {name: 'Lucy', id: 'idea5'}},
-  {id: 'idea6', type: 'idea', position, data: {name: 'Lily', id: 'idea6'}},
+  {id: 'idea1', type: NodeType.Idea, position, data: {name: 'Jack', id:'idea1'}},
+  {id: 'idea2', type: NodeType.Idea, position, data: {name: 'Tom', id:'idea2'}},
+  {id: 'idea3', type: NodeType.Idea, position, data: {name: 'Jerry', id: 'idea3'}},
+  {id: 'idea4', type: NodeType.Idea, position, data: {name: 'Mary', id: 'idea4'}},
+  {id: 'idea5', type: NodeType.Idea, position, data: {name: 'Lucy', id: 'idea5'}},
+  {id: 'idea6', type: NodeType.Idea, position, data: {name: 'Lily', id: 'idea6'}},
 ])
 
 //
-const edges = ref([
+const edges = ref<VueFlowEdge[]>([
   {id: 'e1-2', source: '2', target: '1', animated: true, style: {stroke: lineNormalColor}},
   {id: 'e2-2', source: '3', target: '1', animated: true, style: {stroke: lineNormalColor}},
   {id: 'e2-3', source: '4', target: '1', animated: true, style: {stroke: lineNormalColor}},
@@ -101,11 +101,11 @@ const { layout } = useLayout()
 
 const { fitView  } = useVueFlow()
 
-async function layoutGraph(direction: 'TB' | 'LR' = 'TB') {
+async function layoutGraph(direction: LayoutDirection) {
 
   // 如果是上下排列的话要将nodes中的position属性做一个变换，将出去位置改为下
   // 将别人进来的位置改为上
-  if(direction === 'TB') {
+  if(direction === LayoutDirection.Vertical) {
     nodes.value = nodes.value.map((node) => {
       return {
         ...node,
@@ -116,7 +116,7 @@ async function layoutGraph(direction: 'TB' | 'LR' = 'TB') {
         }
       }
     })
-  } else {
+  } else if (direction === LayoutDirection.Horizontal){
     nodes.value = nodes.value.map((node) => {
       return {
         ...node,
@@ -137,11 +137,14 @@ async function layoutGraph(direction: 'TB' | 'LR' = 'TB') {
   })
 }
 
+
 const { onPaneReady } = useVueFlow()
+
 onPaneReady(() => {
   console.log('1', useNodesInitialized().value)
-  layoutGraph('TB')
+  layoutGraph(LayoutDirection.Vertical)
 })
+
 
 function getNodesAndEdges() {
   return {
@@ -150,12 +153,12 @@ function getNodesAndEdges() {
   }
 }
 
-async function drawFlow(newNodes: any[], newEdges: any[]) {
+async function drawFlow(newNodes: VueFlowNode[], newEdges: VueFlowEdge[]) {
   nodes.value = [...newNodes]
   edges.value = [...newEdges]
 
   await nextTick(() => {
-    layoutGraph('TB')
+    layoutGraph(LayoutDirection.Vertical)
   })
 }
 
@@ -169,12 +172,12 @@ defineExpose({
 })
 
 const emits = defineEmits(['reply-approve', 'reply-oppose'])
+
 const handleReplyApprove = (data: any) => {
-  console.log('接收到了',data)
   emits('reply-approve', data)
 }
+
 const handleReplyOppose = (data: any) => {
-  console.log('接收到了',data)
   emits('reply-oppose', data)
 }
 </script>
@@ -183,7 +186,7 @@ const handleReplyOppose = (data: any) => {
   <div class="layout-flow" style="width: 100vw;height: 100vh">
     <VueFlow :nodes="nodes" :edges="edges">
       <!-- bind your custom node type to a component by using slots, slot names are always `node-<type>` -->
-      <template #node-special="props">
+      <template #node-topic="props">
         <topicNode :data="props.data"/>
       </template>
       <template #node-group="props">

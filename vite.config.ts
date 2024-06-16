@@ -16,12 +16,12 @@ export default defineConfig({
             // 配置需要自动导入的模块
             imports: ['vue', 'vue-router'],
             resolvers: [ElementPlusResolver()],
-            dts: 'src/types/auto-import.d.ts',
+            dts: 'src/type.ts/auto-import.d.ts',
         }),
         // 配置需要自动导入的组件
         Components({
             // 导入存放的位置
-            dts: 'src/types/components.d.ts',
+            dts: 'src/type.ts/components.d.ts',
             resolvers: [ElementPlusResolver()],
         }),
     ],

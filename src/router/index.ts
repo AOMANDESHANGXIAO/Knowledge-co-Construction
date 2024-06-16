@@ -21,12 +21,12 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/views/Error/404.vue'),
   },
   {
-    name:'demo',
-    path:'/demo',
-    meta: {
-      title:'demo',
+    name:'login',
+    path:'/login',
+    meta:{
+      title:'login'
     },
-    component: () => import('@/views/Demo/index.vue')
+    component:()=>import('@/views/Login/index.vue')
   }
 ];
 

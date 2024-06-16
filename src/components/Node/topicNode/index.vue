@@ -1,13 +1,12 @@
 <script setup lang='ts'>
 import { Position, Handle } from '@vue-flow/core'
-interface TopicNodeProps {
- data: {
-   text: string
-   sourcePosition: string,
-   targetPosition: string
- }
+import { TopicNodeProps } from './type.ts'
+
+interface Props {
+ data: TopicNodeProps
 }
-const props = withDefaults(defineProps<TopicNodeProps>(), {
+
+const props = withDefaults(defineProps<Props>(), {
   data: () => {
     return {
       text: 'Node Special',
@@ -16,6 +15,7 @@ const props = withDefaults(defineProps<TopicNodeProps>(), {
     }
   }
 })
+
 const handleClick = () => {
   console.log('click')
 }

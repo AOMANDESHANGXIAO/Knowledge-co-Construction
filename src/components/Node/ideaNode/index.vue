@@ -4,21 +4,16 @@ import {watch} from 'vue'
 import lottie from '@/components/common/lottie/index.vue'
 import LoadingAnimation from '@/assets/animation/loading.json'
 import {useCssVar, useElementHover} from '@vueuse/core'
-
+import { IdeaNodeProps } from './type.ts'
 
 // 控制按钮的主题颜色
 const themeColor = useCssVar('--theme-color')
 
-interface ideaNodeProps {
-  data: {
-    id: string // 观点的id
-    name: string // 发布观点的名字
-    sourcePosition: Position // 观点节点入位置，指向别的节点
-    targetPosition: Position // 观点节点出位置，被别的节点指向
-  }
+interface Props {
+  data: IdeaNodeProps
 }
 
-const props = withDefaults(defineProps<ideaNodeProps>(), {
+const props = withDefaults(defineProps<Props>(), {
   data: () => ({
     id: 'noId',
     name: '学生',
@@ -140,11 +135,10 @@ $node-width: 50px;
     padding: 10px;
     border-radius: 10px;
     background-color: #fff;
-    //border: 1px solid #777;
     color: #242424;
     font-size: 12px;
     box-shadow: 0 2px 2px 2px #f3f3f3;
-    //transition: all .3s;
+    z-index: 999; // 保证显示在最上层
     .idea-container {
       width: 100%;
       height: 100%;

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import {ref} from 'vue'
 import flowComponent from '@/components/vueFlow/index.vue'
-import Icon from "@/components/Icon/flowIcon.vue"
+import { LayoutDirection } from '@/components/vueFlow/type.ts'
+import Icon from "@/components/Icon/index.vue"
 import {useCssVar} from '@vueuse/core'
 
 
@@ -9,10 +10,13 @@ import {useCssVar} from '@vueuse/core'
 
 const themeColor = useCssVar('--theme-color')
 
-const vueFlowRef = ref(null)
+// 给引用组件标注类型
+type vueFlowInstance = InstanceType<typeof flowComponent>
+
+const vueFlowRef = ref<vueFlowInstance | null>(null)
 
 // panel菜单选项方法
-const handleLayoutGraph = (direction) => {
+const handleLayoutGraph = (direction: LayoutDirection) => {
   vueFlowRef.value?.layoutGraph(direction)
 }
 
@@ -20,8 +24,7 @@ const handleGoHome = () => {
   console.log('返回首页了')
 }
 
-
-const visible = ref(false)
+const visible = ref<boolean>(false)
 
 const ideaForm = ref({
   title: '',
@@ -31,7 +34,6 @@ const ideaForm = ref({
 })
 
 const handleViewIdeaDialog = () => {
-
   visible.value = !visible.value
 }
 
@@ -284,6 +286,7 @@ const handleReplyApprove = (data: any) => {
         <el-form :model="ideaForm" style="max-width: 700px">
           <el-form-item v-for="(item, index) in formItemList">
             <h3>{{ item.title }}</h3>
+            <!-- FIXME: 重构输入框，不能用一个列表来渲染，这样会导致学生的输入在关闭弹窗之后丢失  -->
             <el-input
                 :key="index"
                 v-model="ideaForm[item.model]"
@@ -324,10 +327,10 @@ const handleReplyApprove = (data: any) => {
         <button title="设置" @click="handleGoHome">
           <Icon name="setting"/>
         </button>
-        <button title="垂直排列" @click="handleLayoutGraph('LR')">
+        <button title="垂直排列" @click="handleLayoutGraph(LayoutDirection.Vertical)">
           <Icon name="horizontal"/>
         </button>
-        <button title="水平排列" @click="handleLayoutGraph('TB')">
+        <button title="水平排列" @click="handleLayoutGraph(LayoutDirection.Horizontal)">
           <Icon name="vertical"/>
         </button>
       </div>
