@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import {ref} from 'vue'
 import flowComponent from '@/components/vueFlow/index.vue'
-import Icon from "@/components/Icon/flowIcon.vue";
+import Icon from "@/components/Icon/flowIcon.vue"
 import {useCssVar} from '@vueuse/core'
+
+
+// TODO: 代码重构，这里写的太屎了
 
 const themeColor = useCssVar('--theme-color')
 
@@ -267,6 +270,8 @@ const handleReplyApprove = (data: any) => {
   ]
   handleViewIdeaDialog()
 }
+
+
 </script>
 
 <template>
