@@ -1,15 +1,21 @@
 <script setup lang="ts">
-import Icon from '@/components/Icons/ManagePageIcon/index.vue'
-import {Name} from '@/components/Icons/ManagePageIcon/type.ts'
-
+import Icon from "@/components/Icons/ManagePageIcon/index.vue";
+import { Name } from "@/components/Icons/ManagePageIcon/type.ts";
 </script>
 
 <template>
   <div class="manage-page">
-    <el-row style="height:100%">
-      <el-col :span="3" style="height:100%">
+    <el-row style="height: 100%">
+      <el-col :span="3" style="height: 100%">
         <h2>StreamFlow</h2>
-        <el-menu mode="vertical" style="height:calc(100% - 60px)"  background-color="#222d3c" text-color="#fff" router default-active="/manage/team">
+        <el-menu
+          mode="vertical"
+          style="height: calc(100% - 60px)"
+          background-color="#222d3c"
+          text-color="#fff"
+          router
+          default-active="/manage/team"
+        >
           <el-menu-item index="/manage/team">
             <section class="menu-item">
               <Icon :name="Name.Team"></Icon>
@@ -52,16 +58,17 @@ import {Name} from '@/components/Icons/ManagePageIcon/type.ts'
     color: #fff;
     text-align: center;
     line-height: 40px;
+
     &:hover {
       cursor: default;
     }
   }
 
-
   &:deep(.el-menu-item) {
     &:hover {
       background-color: var(--theme-color);
     }
+
     &.is-active {
       color: #fff;
       background-color: var(--theme-color);

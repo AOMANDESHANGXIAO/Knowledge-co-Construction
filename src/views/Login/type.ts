@@ -1,12 +1,11 @@
 export interface LoginForm {
-    username: string;
-    password: string;
+  username: string;
+  password: string;
 }
 
 export interface RegisterForm {
-    username: string;
-    nickname: string;
-    password: string;
-    confirmPassword: string;
+  username: string;
+  nickname: string;
+  password: string;
+  confirmPassword: string;
 }
-

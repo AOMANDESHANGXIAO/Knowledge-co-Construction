@@ -1,33 +1,53 @@
 <script setup lang="ts">
-import type {Props} from './type.ts'
-import {getHexColorDark,getHexColorLight} from '@/utils/ColorHandler/'
-
+import type { Props } from "./type.ts";
+import { getHexColorDark, getHexColorLight } from "@/utils/ColorHandler/";
 
 const props = withDefaults(defineProps<Props>(), {
-  color: '#4579e2'
-})
+  color: "#4579e2",
+});
 
 const lightenColor = computed(() => {
-  return getHexColorLight(props.color, 0.2)
-})
+  return getHexColorLight(props.color, 0.2);
+});
 
 const darkenColor = computed(() => {
-  return getHexColorDark(props.color, 0.2)
-})
+  return getHexColorDark(props.color, 0.2);
+});
 </script>
 
 <template>
   <div class="page">
     <svg class="waves" viewBox="0 24 150 24" preserveAspectRatio="none">
       <defs>
-        <path id="wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z"/>
+        <path
+          id="wave"
+          d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z"
+        />
       </defs>
       <!--中-->
-      <use class="wave" xlink:href="#wave" :fill="props.color" x="50" y="0"></use>
+      <use
+        class="wave"
+        xlink:href="#wave"
+        :fill="props.color"
+        x="50"
+        y="0"
+      ></use>
       <!--深-->
-      <use class="wave" xlink:href="#wave" :fill="darkenColor" x="50" y="2"></use>
+      <use
+        class="wave"
+        xlink:href="#wave"
+        :fill="darkenColor"
+        x="50"
+        y="2"
+      ></use>
       <!--浅-->
-      <use class="wave" xlink:href="#wave" :fill="lightenColor" x="50" y="4"></use>
+      <use
+        class="wave"
+        xlink:href="#wave"
+        :fill="lightenColor"
+        x="50"
+        y="4"
+      ></use>
     </svg>
   </div>
 </template>
@@ -39,7 +59,7 @@ const darkenColor = computed(() => {
   position: relative;
   overflow: hidden;
 
-  svg use{
+  svg use {
     transition: fill 0.5s;
   }
 
@@ -72,5 +92,4 @@ const darkenColor = computed(() => {
     }
   }
 }
-
 </style>

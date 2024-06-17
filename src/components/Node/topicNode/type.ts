@@ -1,7 +1,7 @@
-import {Position} from "@vue-flow/core";
+import { Position } from "@vue-flow/core";
 
 export type TopicNodeProps = {
-    text: string // 教师提出的问题
-    sourcePosition?: Position
-    targetPosition?: Position
-}
+  text: string; // 教师提出的问题
+  sourcePosition?: Position;
+  targetPosition?: Position;
+};

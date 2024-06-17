@@ -1,165 +1,265 @@
 <script setup lang="ts">
-import {VueFlow, Panel, useVueFlow, Position, useNodesInitialized } from '@vue-flow/core'
-import { Background } from '@vue-flow/background'
-import { MiniMap } from '@vue-flow/minimap'
-import '@vue-flow/minimap/dist/style.css'
-import { Controls } from '@vue-flow/controls'
-import '@vue-flow/controls/dist/style.css'
-import { ref, nextTick } from 'vue'
-import topicNode from '@/components/Node/topicNode/index.vue'
-import groupNode from '@/components/Node/groupNode/index.vue'
-import ideaNode from '@/components/Node/ideaNode/index.vue'
-import { useLayout } from '@/hooks/VueFlow/useLayout'
-import { useCssVar } from '@vueuse/core'
+import {
+  VueFlow,
+  Panel,
+  useVueFlow,
+  Position,
+  useNodesInitialized,
+} from "@vue-flow/core";
+import { Background } from "@vue-flow/background";
+import { MiniMap } from "@vue-flow/minimap";
+import "@vue-flow/minimap/dist/style.css";
+import { Controls } from "@vue-flow/controls";
+import "@vue-flow/controls/dist/style.css";
+import { ref, nextTick } from "vue";
+import topicNode from "@/components/Node/topicNode/index.vue";
+import groupNode from "@/components/Node/groupNode/index.vue";
+import ideaNode from "@/components/Node/ideaNode/index.vue";
+import { useLayout } from "@/hooks/VueFlow/useLayout";
+import { useCssVar } from "@vueuse/core";
 
-import { LayoutDirection, VueFlowNode, VueFlowEdge, NodeType } from './type.ts'
-
+import { LayoutDirection, VueFlowNode, VueFlowEdge, NodeType } from "./type.ts";
 
 defineOptions({
-  name: 'flow-component'
-})
+  name: "flow-component",
+});
 
-const position = {x: 0, y: 0}
+const position = { x: 0, y: 0 };
 
-const lineNormalColor = useCssVar('--normal-line-color')
-const lineApproveColor = useCssVar('--approve-line-color')
-const lineOpposeColor = useCssVar('--oppose-line-color')
+const lineNormalColor = useCssVar("--normal-line-color");
+const lineApproveColor = useCssVar("--approve-line-color");
+const lineOpposeColor = useCssVar("--oppose-line-color");
 
-
-const nodes = ref<VueFlowNode[]>([ // an input node, specified by using `type: 'input'`
+const nodes = ref<VueFlowNode[]>([
+  // an input node, specified by using `type: 'input'`
   {
-    id: '1',
+    id: "1",
     type: NodeType.Topic,
-    label: 'Node 4',
+    label: "Node 4",
     position,
     data: {
-      text: '人工智能技术应当如何被应用于教学当中?',
+      text: "人工智能技术应当如何被应用于教学当中?",
     },
   },
   {
-    id: '2', type: NodeType.Group, label: 'Node 3', position, data: {
-      groupName: '小组B',
-      groupConclusion: '人工智能在教学中的应用旨在提升教育的质量与效率，增强个性化学习体验，并支持教育工作者进行更有效的教学管理和决策。以下是一些关键的应用方式：\n' +
-          '个性化学习路径：通过分析学生的学习习惯、进度和能力，AI可以定制个性化的学习计划，推荐适合每个学生的教育资源和练习，以适应他们的学习速度和风格。\n' +
-          '智能辅导系统：利用自然语言处理和机器学习技术，AI可以作为虚拟助教，解答学生的问题，提供即时反馈，甚至进行对话式学习辅导，帮助学生深化理解。\n' +
-          '智能组卷与阅卷：自动根据课程大纲和学生掌握情况生成个性化试卷，并通过图像识别和自然语言理解技术自动批改客观题，减轻教师负担，同时提供详细的评估报告。\n' +
-          '学习成效预测与干预：通过分析大量学习数据，AI能够预测学生的学习成果，识别潜在的学习困难，及时向教师或学生本人发出预警，采取干预措施，预防学业滑坡。\n' +
-          '课堂互动增强：利用语音识别、面部识别等技术，AI可以监测课堂参与度，分析学生的情绪反应，帮助教师调整教学策略，使课堂更加生动和互动。\n' +
-          '教育管理与资源配置：AI可以优化学校管理，如通过数据分析优化课程安排、教室分配和资源调度，以及利用人脸识别技术进行考勤管理，提高管理效率。\n' +
-          '辅助特殊教育：对于有特殊需求的学生，AI可以提供定制化的学习材料和交互方式，比如使'
-    }
+    id: "2",
+    type: NodeType.Group,
+    label: "Node 3",
+    position,
+    data: {
+      groupName: "小组B",
+      groupConclusion:
+        "人工智能在教学中的应用旨在提升教育的质量与效率，增强个性化学习体验，并支持教育工作者进行更有效的教学管理和决策。以下是一些关键的应用方式：\n" +
+        "个性化学习路径：通过分析学生的学习习惯、进度和能力，AI可以定制个性化的学习计划，推荐适合每个学生的教育资源和练习，以适应他们的学习速度和风格。\n" +
+        "智能辅导系统：利用自然语言处理和机器学习技术，AI可以作为虚拟助教，解答学生的问题，提供即时反馈，甚至进行对话式学习辅导，帮助学生深化理解。\n" +
+        "智能组卷与阅卷：自动根据课程大纲和学生掌握情况生成个性化试卷，并通过图像识别和自然语言理解技术自动批改客观题，减轻教师负担，同时提供详细的评估报告。\n" +
+        "学习成效预测与干预：通过分析大量学习数据，AI能够预测学生的学习成果，识别潜在的学习困难，及时向教师或学生本人发出预警，采取干预措施，预防学业滑坡。\n" +
+        "课堂互动增强：利用语音识别、面部识别等技术，AI可以监测课堂参与度，分析学生的情绪反应，帮助教师调整教学策略，使课堂更加生动和互动。\n" +
+        "教育管理与资源配置：AI可以优化学校管理，如通过数据分析优化课程安排、教室分配和资源调度，以及利用人脸识别技术进行考勤管理，提高管理效率。\n" +
+        "辅助特殊教育：对于有特殊需求的学生，AI可以提供定制化的学习材料和交互方式，比如使",
+    },
   },
   {
-    id: '3', type: NodeType.Group, label: 'Node 3', position, data: {
-      groupName: '小组C',
-      groupConclusion: '人工智能在教学中的应用旨在提升教育的质量与效率，增强个性化学习体验，并支持教育工作者进行更有效的教学管理和决策。以下是一些关键的应用方式：\n' +
-          '个性化学习路径：通过分析学生的学习习惯、进度和能力，AI可以定制个性化的学习计划，推荐适合每个学生的教育资源和练习，以适应他们的学习速度和风格。\n' +
-          '智能辅导系统：利用自然语言处理和机器学习技术，AI可以作为虚拟助教，解答学生的问题，提供即时反馈，甚至进行对话式学习辅导，帮助学生深化理解。\n' +
-          '智能组卷与阅卷：自动根据课程大纲和学生掌握情况生成个性化试卷，并通过图像识别和自然语言理解技术自动批改客观题，减轻教师负担，同时提供详细的评估报告。\n' +
-          '学习成效预测与干预：通过分析大量学习数据，AI能够预测学生的学习成果，识别潜在的学习困难，及时向教师或学生本人发出预警，采取干预措施，预防学业滑坡。\n' +
-          '课堂互动增强：利用语音识别、面部识别等技术，AI可以监测课堂参与度，分析学生的情绪反应，帮助教师调整教学策略，使课堂更加生动和互动。\n' +
-          '教育管理与资源配置：AI可以优化学校管理，如通过数据分析优化课程安排、教室分配和资源调度，以及利用人脸识别技术进行考勤管理，提高管理效率。\n' +
-          '辅助特殊教育：对于有特殊需求的学生，AI可以提供定制化的学习材料和交互方式，比如使'
-    }
+    id: "3",
+    type: NodeType.Group,
+    label: "Node 3",
+    position,
+    data: {
+      groupName: "小组C",
+      groupConclusion:
+        "人工智能在教学中的应用旨在提升教育的质量与效率，增强个性化学习体验，并支持教育工作者进行更有效的教学管理和决策。以下是一些关键的应用方式：\n" +
+        "个性化学习路径：通过分析学生的学习习惯、进度和能力，AI可以定制个性化的学习计划，推荐适合每个学生的教育资源和练习，以适应他们的学习速度和风格。\n" +
+        "智能辅导系统：利用自然语言处理和机器学习技术，AI可以作为虚拟助教，解答学生的问题，提供即时反馈，甚至进行对话式学习辅导，帮助学生深化理解。\n" +
+        "智能组卷与阅卷：自动根据课程大纲和学生掌握情况生成个性化试卷，并通过图像识别和自然语言理解技术自动批改客观题，减轻教师负担，同时提供详细的评估报告。\n" +
+        "学习成效预测与干预：通过分析大量学习数据，AI能够预测学生的学习成果，识别潜在的学习困难，及时向教师或学生本人发出预警，采取干预措施，预防学业滑坡。\n" +
+        "课堂互动增强：利用语音识别、面部识别等技术，AI可以监测课堂参与度，分析学生的情绪反应，帮助教师调整教学策略，使课堂更加生动和互动。\n" +
+        "教育管理与资源配置：AI可以优化学校管理，如通过数据分析优化课程安排、教室分配和资源调度，以及利用人脸识别技术进行考勤管理，提高管理效率。\n" +
+        "辅助特殊教育：对于有特殊需求的学生，AI可以提供定制化的学习材料和交互方式，比如使",
+    },
   },
   {
-    id: '4', type: NodeType.Group, label: 'Node 3', position, data: {
-      groupName: '小组A',
-      groupConclusion: '人工智能在教学中的应用旨在提升教育的质量与效率，增强个性化学习体验，并支持教育工作者进行更有效的教学管理和决策。以下是一些关键的应用方式：\n' +
-          '个性化学习路径：通过分析学生的学习习惯、进度和能力，AI可以定制个性化的学习计划，推荐适合每个学生的教育资源和练习，以适应他们的学习速度和风格。\n' +
-          '智能辅导系统：利用自然语言处理和机器学习技术，AI可以作为虚拟助教，解答学生的问题，提供即时反馈，甚至进行对话式学习辅导，帮助学生深化理解。\n' +
-          '智能组卷与阅卷：自动根据课程大纲和学生掌握情况生成个性化试卷，并通过图像识别和自然语言理解技术自动批改客观题，减轻教师负担，同时提供详细的评估报告。\n' +
-          '学习成效预测与干预：通过分析大量学习数据，AI能够预测学生的学习成果，识别潜在的学习困难，及时向教师或学生本人发出预警，采取干预措施，预防学业滑坡。\n' +
-          '课堂互动增强：利用语音识别、面部识别等技术，AI可以监测课堂参与度，分析学生的情绪反应，帮助教师调整教学策略，使课堂更加生动和互动。\n' +
-          '教育管理与资源配置：AI可以优化学校管理，如通过数据分析优化课程安排、教室分配和资源调度，以及利用人脸识别技术进行考勤管理，提高管理效率。\n' +
-          '辅助特殊教育：对于有特殊需求的学生，AI可以提供定制化的学习材料和交互方式，比如使'
-    }
+    id: "4",
+    type: NodeType.Group,
+    label: "Node 3",
+    position,
+    data: {
+      groupName: "小组A",
+      groupConclusion:
+        "人工智能在教学中的应用旨在提升教育的质量与效率，增强个性化学习体验，并支持教育工作者进行更有效的教学管理和决策。以下是一些关键的应用方式：\n" +
+        "个性化学习路径：通过分析学生的学习习惯、进度和能力，AI可以定制个性化的学习计划，推荐适合每个学生的教育资源和练习，以适应他们的学习速度和风格。\n" +
+        "智能辅导系统：利用自然语言处理和机器学习技术，AI可以作为虚拟助教，解答学生的问题，提供即时反馈，甚至进行对话式学习辅导，帮助学生深化理解。\n" +
+        "智能组卷与阅卷：自动根据课程大纲和学生掌握情况生成个性化试卷，并通过图像识别和自然语言理解技术自动批改客观题，减轻教师负担，同时提供详细的评估报告。\n" +
+        "学习成效预测与干预：通过分析大量学习数据，AI能够预测学生的学习成果，识别潜在的学习困难，及时向教师或学生本人发出预警，采取干预措施，预防学业滑坡。\n" +
+        "课堂互动增强：利用语音识别、面部识别等技术，AI可以监测课堂参与度，分析学生的情绪反应，帮助教师调整教学策略，使课堂更加生动和互动。\n" +
+        "教育管理与资源配置：AI可以优化学校管理，如通过数据分析优化课程安排、教室分配和资源调度，以及利用人脸识别技术进行考勤管理，提高管理效率。\n" +
+        "辅助特殊教育：对于有特殊需求的学生，AI可以提供定制化的学习材料和交互方式，比如使",
+    },
   },
   //   模拟几个学生的观点节点，指向小组节点
-  {id: 'idea1', type: NodeType.Idea, position, data: {name: 'Jack', id:'idea1'}},
-  {id: 'idea2', type: NodeType.Idea, position, data: {name: 'Tom', id:'idea2'}},
-  {id: 'idea3', type: NodeType.Idea, position, data: {name: 'Jerry', id: 'idea3'}},
-  {id: 'idea4', type: NodeType.Idea, position, data: {name: 'Mary', id: 'idea4'}},
-  {id: 'idea5', type: NodeType.Idea, position, data: {name: 'Lucy', id: 'idea5'}},
-  {id: 'idea6', type: NodeType.Idea, position, data: {name: 'Lily', id: 'idea6'}},
-])
+  {
+    id: "idea1",
+    type: NodeType.Idea,
+    position,
+    data: { name: "Jack", id: "idea1" },
+  },
+  {
+    id: "idea2",
+    type: NodeType.Idea,
+    position,
+    data: { name: "Tom", id: "idea2" },
+  },
+  {
+    id: "idea3",
+    type: NodeType.Idea,
+    position,
+    data: { name: "Jerry", id: "idea3" },
+  },
+  {
+    id: "idea4",
+    type: NodeType.Idea,
+    position,
+    data: { name: "Mary", id: "idea4" },
+  },
+  {
+    id: "idea5",
+    type: NodeType.Idea,
+    position,
+    data: { name: "Lucy", id: "idea5" },
+  },
+  {
+    id: "idea6",
+    type: NodeType.Idea,
+    position,
+    data: { name: "Lily", id: "idea6" },
+  },
+]);
 
 //
 const edges = ref<VueFlowEdge[]>([
-  {id: 'e1-2', source: '2', target: '1', animated: true, style: {stroke: lineNormalColor}},
-  {id: 'e2-2', source: '3', target: '1', animated: true, style: {stroke: lineNormalColor}},
-  {id: 'e2-3', source: '4', target: '1', animated: true, style: {stroke: lineNormalColor}},
-  {id: 'lianjie1', source: 'idea1', target: '2', animated: true, style: {stroke: lineNormalColor}},
-  {id: 'lianjie2', source: 'idea2', target: '2', animated: true, style: {stroke: lineNormalColor}},
-  {id: 'lianjie3', source: 'idea3', target: '3', animated: true, style: {stroke: lineNormalColor}},
-  {id: 'lianjie4', source: 'idea4', target: 'idea1', animated: true, style: {stroke: lineOpposeColor}},
-  {id: 'lianjie5', source: 'idea5', target: '3', animated: true, style: {stroke: lineNormalColor}},
-  {id: 'lianjie6', source: 'idea6', target: '4', animated: true, style: {stroke: lineNormalColor}},
-])
+  {
+    id: "e1-2",
+    source: "2",
+    target: "1",
+    animated: true,
+    style: { stroke: lineNormalColor },
+  },
+  {
+    id: "e2-2",
+    source: "3",
+    target: "1",
+    animated: true,
+    style: { stroke: lineNormalColor },
+  },
+  {
+    id: "e2-3",
+    source: "4",
+    target: "1",
+    animated: true,
+    style: { stroke: lineNormalColor },
+  },
+  {
+    id: "lianjie1",
+    source: "idea1",
+    target: "2",
+    animated: true,
+    style: { stroke: lineNormalColor },
+  },
+  {
+    id: "lianjie2",
+    source: "idea2",
+    target: "2",
+    animated: true,
+    style: { stroke: lineNormalColor },
+  },
+  {
+    id: "lianjie3",
+    source: "idea3",
+    target: "3",
+    animated: true,
+    style: { stroke: lineNormalColor },
+  },
+  {
+    id: "lianjie4",
+    source: "idea4",
+    target: "idea1",
+    animated: true,
+    style: { stroke: lineOpposeColor },
+  },
+  {
+    id: "lianjie5",
+    source: "idea5",
+    target: "3",
+    animated: true,
+    style: { stroke: lineNormalColor },
+  },
+  {
+    id: "lianjie6",
+    source: "idea6",
+    target: "4",
+    animated: true,
+    style: { stroke: lineNormalColor },
+  },
+]);
 
-const { layout } = useLayout()
+const { layout } = useLayout();
 
-const { fitView  } = useVueFlow()
+const { fitView } = useVueFlow();
 
 async function layoutGraph(direction: LayoutDirection) {
-
   // 如果是上下排列的话要将nodes中的position属性做一个变换，将出去位置改为下
   // 将别人进来的位置改为上
-  if(direction === LayoutDirection.Vertical) {
+  if (direction === LayoutDirection.Vertical) {
     nodes.value = nodes.value.map((node) => {
       return {
         ...node,
-        data:{
+        data: {
           ...node.data,
           sourcePosition: Position.Bottom,
-          targetPosition: Position.Top
-        }
-      }
-    })
-  } else if (direction === LayoutDirection.Horizontal){
+          targetPosition: Position.Top,
+        },
+      };
+    });
+  } else if (direction === LayoutDirection.Horizontal) {
     nodes.value = nodes.value.map((node) => {
       return {
         ...node,
-        data:{
+        data: {
           ...node.data,
           sourcePosition: Position.Right,
-          targetPosition: Position.Left
-        }
-      }
-    })
+          targetPosition: Position.Left,
+        },
+      };
+    });
   }
 
-
-  nodes.value = layout(nodes.value, edges.value, direction)
+  nodes.value = layout(nodes.value, edges.value, direction);
 
   await nextTick(() => {
-    fitView()
-  })
+    fitView();
+  });
 }
 
-
-const { onPaneReady } = useVueFlow()
+const { onPaneReady } = useVueFlow();
 
 onPaneReady(() => {
-  console.log('1', useNodesInitialized().value)
-  layoutGraph(LayoutDirection.Vertical)
-})
-
+  console.log("1", useNodesInitialized().value);
+  layoutGraph(LayoutDirection.Vertical);
+});
 
 function getNodesAndEdges() {
   return {
     nodes: nodes.value,
-    edges: edges.value
-  }
+    edges: edges.value,
+  };
 }
 
 async function drawFlow(newNodes: VueFlowNode[], newEdges: VueFlowEdge[]) {
-  nodes.value = [...newNodes]
-  edges.value = [...newEdges]
+  nodes.value = [...newNodes];
+  edges.value = [...newEdges];
 
   await nextTick(() => {
-    layoutGraph(LayoutDirection.Vertical)
-  })
+    layoutGraph(LayoutDirection.Vertical);
+  });
 }
 
 defineExpose({
@@ -168,35 +268,44 @@ defineExpose({
   getNodesAndEdges,
   lineNormalColor,
   lineApproveColor,
-  lineOpposeColor
-})
+  lineOpposeColor,
+});
 
-const emits = defineEmits(['reply-approve', 'reply-oppose'])
+const emits = defineEmits(["reply-approve", "reply-oppose"]);
 
 const handleReplyApprove = (data: any) => {
-  emits('reply-approve', data)
-}
+  emits("reply-approve", data);
+};
 
 const handleReplyOppose = (data: any) => {
-  emits('reply-oppose', data)
-}
+  emits("reply-oppose", data);
+};
 </script>
 
 <template>
-  <div class="layout-flow" style="width: 100vw;height: 100vh">
+  <div class="layout-flow" style="width: 100vw; height: 100vh">
     <VueFlow :nodes="nodes" :edges="edges">
       <!-- bind your custom node type to a component by using slots, slot names are always `node-<type>` -->
       <template #node-topic="props">
-        <topicNode :data="props.data"/>
+        <topicNode :data="props.data" />
       </template>
       <template #node-group="props">
-        <groupNode :data="props.data"/>
+        <groupNode :data="props.data" />
       </template>
       <template #node-idea="props">
-        <ideaNode :data="props.data" @reply-approve="handleReplyApprove" @reply-oppose="handleReplyOppose"/>
+        <ideaNode
+          :data="props.data"
+          @reply-approve="handleReplyApprove"
+          @reply-oppose="handleReplyOppose"
+        />
       </template>
 
-      <Background  :variant="'lines'" :size="200" patternColor="#fff" :gap="180"/>
+      <Background
+        :variant="'lines'"
+        :size="200"
+        patternColor="#fff"
+        :gap="180"
+      />
 
       <MiniMap pannable zoomable />
 
@@ -211,10 +320,10 @@ const handleReplyOppose = (data: any) => {
 
 <style>
 /* import the necessary styles for Vue Flow to work */
-@import '@vue-flow/core/dist/style.css';
+@import "@vue-flow/core/dist/style.css";
 
 /* import the default theme, this is optional but generally recommended */
-@import '@vue-flow/core/dist/theme-default.css';
+@import "@vue-flow/core/dist/theme-default.css";
 
 .layout-flow {
   background-color: #1a192b;

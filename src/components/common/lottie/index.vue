@@ -8,26 +8,29 @@ import lottie from "lottie-web";
 import type { LottieEvent } from "./type";
 
 // 设置组件参数
-const props = withDefaults(defineProps<{
-  renderer?: 'svg' | 'canvas' | 'html',
-  loop?: boolean,
-  autoplay?: boolean,
-  animationData: any
-}>(), {
-  renderer: 'svg',
-  loop: true,
-  autoplay: true,
-})
+const props = withDefaults(
+  defineProps<{
+    renderer?: "svg" | "canvas" | "html";
+    loop?: boolean;
+    autoplay?: boolean;
+    animationData: any;
+  }>(),
+  {
+    renderer: "svg",
+    loop: true,
+    autoplay: true,
+  },
+);
 
 // 创建 lottie接收变量 和 获取dom
-const animation = ref<LottieEvent>()
-const dom = ref<Element>()
+const animation = ref<LottieEvent>();
+const dom = ref<Element>();
 
 // 创建事件返回初始化lottie对象
 const emits = defineEmits<{
-  (e: 'getAnimation', value: LottieEvent): void
-  (e: 'getDom', value: Element): void
-}>()
+  (e: "getAnimation", value: LottieEvent): void;
+  (e: "getDom", value: Element): void;
+}>();
 
 // 初始化渲染 lottie动画，并返回 lottie对象
 onMounted(() => {
@@ -36,12 +39,10 @@ onMounted(() => {
     renderer: props.renderer, // 渲染方式:svg、canvas、html
     loop: props.loop, // 是否循环播放，默认：false
     autoplay: props.autoplay, // 是否自动播放, 默认true
-    animationData: props.animationData // AE动画使用bodymovie导出的json数据
-  })
-  emits('getAnimation', animation.value)
-})
-
-
+    animationData: props.animationData, // AE动画使用bodymovie导出的json数据
+  });
+  emits("getAnimation", animation.value);
+});
 </script>
 
 <style scoped>

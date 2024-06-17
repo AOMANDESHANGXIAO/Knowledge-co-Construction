@@ -1,7 +1,5 @@
 type Props = {
-    color: string
-}
+  color: string;
+};
 
-export type {
-    Props
-}
+export type { Props };
