@@ -21,7 +21,12 @@ This template should help get you started developing with Vue 3 and TypeScript i
 9. revert - 回退
 10. build - 打包
 
-
+# 界面管理
+本项目包含以下几个界面。
+1. 登录界面 => 用户登录和注册的页面
+2. 管理界面 => 用户管理自己所在班级、讨论话题以及小组成员的界面
+3. 知识建构界面 => 用户与小组成员进行知识构建的界面
+4. 错误界面 => 404界面，可以让用户导航回主页面
 
 
 # 在这里简单的做一个项目笔记

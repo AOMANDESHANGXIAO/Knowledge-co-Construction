@@ -2,6 +2,7 @@
 import {useCssVar} from '@vueuse/core'
 import {LoginForm, RegisterForm} from './type.ts'
 import type { FormInstance, FormRules } from 'element-plus'
+import router from '@/router/index.ts'
 
 const themeColor = useCssVar('--theme-color')
 
@@ -46,6 +47,8 @@ const submitLogin = () => {
       setTimeout(() => {
         loginButtonLoading.value = false
         ElMessage.success('登录成功!')
+        // 跳转到管理页面
+        router.push('/manage')
       }, 2000)
     } else {
       console.log('error submit')

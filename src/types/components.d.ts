@@ -16,7 +16,7 @@ declare module 'vue' {
     ElFormItem: typeof import('element-plus/es')['ElFormItem']
     ElInput: typeof import('element-plus/es')['ElInput']
     ElText: typeof import('element-plus/es')['ElText']
-    FlowIcon: typeof import('../components/Icon/index.vue')['default']
+    FlowIcon: typeof import('@/components/Icons/HomePageIcon/index.vue')['default']
     GroupNode: typeof import('../components/Node/groupNode/index.vue')['default']
     IdeaNode: typeof import('../components/Node/ideaNode/index.vue')['default']
     Lottie: typeof import('./../components/common/lottie/index.vue')['default']

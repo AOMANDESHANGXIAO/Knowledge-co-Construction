@@ -2,7 +2,7 @@
 import {ref} from 'vue'
 import flowComponent from '@/components/vueFlow/index.vue'
 import { LayoutDirection } from '@/components/vueFlow/type.ts'
-import Icon from "@/components/Icon/index.vue"
+import Icon from "@/components/Icons/HomePageIcon/index.vue"
 import {useCssVar} from '@vueuse/core'
 
 
