@@ -7,12 +7,15 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ColorPicker: typeof import('./../components/common/colorPicker/index.vue')['default']
     Demo: typeof import('./../components/Node/demo.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCard: typeof import('element-plus/es')['ElCard']
     ElCol: typeof import('element-plus/es')['ElCol']
+    ElColorPicker: typeof import('element-plus/es')['ElColorPicker']
     ElDialog: typeof import('element-plus/es')['ElDialog']
     ElDivider: typeof import('element-plus/es')['ElDivider']
+    ElEmpty: typeof import('element-plus/es')['ElEmpty']
     ElForm: typeof import('element-plus/es')['ElForm']
     ElFormItem: typeof import('element-plus/es')['ElFormItem']
     ElIcon: typeof import('element-plus/es')['ElIcon']
@@ -34,5 +37,6 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     TopicNode: typeof import('./../components/Node/topicNode/index.vue')['default']
     VueFlow: typeof import('./../components/vueFlow/index.vue')['default']
+    WaveAnimation: typeof import('./../components/common/waveAnimation/index.vue')['default']
   }
 }

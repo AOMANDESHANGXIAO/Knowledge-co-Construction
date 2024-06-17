@@ -8,8 +8,8 @@ import {Name} from '@/components/Icons/ManagePageIcon/type.ts'
   <div class="manage-page">
     <el-row style="height:100%">
       <el-col :span="3" style="height:100%">
-        <h2>StreamFlow&nbsp;管理</h2>
-        <el-menu mode="vertical" style="height:calc(100% - 60px)"  background-color="#545c64" text-color="#fff" router>
+        <h2>StreamFlow</h2>
+        <el-menu mode="vertical" style="height:calc(100% - 60px)"  background-color="#222d3c" text-color="#fff" router default-active="/manage/team">
           <el-menu-item index="/manage/team">
             <section class="menu-item">
               <Icon :name="Name.Team"></Icon>
@@ -46,7 +46,7 @@ import {Name} from '@/components/Icons/ManagePageIcon/type.ts'
     width: 100%;
     height: 60px;
     padding: 10px;
-    background-color: #545c64;
+    background-color: #222d3c;
     font-size: 20px;
     font-weight: 700;
     color: #fff;

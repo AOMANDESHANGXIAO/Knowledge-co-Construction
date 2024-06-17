@@ -1,7 +1,8 @@
 export enum Name {
     Team,
     User,
-    Talk
+    Talk,
+    Select
 }
 
 export type Props = {
