@@ -18,6 +18,9 @@ const routes: Array<RouteRecordRaw> = [
       title: "manage",
     },
     component: () => import("@/views/Manage/index.vue"),
+    redirect() {
+      return { path: "/manage/team" };
+    },
     children: [
       {
         name: "manage-team-page",

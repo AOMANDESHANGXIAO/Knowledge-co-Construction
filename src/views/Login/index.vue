@@ -156,7 +156,12 @@ const submitRegister = () => {
           </el-form-item>
           <el-form-item prop="password">
             <div class="sub-title">密码</div>
-            <el-input placeholder="请输入密码" v-model="loginForm.password" />
+            <el-input
+              placeholder="请输入密码"
+              v-model="loginForm.password"
+              type="password"
+              show-password
+            />
           </el-form-item>
           <el-form-item>
             <el-button
@@ -171,12 +176,13 @@ const submitRegister = () => {
           <el-form-item>
             <el-divider>
               <el-text class="register-text" @click="toggleRegisterAndLogin"
-                >还没有账号？点击注册</el-text
-              >
+                >还没有账号？点击注册
+              </el-text>
             </el-divider>
           </el-form-item>
         </el-form>
       </section>
+
       <section
         class="register-form-container"
         :class="{ 'is-not-transform': !isLogin }"
@@ -207,6 +213,8 @@ const submitRegister = () => {
             <el-input
               placeholder="请输入密码"
               v-model="registerForm.password"
+              type="password"
+              show-password
             />
           </el-form-item>
           <el-form-item prop="confirmPassword">
@@ -214,6 +222,8 @@ const submitRegister = () => {
             <el-input
               placeholder="请再次输入密码"
               v-model="registerForm.confirmPassword"
+              type="password"
+              show-password
             />
           </el-form-item>
           <el-form-item>
@@ -229,8 +239,8 @@ const submitRegister = () => {
           <el-form-item>
             <el-divider>
               <el-text class="register-text" @click="toggleRegisterAndLogin"
-                >已有账号？点击登录</el-text
-              >
+                >已有账号？点击登录
+              </el-text>
             </el-divider>
           </el-form-item>
         </el-form>
