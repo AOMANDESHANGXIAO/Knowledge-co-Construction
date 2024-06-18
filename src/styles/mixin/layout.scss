@@ -1,0 +1,12 @@
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-gap-flex-evenly($gap) {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: $gap;
+}

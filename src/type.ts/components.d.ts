@@ -7,6 +7,8 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AnalysisItem: typeof import('./../components/common/analysisItem/index.vue')['default']
+    AnalysisItemIcon: typeof import('./../components/Icons/analysisItemIcon/index.vue')['default']
     ColorPicker: typeof import('./../components/common/colorPicker/index.vue')['default']
     Demo: typeof import('./../components/Node/demo.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
@@ -33,6 +35,7 @@ declare module 'vue' {
     LoginImg: typeof import('./../components/common/loginImg/index.vue')['default']
     Lottie: typeof import('./../components/common/lottie/index.vue')['default']
     ManagePageIcon: typeof import('./../components/Icons/ManagePageIcon/index.vue')['default']
+    MemberAnalysis: typeof import('./../components/common/memberAnalysis/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     TopicNode: typeof import('./../components/Node/topicNode/index.vue')['default']

@@ -1,12 +1,41 @@
 <script setup lang="ts">
-import { useCssVar } from "@vueuse/core";
 import colorPicker from "@/components/common/colorPicker/index.vue";
 import waveAnimation from "@/components/common/waveAnimation/index.vue";
+import analysisItem from "@/components/common/analysisItem/index.vue";
+import memberAnalysis from "@/components/common/memberAnalysis/index.vue";
 import type { FormInstance, FormRules } from "element-plus";
+import { useNow } from "@vueuse/core";
+import { format } from "date-fns";
+import { useUserStore } from "@/store/modules/user";
+import { useColorStore } from "@/store/modules/color";
 
-const themeColor = useCssVar("--theme-color");
+const now = useNow();
+
+const welcomeText = computed(() => {
+  const hour = now.value.getHours();
+  if (hour < 6) {
+    return "凌晨好";
+  } else if (hour < 9) {
+    return "早上好";
+  } else if (hour < 12) {
+    return "上午好";
+  } else if (hour < 14) {
+    return "中午好";
+  } else if (hour < 17) {
+    return "下午好";
+  } else if (hour < 19) {
+    return "傍晚好";
+  }
+  return "晚上好";
+});
+
+const formattedNow = computed(() => format(now.value, "yyyy-MM-dd HH:mm:ss"));
+
+const { themeColor } = useColorStore();
 
 const isNotJoinGroup = ref<boolean>(true);
+
+isNotJoinGroup.value = false;
 
 const isCreatingTeam = ref<boolean>(false);
 
@@ -105,6 +134,67 @@ const onJoinTeam = () => {
   isNotJoinGroup.value = false;
   isCreatingTeam.value = false;
 };
+
+const userStore = useUserStore();
+
+const { userInfo } = userStore;
+
+// 样例
+const groupAnalysisList = ref([
+  {
+    iconName: "discussion",
+    text: "参与了讨论",
+    num: 28,
+  },
+  {
+    iconName: "share",
+    text: "分享过观点",
+    num: 180,
+  },
+  {
+    iconName: "feedback",
+    text: "反馈过观点",
+    num: 247,
+  },
+  {
+    iconName: "summary",
+    text: "总结过观点",
+    num: 156,
+  },
+]);
+
+const chartDataList = ref([
+  {
+    list: [
+      { value: 18, name: "张伟" },
+      { value: 10, name: "李娜" },
+      { value: 28, name: "王浩" },
+      { value: 29, name: "赵构" },
+      { value: 30, name: "刘洋" },
+    ],
+    title: "😁分享观点",
+  },
+  {
+    list: [
+      { value: 9, name: "张伟" },
+      { value: 10, name: "李娜" },
+      { value: 3, name: "王浩" },
+      { value: 21, name: "赵构" },
+      { value: 35, name: "刘洋" },
+    ],
+    title: "🤔反馈观点",
+  },
+  {
+    list: [
+      { value: 10, name: "张伟" },
+      { value: 21, name: "李娜" },
+      { value: 22, name: "王浩" },
+      { value: 45, name: "赵构" },
+      { value: 21, name: "刘洋" },
+    ],
+    title: "😎总结观点",
+  },
+]);
 </script>
 
 <template>
@@ -155,8 +245,8 @@ const onJoinTeam = () => {
                 @click="handleCancelCreateTeam"
                 :color="themeColor"
                 plain
-                >取消</el-button
-              >
+                >取消
+              </el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -174,14 +264,14 @@ const onJoinTeam = () => {
             :color="themeColor"
             size="large"
             @click="openCreateTeam"
-            >创建团队</el-button
-          >
+            >创建团队
+          </el-button>
           <el-button
             :color="themeColor"
             size="large"
             @click="toggleShowTeamCodeInput"
-            >加入团队</el-button
-          >
+            >加入团队
+          </el-button>
         </div>
         <transition name="scale">
           <div
@@ -191,8 +281,8 @@ const onJoinTeam = () => {
             <el-input v-model="teamCodeInput" placeholder="请输入团队码">
               <template #append>
                 <el-button :color="themeColor" @click="onJoinTeam"
-                  >Join!</el-button
-                >
+                  >Join!
+                </el-button>
               </template>
             </el-input>
           </div>
@@ -200,16 +290,59 @@ const onJoinTeam = () => {
       </el-empty>
     </section>
 
-    <section v-else-if="!isNotJoinGroup">
-      <div>团队管理页面</div>
+    <section v-else-if="!isNotJoinGroup" class="group-manage-container">
+      <header>
+        <div class="welcome-text">
+          {{ welcomeText }}!{{ userInfo.username }}。
+        </div>
+        <div>{{ formattedNow }}</div>
+      </header>
+      <main>
+        <section class="group-info">
+          <div class="title">{{ userInfo.belongGroupName }}的团队统计</div>
+          <div class="group-code">
+            团队码:&nbsp;{{ userInfo.belongGroupCode }}
+          </div>
+          <el-divider></el-divider>
+          <section class="group-analysis">
+            <analysis-item
+              v-for="(item, index) in groupAnalysisList"
+              :key="index"
+              :icon-name="item.iconName"
+              :num="item.num"
+              :text="item.text"
+            ></analysis-item>
+          </section>
+        </section>
+        <section class="group-member-analysis">
+          <member-analysis
+            v-for="(item, index) in chartDataList"
+            :key="index"
+            :chart-data="item.list"
+            :title="item.title"
+          ></member-analysis>
+        </section>
+      </main>
     </section>
   </div>
 </template>
 
 <style scoped lang="scss">
+@import "@/styles/mixin/layout.scss";
+
+@mixin group-analysis-container-layout {
+  width: calc(100% - 160px);
+  margin: 0 auto;
+  height: 400px;
+  padding: 30px;
+  border-radius: 30px;
+  background-color: var(--dark-color);
+}
+
 .team-manage-page {
   width: 100%;
   height: 100%;
+  overflow-x: hidden;
 
   .creating-team-container,
   .empty-container {
@@ -276,5 +409,56 @@ const onJoinTeam = () => {
 .scale-enter-active,
 .scale-leave-active {
   transition: all 0.2s;
+}
+
+.group-manage-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+
+  header {
+    width: 100%;
+    height: 400px;
+    background-color: var(--theme-color);
+    padding: 80px 80px;
+    color: #fff;
+    font-family: "PingFang", monospace;
+
+    .welcome-text {
+      font-size: 22px;
+      font-weight: 200;
+    }
+  }
+
+  main {
+    width: 100%;
+    transform: translateY(-75px);
+
+    .group-info {
+      @include group-analysis-container-layout;
+
+      .title {
+        color: #fff;
+        font-size: 24px;
+        font-weight: 300;
+      }
+
+      .group-code {
+        color: #fff;
+        font-weight: 300;
+      }
+
+      .group-analysis {
+        @include flex-gap-flex-evenly(20px);
+      }
+    }
+
+    .group-member-analysis {
+      @include group-analysis-container-layout;
+      @include flex-gap-flex-evenly(20px);
+      margin-top: 10px;
+    }
+  }
 }
 </style>
