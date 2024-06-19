@@ -6,6 +6,7 @@ interface User {
   belongGroupId?: string;
   belongGroupName?: string;
   belongGroupColor?: string;
+  belongGroupCode?: string;
 }
 
-export { User };
+export type { User };

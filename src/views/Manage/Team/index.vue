@@ -3,33 +3,10 @@ import colorPicker from "@/components/common/colorPicker/index.vue";
 import waveAnimation from "@/components/common/waveAnimation/index.vue";
 import analysisItem from "@/components/common/analysisItem/index.vue";
 import memberAnalysis from "@/components/common/memberAnalysis/index.vue";
+import manageHeader from "@/components/common/manageHeader/index.vue";
 import type { FormInstance, FormRules } from "element-plus";
-import { useNow } from "@vueuse/core";
-import { format } from "date-fns";
 import { useUserStore } from "@/store/modules/user";
 import { useColorStore } from "@/store/modules/color";
-
-const now = useNow();
-
-const welcomeText = computed(() => {
-  const hour = now.value.getHours();
-  if (hour < 6) {
-    return "凌晨好";
-  } else if (hour < 9) {
-    return "早上好";
-  } else if (hour < 12) {
-    return "上午好";
-  } else if (hour < 14) {
-    return "中午好";
-  } else if (hour < 17) {
-    return "下午好";
-  } else if (hour < 19) {
-    return "傍晚好";
-  }
-  return "晚上好";
-});
-
-const formattedNow = computed(() => format(now.value, "yyyy-MM-dd HH:mm:ss"));
 
 const { themeColor } = useColorStore();
 
@@ -291,12 +268,7 @@ const chartDataList = ref([
     </section>
 
     <section v-else-if="!isNotJoinGroup" class="group-manage-container">
-      <header>
-        <div class="welcome-text">
-          {{ welcomeText }}!{{ userInfo.username }}。
-        </div>
-        <div>{{ formattedNow }}</div>
-      </header>
+      <manage-header :username="userInfo.nickname"></manage-header>
       <main>
         <section class="group-info">
           <div class="title">{{ userInfo.belongGroupName }}的团队统计</div>
@@ -329,6 +301,7 @@ const chartDataList = ref([
 
 <style scoped lang="scss">
 @import "@/styles/mixin/layout.scss";
+@import "@/styles/mixin/title.scss";
 
 @mixin group-analysis-container-layout {
   width: calc(100% - 160px);
@@ -361,8 +334,7 @@ const chartDataList = ref([
     }
 
     .title {
-      font-size: 24px;
-      font-weight: 300;
+      @include banner-title;
     }
 
     &:deep(.el-input__wrapper.is-focus) {
@@ -416,20 +388,6 @@ const chartDataList = ref([
   flex-direction: column;
   width: 100%;
   height: 100%;
-
-  header {
-    width: 100%;
-    height: 400px;
-    background-color: var(--theme-color);
-    padding: 80px 80px;
-    color: #fff;
-    font-family: "PingFang", monospace;
-
-    .welcome-text {
-      font-size: 22px;
-      font-weight: 200;
-    }
-  }
 
   main {
     width: 100%;
