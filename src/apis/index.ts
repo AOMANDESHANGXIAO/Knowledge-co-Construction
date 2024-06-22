@@ -1,51 +1,52 @@
 // src/http/axios.js
 import axios from 'axios'
-import { ElMessage } from 'element-plus'
+import {ElMessage} from 'element-plus'
 import router from '@/router'
 
 axios.defaults.timeout = 10000 // 请求超时时间
 
 const Service = axios.create({
-  baseURL: '/',
+    baseURL: 'http://127.0.0.1:8000',
 })
 
 // axios 请求拦截器
 Service.interceptors.request.use(
-  config => {
-    if (localStorage.getItem('access_token')) {
-      config.headers.Authorization =
-        'Bearer' + '  ' + localStorage.getItem('access_token')
+    config => {
+        if (localStorage.getItem('access_token')) {
+            config.headers.Authorization =
+                'Bearer' + '  ' + localStorage.getItem('access_token')
+        }
+        return config
+    },
+    error => {
+        ElMessage({
+            message: '请求超时!请检查网络',
+            type: 'error',
+        })
+        return Promise.reject(error)
     }
-    return config
-  },
-  error => {
-    ElMessage({
-      message: '请求超时!请检查网络',
-      type: 'error',
-    })
-    return Promise.reject(error)
-  }
 )
 // axios respone拦截器
 Service.interceptors.response.use(
-  res => {
-    if (res.status == 200) {
-      return res
-    } else if (res.status == 401) {
-      router.push('/home')
-      return res
-    } else if (res.status == 201) {
-      return res
+    res => {
+        if (res.status == 200) {
+            return res
+        } else if (res.status == 401) {
+            router.push('/home')
+            return res
+        } else if (res.status == 201) {
+            return res
+        }
+        console.log('res.data ===>', res.data)
+        return res.data
+    },
+    error => {
+        ElMessage({
+            type: 'error',
+            message: `请求出错。错误代码:${error.response.status}`,
+        })
+        return Promise.reject(error.response.data)
     }
-    return res
-  },
-  error => {
-    ElMessage({
-      type: 'error',
-      message: `请求出错。错误代码:${error.response.status}`,
-    })
-    return Promise.reject(error.response.data)
-  }
 )
 
 export default Service
