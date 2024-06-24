@@ -11,8 +11,8 @@ export const useColorStore = defineStore(
     const { userInfo } = userStore;
 
     const setUserColor = () => {
-      if (userInfo.belongGroupColor) {
-        useCssVar("--theme-color").value = userInfo.belongGroupColor;
+      if (userInfo.group_color) {
+        useCssVar("--theme-color").value = userInfo.group_color;
       }
     };
 

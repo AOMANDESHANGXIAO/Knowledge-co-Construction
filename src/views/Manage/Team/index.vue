@@ -1,182 +1,259 @@
 <script setup lang="ts">
-import colorPicker from "@/components/common/colorPicker/index.vue";
-import waveAnimation from "@/components/common/waveAnimation/index.vue";
-import analysisItem from "@/components/common/analysisItem/index.vue";
-import memberAnalysis from "@/components/common/memberAnalysis/index.vue";
-import manageHeader from "@/components/common/manageHeader/index.vue";
-import type { FormInstance, FormRules } from "element-plus";
-import { useUserStore } from "@/store/modules/user";
-import { useColorStore } from "@/store/modules/color";
+import colorPicker from '@/components/common/colorPicker/index.vue'
+import waveAnimation from '@/components/common/waveAnimation/index.vue'
+import analysisItem from '@/components/common/analysisItem/index.vue'
+import memberAnalysis from '@/components/common/memberAnalysis/index.vue'
+import manageHeader from '@/components/common/manageHeader/index.vue'
+import type { FormInstance, FormRules } from 'element-plus'
+import { useUserStore } from '@/store/modules/user'
+import { useColorStore } from '@/store/modules/color'
+import { createGroupApi, joinGroupApi } from '@/apis/group/index.ts'
+import { CreateGroupParams } from '@/apis/group/type.ts'
+import { TeamStatus } from './type.ts'
 
-const { themeColor } = useColorStore();
+const userStore = useUserStore()
 
-const isNotJoinGroup = ref<boolean>(true);
+const { userInfo } = userStore
 
-isNotJoinGroup.value = false;
 
-const isCreatingTeam = ref<boolean>(false);
+// 管理当前页面的状态
+const teamStatus = ref<TeamStatus>(TeamStatus.groupAnalysis)
 
-const isCreateButtonLoading = ref<boolean>(false);
+const initTeamStatus = () => {
+  // 判断用户信息中的group_id是否为null
+  if (userInfo && !userInfo.group_id) {
+    teamStatus.value = TeamStatus.notJoinGroup
+  } else {
+    teamStatus.value = TeamStatus.groupAnalysis
+  }
+}
 
-const openCreateTeam = () => {
-  isCreatingTeam.value = true;
-  isNotJoinGroup.value = false;
-};
+initTeamStatus()
 
-const form = ref({
-  name: "",
-  description: "",
-  color: "",
-});
+const setTeamStatus = (status: TeamStatus) => {
+  teamStatus.value = status
+}
+
+const { themeColor } = useColorStore()
+
+
+
+const isCreateButtonLoading = ref<boolean>(false)
+
+
+const groupForm = ref({
+  group_name: '',
+  group_description: '',
+  color: '',
+})
 
 const formRules: FormRules = reactive({
-  name: [
-    { required: true, message: "请输入团队名称", trigger: "blur" },
-    { min: 1, max: 10, message: "长度在 1 到 10 个字符", trigger: "blur" },
+  group_name: [
+    { required: true, message: '请输入团队名称', trigger: 'blur' },
+    { min: 1, max: 10, message: '长度在 1 到 10 个字符', trigger: 'blur' },
   ],
-  description: [
-    { required: true, message: "请输入团队描述", trigger: "blur" },
-    { min: 1, max: 100, message: "长度在 1 到 100 个字符", trigger: "blur" },
+  group_description: [
+    { required: true, message: '请输入团队描述', trigger: 'blur' },
+    { min: 1, max: 100, message: '长度在 1 到 100 个字符', trigger: 'blur' },
   ],
-  color: [{ required: true, message: "请选择团队颜色", trigger: "change" }],
-});
+  color: [{ required: true, message: '请选择团队颜色', trigger: 'change' }],
+})
 
-const createFormRef = ref<FormInstance | null>(null);
+const createFormRef = ref<FormInstance | null>(null)
 
 const waveColor = computed(() => {
-  if (form.value.color !== "") {
-    return form.value.color;
+  if (groupForm.value.color !== '') {
+    return groupForm.value.color
   } else {
-    return themeColor.value;
+    return themeColor.value
   }
-});
+})
 
-const onCreateTeam = () => {
-  if (!createFormRef.value) return;
-  createFormRef.value.validate((valid) => {
-    if (valid) {
-      isCreateButtonLoading.value = true;
-      setTimeout(() => {
-        isCreateButtonLoading.value = false;
-        isCreatingTeam.value = false;
-        isNotJoinGroup.value = false;
-
-        ElNotification({
-          title: "创建成功",
-          dangerouslyUseHTMLString: true,
-          message: "团队代码为<strong>CKB123</strong>,去召唤组员吧!",
-          type: "success",
-          duration: 5000,
-        });
-      }, 2000);
-      console.log("submit!");
-    } else {
-      console.log("error submit!");
-      return false;
-    }
-  });
-};
+const openCreateTeam = () => {
+  setTeamStatus(TeamStatus.creating)
+}
 
 const handleCancelCreateTeam = () => {
-  isCreatingTeam.value = false;
-  isNotJoinGroup.value = true;
-};
+  setTeamStatus(TeamStatus.notJoinGroup)
+}
+
+const onCreateTeam = () => {
+  if (!createFormRef.value) return
+  createFormRef.value.validate(valid => {
+    if (valid) {
+      isCreateButtonLoading.value = true
+
+      const params: CreateGroupParams = {
+        student_id: userInfo.id,
+        group_name: groupForm.value.group_name,
+        group_description: groupForm.value.group_description,
+        group_color: groupForm.value.color,
+        class_id: userInfo.class_id,
+      }
+
+      createGroupApi(params)
+        .then(res => {
+          const data = res.data
+          if (data.success) {
+            isCreateButtonLoading.value = false
+
+            const result = data.data
+            console.log('result ===> ', result)
+
+            userStore.setUserInfo(result)
+
+            console.log('userInfo ===> ', userStore.userInfo)
+
+            ElNotification({
+              title: '创建成功',
+              dangerouslyUseHTMLString: true,
+              message: `团队代码为<strong>${userStore.userInfo.group_code}</strong>,去召唤组员吧!`,
+              type: 'success',
+              duration: 5000,
+            })
+
+            setTeamStatus(TeamStatus.groupAnalysis)
+          } else {
+            ElNotification({
+              title: '创建失败',
+              dangerouslyUseHTMLString: true,
+              message: data.message,
+              type: 'error',
+              duration: 5000,
+            })
+          }
+        })
+        .catch(err => {
+          console.log(err)
+        })
+        .finally(() => {
+          isCreateButtonLoading.value = false
+        })
+    } else {
+      console.log('error submit!')
+      return false
+    }
+  })
+}
 
 // 加入团队
-const teamCodeInput = ref<string>("");
+const teamCodeInput = ref<string>('')
 
-const isShowTeamCodeInput = ref<boolean>(false);
+const isShowTeamCodeInput = ref<boolean>(false)
 
 const toggleShowTeamCodeInput = () => {
-  isShowTeamCodeInput.value = !isShowTeamCodeInput.value;
-};
+  isShowTeamCodeInput.value = !isShowTeamCodeInput.value
+}
 
 const onJoinTeam = () => {
   //
-  if (teamCodeInput.value.trim() === "") {
+  if (teamCodeInput.value.trim() === '') {
     ElNotification({
-      title: "请输入团队代码",
-      type: "warning",
+      title: '请输入团队代码',
+      type: 'warning',
       duration: 2000,
-    });
-    return;
+    })
+    return
   }
-  ElNotification({
-    title: "加入成功",
-    dangerouslyUseHTMLString: true,
-    message: "欢迎加入<strong>CKB</strong>",
-    type: "success",
-    duration: 2000,
-  });
-  isNotJoinGroup.value = false;
-  isCreatingTeam.value = false;
-};
+  const params = {
+    student_id: userInfo.id,
+    group_code: teamCodeInput.value,
+  }
 
-const userStore = useUserStore();
+  joinGroupApi(params)
+    .then(res => {
+      const data = res.data
+      
+      if (data.success) {
+        const result = data.data
+        userStore.setUserInfo(result)
+        
+        ElNotification({
+          title: '加入成功',
+          dangerouslyUseHTMLString: true,
+          message: `欢迎加入<strong>${result.group_name}</strong>`,
+          type: 'success',
+          duration: 2000,
+        })
 
-const { userInfo } = userStore;
+        setTeamStatus(TeamStatus.groupAnalysis)
+      } else {
+        ElNotification({
+          title: '加入失败',
+          dangerouslyUseHTMLString: true,
+          message: result.message,
+          type: 'error',
+          duration: 2000,
+        })
+      }
+    })
+    .catch(err => {
+      console.log(err)
+    })
+    .finally(() => {})
+}
 
 // 样例
 const groupAnalysisList = ref([
   {
-    iconName: "discussion",
-    text: "参与了讨论",
+    iconName: 'discussion',
+    text: '参与了讨论',
     num: 28,
   },
   {
-    iconName: "share",
-    text: "分享过观点",
+    iconName: 'share',
+    text: '分享过观点',
     num: 180,
   },
   {
-    iconName: "feedback",
-    text: "反馈过观点",
+    iconName: 'feedback',
+    text: '反馈过观点',
     num: 247,
   },
   {
-    iconName: "summary",
-    text: "总结过观点",
+    iconName: 'summary',
+    text: '总结过观点',
     num: 156,
   },
-]);
+])
 
 const chartDataList = ref([
   {
     list: [
-      { value: 18, name: "张伟" },
-      { value: 10, name: "李娜" },
-      { value: 28, name: "王浩" },
-      { value: 29, name: "赵构" },
-      { value: 30, name: "刘洋" },
+      { value: 18, name: '张伟' },
+      { value: 10, name: '李娜' },
+      { value: 28, name: '王浩' },
+      { value: 29, name: '赵构' },
+      { value: 30, name: '刘洋' },
     ],
-    title: "😁分享观点",
+    title: '😁分享观点',
   },
   {
     list: [
-      { value: 9, name: "张伟" },
-      { value: 10, name: "李娜" },
-      { value: 3, name: "王浩" },
-      { value: 21, name: "赵构" },
-      { value: 35, name: "刘洋" },
+      { value: 9, name: '张伟' },
+      { value: 10, name: '李娜' },
+      { value: 3, name: '王浩' },
+      { value: 21, name: '赵构' },
+      { value: 35, name: '刘洋' },
     ],
-    title: "🤔反馈观点",
+    title: '🤔反馈观点',
   },
   {
     list: [
-      { value: 10, name: "张伟" },
-      { value: 21, name: "李娜" },
-      { value: 22, name: "王浩" },
-      { value: 45, name: "赵构" },
-      { value: 21, name: "刘洋" },
+      { value: 10, name: '张伟' },
+      { value: 21, name: '李娜' },
+      { value: 22, name: '王浩' },
+      { value: 45, name: '赵构' },
+      { value: 21, name: '刘洋' },
     ],
-    title: "😎总结观点",
+    title: '😎总结观点',
   },
-]);
+])
 </script>
 
 <template>
   <div class="team-manage-page">
-    <section v-if="isCreatingTeam" class="creating-team-container">
+    <section v-if="teamStatus===TeamStatus.creating" class="creating-team-container">
       <transition name="scale">
         <el-card class="box-card" style="width: 500px">
           <template #header>
@@ -186,19 +263,19 @@ const chartDataList = ref([
             ref="createFormRef"
             label-position="left"
             label-width="auto"
-            :model="form"
+            :model="groupForm"
             :rules="formRules"
             hide-required-asterisk
           >
-            <el-form-item label="队名" prop="name">
+            <el-form-item label="队名" prop="group_name">
               <el-input
-                v-model="form.name"
+                v-model="groupForm.group_name"
                 placeholder="为你的团队取个名字吧"
               />
             </el-form-item>
-            <el-form-item label="简介" prop="description">
+            <el-form-item label="简介" prop="group_description">
               <el-input
-                v-model="form.description"
+                v-model="groupForm.group_description"
                 type="textarea"
                 rows="4"
                 placeholder="描述你的团队风格"
@@ -206,7 +283,9 @@ const chartDataList = ref([
             </el-form-item>
             <el-form-item label="颜色" prop="color">
               <section class="color-picker-container" style="width: 500px">
-                <color-picker v-model:selectedColor="form.color"></color-picker>
+                <color-picker
+                  v-model:selectedColor="groupForm.color"
+                ></color-picker>
               </section>
             </el-form-item>
             <el-divider></el-divider>
@@ -233,7 +312,7 @@ const chartDataList = ref([
       </section>
     </section>
 
-    <section v-else-if="isNotJoinGroup" class="empty-container">
+    <section v-else-if="teamStatus===TeamStatus.notJoinGroup" class="empty-container">
       <el-empty description="还没有加入团队哦,你可以...">
         <div>
           <el-button
@@ -267,13 +346,13 @@ const chartDataList = ref([
       </el-empty>
     </section>
 
-    <section v-else-if="!isNotJoinGroup" class="group-manage-container">
+    <section v-else-if="teamStatus===TeamStatus.groupAnalysis" class="group-manage-container">
       <manage-header :username="userInfo.nickname"></manage-header>
       <main>
         <section class="group-info">
-          <div class="title">{{ userInfo.belongGroupName }}的团队统计</div>
+          <div class="title">{{ userStore.userInfo.group_name }}的团队统计</div>
           <div class="group-code">
-            团队码:&nbsp;{{ userInfo.belongGroupCode }}
+            团队码:&nbsp;{{ userStore.userInfo.group_code }}
           </div>
           <el-divider></el-divider>
           <section class="group-analysis">
@@ -300,8 +379,8 @@ const chartDataList = ref([
 </template>
 
 <style scoped lang="scss">
-@import "@/styles/mixin/layout.scss";
-@import "@/styles/mixin/title.scss";
+@import '@/styles/mixin/layout.scss';
+@import '@/styles/mixin/title.scss';
 
 @mixin group-analysis-container-layout {
   width: calc(100% - 160px);

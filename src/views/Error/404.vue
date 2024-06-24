@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 defineOptions({
-    name: '404-page'
+    group_name: '404-page'
 })
 </script>
 

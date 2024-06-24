@@ -4,6 +4,9 @@ import {LoginForm, RegisterForm, classItem} from "./type.ts";
 import type {FormInstance, FormRules} from "element-plus";
 import {queryClassRoomList, signInAction, signUpAction} from '@/apis/login/index.ts'
 import router from "@/router/index.ts";
+import {SignInParams} from "@/apis/login/type.ts";
+import {useUserStore} from '@/store/modules/user/index.ts'
+
 
 const themeColor = useCssVar("--theme-color");
 
@@ -58,6 +61,10 @@ const submitLogin = () => {
         const data = res.data;
         if(data.success) {
           ElMessage.success("登录成功!")
+          // 存储用户信息
+          const userStore = useUserStore()
+          userStore.setUserInfo(data.data)
+          // console.log('用户信息 ===> ', userStore.userInfo)
           router.push("/manage")
         } else {
           const msg = data.message;
@@ -96,6 +103,9 @@ const registerRules: FormRules = reactive({
   nickname: [
     {required: true, message: "请输入昵称", trigger: "blur"},
     {min: 2, max: 10, message: "长度在 2 到 10 个字符", trigger: "blur"},
+  ],
+  class_id:[
+    {required: true, message: '请选择所在班级', trigger: "blur"},
   ],
   password: [
     {required: true, message: "请输入密码", trigger: "blur"},
@@ -236,7 +246,7 @@ const submitRegister = () => {
             :rules="registerRules"
             ref="registerFormRef"
         >
-          <el-form-item>
+          <el-form-item prop="class_id">
             <div class="sub-title">班级</div>
             <el-select v-model="registerForm.class_id" placeholder="选择您所在的班级 ">
               <el-option

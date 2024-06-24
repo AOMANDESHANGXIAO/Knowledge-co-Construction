@@ -21,7 +21,7 @@ import { useCssVar } from "@vueuse/core";
 import { LayoutDirection, VueFlowNode, VueFlowEdge, NodeType } from "./type.ts";
 
 defineOptions({
-  name: "flow-component",
+  group_name: "flow-component",
 });
 
 const position = { x: 0, y: 0 };

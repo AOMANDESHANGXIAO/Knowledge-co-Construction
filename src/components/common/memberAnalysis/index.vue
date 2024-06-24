@@ -53,7 +53,7 @@ let option: EChartsOption = {
   color: ["#91DDCF", "#F7F9F2", "#E8C5E5", "#F19ED2", "#D8EFD3"],
   series: [
     {
-      name: "来自",
+      group_name: "来自",
       type: "pie",
       radius: ["40%", "70%"],
       avoidLabelOverlap: false,
