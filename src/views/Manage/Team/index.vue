@@ -181,7 +181,7 @@ const onJoinTeam = () => {
         ElNotification({
           title: '加入失败',
           dangerouslyUseHTMLString: true,
-          message: result.message,
+          message: data.message,
           type: 'error',
           duration: 2000,
         })
