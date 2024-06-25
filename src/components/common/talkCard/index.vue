@@ -4,10 +4,14 @@ import { Props } from "./type.ts";
 const props = defineProps<Props>();
 
 const emits = defineEmits(["click"]);
+
+const handleClick = () => {
+  emits("click", props.id);
+}
 </script>
 
 <template>
-  <section class="talk-card-container" @click="emits('click')">
+  <section class="talk-card-container" @click="handleClick">
     <div class="title">讨论话题:</div>
     <div>{{ props.title }}</div>
     <div class="footer">
@@ -22,7 +26,6 @@ const emits = defineEmits(["click"]);
 .talk-card-container {
   position: relative;
   width: 400px;
-  // box-sizing: content-box;
   height: 200px;
   padding: 20px;
   background-color: var(--theme-color);

@@ -4,6 +4,7 @@ import { useUserStore } from '@/store/modules/user'
 import talkCard from '@/components/common/talkCard/index.vue'
 import type { TalkCardItem } from './type.ts'
 import { queryTopicListApi } from '@/apis/manage_talk/index.ts'
+import router from '@/router/index.ts'
 
 const userStore = useUserStore()
 
@@ -41,6 +42,10 @@ const queryTopicList = () => {
     })
 }
 queryTopicList()
+
+const handleClick = (topic_id: number) => {
+  router.push({ path: '/home', query: { topic_id: topic_id } })
+}
 </script>
 
 <template>
@@ -51,8 +56,10 @@ queryTopicList()
       <el-divider></el-divider>
       <section class="talk-card-list-container">
         <talk-card
+          @click="handleClick"
           v-for="item in talkCardList"
           :key="item.id"
+          :id="item.id"
           :created-time="item.created_time"
           :title="item.topic_content"
           :created-user="item.created_user_name"
@@ -75,7 +82,7 @@ queryTopicList()
     transform: translateY(-265px);
     width: calc(100% - 160px);
     margin: 0 auto;
-    height: 700px;
+    min-height: 700px;
     padding: 30px;
     border-radius: 30px;
     background-color: var(--dark-color);

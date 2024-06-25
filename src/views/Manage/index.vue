@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const defaultActive = computed(() => {
+  // 获取当前的路由的path
   return router.currentRoute.value.path
 })
 </script>
