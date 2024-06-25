@@ -1,6 +1,13 @@
 <script setup lang="ts">
-import Icon from "@/components/Icons/ManagePageIcon/index.vue";
-import { Name } from "@/components/Icons/ManagePageIcon/type.ts";
+import Icon from '@/components/Icons/ManagePageIcon/index.vue'
+import { Name } from '@/components/Icons/ManagePageIcon/type.ts'
+import { useRouter } from 'vue-router'
+// 根据当前的路由确定el-menu-item的激活状态
+const router = useRouter()
+
+const defaultActive = computed(() => {
+  return router.currentRoute.value.path
+})
 </script>
 
 <template>
@@ -14,7 +21,7 @@ import { Name } from "@/components/Icons/ManagePageIcon/type.ts";
           background-color="#222d3c"
           text-color="#fff"
           router
-          default-active="/manage/team"
+          :default-active="defaultActive"
         >
           <el-menu-item index="/manage/team">
             <section class="menu-item">
