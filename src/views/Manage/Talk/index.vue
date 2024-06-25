@@ -1,34 +1,46 @@
 <script setup lang="ts">
-import manageHeader from "@/components/common/manageHeader/index.vue";
-import { useUserStore } from "@/store/modules/user";
-import talkCard from "@/components/common/talkCard/index.vue";
+import manageHeader from '@/components/common/manageHeader/index.vue'
+import { useUserStore } from '@/store/modules/user'
+import talkCard from '@/components/common/talkCard/index.vue'
+import type { TalkCardItem } from './type.ts'
+import { queryTopicListApi } from '@/apis/manage_talk/index.ts'
 
-const userStore = useUserStore();
+const userStore = useUserStore()
 
-const { userInfo } = userStore;
+const { userInfo } = userStore
 
-const talkCardList = ref([
-  {
-    createdTime: "2022-01-01",
-    title: "人工智能是否有利于促进学生深度学习的发展?",
-    createdUser: "谢斌",
-  },
-  {
-    createdTime: "2024-01-01",
-    title: "怎样看待人工智能发展?",
-    createdUser: "谢斌",
-  },
-  {
-    createdTime: "2022-01-01",
-    title: "生成式人工智能怎样影响学生的认知发展?",
-    createdUser: "谢斌",
-  },
-  {
-    createdTime: "2022-01-01",
-    title: "生成式人工智能怎样影响学生的认知发展?",
-    createdUser: "谢斌",
-  },
-]);
+const talkCardList = ref<TalkCardItem[]>([])
+
+const queryTopicList = () => {
+  const class_id = userStore.userInfo.class_id
+
+  queryTopicListApi(class_id)
+    .then(res => {
+      const data = res.data
+
+      if (data.success) {
+        talkCardList.value = data.data.list
+      } else {
+        ElNotification({
+          title: '查询失败',
+          dangerouslyUseHTMLString: false,
+          message: data.message,
+          type: 'error',
+          duration: 2000,
+        })
+      }
+    })
+    .catch(() => {
+      ElNotification({
+        title: '查询失败',
+        dangerouslyUseHTMLString: false,
+        message: '服务器有点累~',
+        type: 'error',
+        duration: 2000,
+      })
+    })
+}
+queryTopicList()
 </script>
 
 <template>
@@ -39,11 +51,11 @@ const talkCardList = ref([
       <el-divider></el-divider>
       <section class="talk-card-list-container">
         <talk-card
-          v-for="(item, index) in talkCardList"
-          :key="index"
-          :created-time="item.createdTime"
-          :title="item.title"
-          :created-user="item.createdUser"
+          v-for="item in talkCardList"
+          :key="item.id"
+          :created-time="item.created_time"
+          :title="item.topic_content"
+          :created-user="item.created_user_name"
         ></talk-card>
       </section>
     </main>
@@ -51,7 +63,7 @@ const talkCardList = ref([
 </template>
 
 <style scoped lang="scss">
-@import "@/styles/mixin/title.scss";
+@import '@/styles/mixin/title.scss';
 
 .manage-page-talk {
   width: 100%;

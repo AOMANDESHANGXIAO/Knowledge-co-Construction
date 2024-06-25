@@ -21,7 +21,8 @@ const emits = defineEmits(["click"]);
 @import "@/styles/animation/index.scss";
 .talk-card-container {
   position: relative;
-  width: 330px;
+  width: 400px;
+  // box-sizing: content-box;
   height: 200px;
   padding: 20px;
   background-color: var(--theme-color);
