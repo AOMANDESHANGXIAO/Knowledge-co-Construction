@@ -218,7 +218,7 @@ async function drawFlow(newNodes: VueFlowNode[], newEdges: VueFlowEdge[]) {
   })
 }
 
-const queryFlowData = () => {
+const queryFlowData = (callback: Function = () => {}) => {
   const topic_id = router.currentRoute.value.query?.topic_id as unknown as
     | number
     | undefined
@@ -231,6 +231,7 @@ const queryFlowData = () => {
       if (data.success) {
         nodes.value = data.data.nodes
         edges.value = data.data.edges
+        callback()
       }
       console.log(res)
     })
@@ -295,10 +296,19 @@ function getNodesAndEdges() {
   }
 }
 
+const refresh = () => {
+  // 刷新节点和边
+  const callBack = () => {
+    drawFlow(nodes.value, edges.value)
+  }
+  queryFlowData(callBack)
+}
+
 defineExpose({
   layoutGraph,
   drawFlow,
   getNodesAndEdges,
+  refresh,
   lineNormalColor,
   lineApproveColor,
   lineOpposeColor,

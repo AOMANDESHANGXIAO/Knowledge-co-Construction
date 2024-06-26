@@ -26,5 +26,5 @@ export const useColorStore = defineStore(
       themeColor,
     };
   },
-  { persist: false },
+  { persist: true },
 );

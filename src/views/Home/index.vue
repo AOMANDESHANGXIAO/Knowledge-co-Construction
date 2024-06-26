@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import { ref } from 'vue'
 import flowComponent from '@/components/vueFlow/index.vue'
 import { LayoutDirection } from '@/components/vueFlow/type.ts'
-import Icon from "@/components/Icons/HomePageIcon/index.vue"
-import {useCssVar} from '@vueuse/core'
-
+import Icon from '@/components/Icons/HomePageIcon/index.vue'
+import { useColorStore } from '@/store/modules/color'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/store/modules/user'
+import { proposeIdeaApi } from '@/apis/flow/index.ts'
+import type { ProposeIdeaParams } from '@/apis/flow/type.ts'
 
 // TODO: 代码重构，这里写的太屎了
 
-const themeColor = useCssVar('--theme-color')
+const colorStore = useColorStore()
 
+const themeColor = colorStore.themeColor
 // 给引用组件标注类型
 type vueFlowInstance = InstanceType<typeof flowComponent>
 
@@ -26,6 +30,14 @@ const handleGoHome = () => {
 
 const visible = ref<boolean>(false)
 
+const title = ref('')
+
+const handleViewIdeaDialog = () => {
+  visible.value = !visible.value
+}
+
+
+// ====提出观点逻辑=====
 const ideaForm = ref({
   title: '',
   stuIdea: '',
@@ -33,10 +45,81 @@ const ideaForm = ref({
   limitation: '',
 })
 
-const handleViewIdeaDialog = () => {
-  visible.value = !visible.value
+const proposeIdeaForm = ref({
+  option: '',
+  basedOption: '',
+  limitation: '',
+})
+
+const proposeIdeaFormList = ref([
+  {
+    title: '🤔你的观点是',
+    placeholder: '请输入你的观点',
+    model: 'option',
+  },
+  {
+    title: '😲你的依据是',
+    placeholder: '请输入你的依据',
+    model: 'basedOption',
+  },
+  {
+    title: '😛你的观点的局限在于(选填)',
+    placeholder: '请输入你的观点的局限',
+    model: 'limitation',
+  },
+])
+
+const handleProposeIdea = () => {
+  action.value = Action.proposal
+  title.value = '提出你的观点!'
+  handleViewIdeaDialog()
 }
 
+const router = useRouter()
+
+const userStore = useUserStore()
+
+const proposeIdeaCallBack = () => {
+  const content = `观点是:${proposeIdeaForm.value.option}\n依据是:${proposeIdeaForm.value.basedOption}\n局限在于:${proposeIdeaForm.value.limitation}`
+
+  const params: ProposeIdeaParams = {
+    topic_id: router.currentRoute.value.query?.topic_id as unknown as number,
+    student_id: userStore.userInfo.id,
+    content: content,
+  }
+  proposeIdeaApi(params)
+    .then(res => {
+      const data = res.data
+
+      if (data.success) {
+        ElNotification({
+          title: 'Success',
+          message: data.message,
+          type: 'success',
+        })
+        vueFlowRef.value?.refresh()
+      } else {
+        ElNotification({
+          title: 'Error',
+          message: data.message,
+          type: 'error',
+        })
+      }
+      console.log(res)
+    })
+    .catch(err => {
+      ElNotification({
+        title: 'Error',
+        message: '服务器有点累~',
+        type: 'error',
+      })
+      console.log(err)
+    }).finally(() => {
+      handleViewIdeaDialog()
+    })
+}
+
+// ====================
 
 // 控制按钮加载状态
 const loading = ref(false)
@@ -46,53 +129,53 @@ enum Action {
   proposal,
   oppose,
   approve,
-  summary
+  summary,
 }
 
 const action = ref<Action>(Action.proposal)
 
 const handleSwitchCallback = () => {
-  if(action.value === Action.proposal) {
-    proposeIdeaCallback()
-  } else if(action.value === Action.oppose) {
+  if (action.value === Action.proposal) {
+    proposeIdeaCallBack()
+  } else if (action.value === Action.oppose) {
     replyOpposeCallback()
-  } else if(action.value === Action.approve) {
+  } else if (action.value === Action.approve) {
     replyApproveCallback()
   }
 }
 
-const proposeIdeaCallback = () => {
-  // FIXME: 模拟与后端交互发表观点
-  // 发表的观点应该挂到小组节点上
-  loading.value = true
-  setTimeout(() => {
-    const position = {x: 0, y: 0}
-    const {nodes, edges} = vueFlowRef.value?.getNodesAndEdges()
-    const node = {
-      id: `idea${nodes.length + 1}`,
-      type: 'idea',
-      position,
-      data: {name: 'XieBin'}
-    }
-    const edge = {
-      id: `lianjie${nodes.length + 1}`,
-      source: `idea${nodes.length + 1}`,
-      target: '2',
-      animated: true,
-      style: {stroke: vueFlowRef?.value.lineNormalColor || ''}
-    }
-    // 后面要调后端的接口
-    nodes.push(node)
-    edges.push(edge)
-    loading.value = false
-    handleViewIdeaDialog()
-    vueFlowRef.value?.drawFlow(nodes, edges)
-    ElMessage({
-      message: '发布观点成功!',
-      type: 'success',
-    })
-  }, 2000)
-}
+// const proposeIdeaCallback = () => {
+//   // FIXME: 模拟与后端交互发表观点
+//   // 发表的观点应该挂到小组节点上
+//   loading.value = true
+//   setTimeout(() => {
+//     const position = { x: 0, y: 0 }
+//     const { nodes, edges } = vueFlowRef.value?.getNodesAndEdges()
+//     const node = {
+//       id: `idea${nodes.length + 1}`,
+//       type: 'idea',
+//       position,
+//       data: { name: 'XieBin' },
+//     }
+//     const edge = {
+//       id: `lianjie${nodes.length + 1}`,
+//       source: `idea${nodes.length + 1}`,
+//       target: '2',
+//       animated: true,
+//       style: { stroke: vueFlowRef?.value.lineNormalColor || '' },
+//     }
+//     // 后面要调后端的接口
+//     nodes.push(node)
+//     edges.push(edge)
+//     loading.value = false
+//     handleViewIdeaDialog()
+//     vueFlowRef.value?.drawFlow(nodes, edges)
+//     ElMessage({
+//       message: '发布观点成功!',
+//       type: 'success',
+//     })
+//   }, 2000)
+// }
 
 const replyOpposeCallback = () => {
   // FIXME: 模拟与后端交互发表观点
@@ -100,20 +183,20 @@ const replyOpposeCallback = () => {
   loading.value = true
   console.log('回复的id是', replyId.value)
   setTimeout(() => {
-    const position = {x: 0, y: 0}
-    const {nodes, edges} = vueFlowRef.value?.getNodesAndEdges()
+    const position = { x: 0, y: 0 }
+    const { nodes, edges } = vueFlowRef.value?.getNodesAndEdges()
     const node = {
       id: `idea${nodes.length + 1}`,
       type: 'idea',
       position,
-      data: {name: 'XieBin'}
+      data: { name: 'XieBin' },
     }
     const edge = {
       id: `lianjie${nodes.length + 1}`,
       source: `idea${nodes.length + 1}`,
       target: replyId.value,
       animated: true,
-      style: {stroke: vueFlowRef?.value.lineOpposeColor || ''}
+      style: { stroke: vueFlowRef?.value.lineOpposeColor || '' },
     }
     // 后面要调后端的接口
     nodes.push(node)
@@ -134,20 +217,20 @@ const replyApproveCallback = () => {
   loading.value = true
   console.log('回复的id是', replyId.value)
   setTimeout(() => {
-    const position = {x: 0, y: 0}
-    const {nodes, edges} = vueFlowRef.value?.getNodesAndEdges()
+    const position = { x: 0, y: 0 }
+    const { nodes, edges } = vueFlowRef.value?.getNodesAndEdges()
     const node = {
       id: `idea${nodes.length + 1}`,
       type: 'idea',
       position,
-      data: {name: 'XieBin'}
+      data: { name: 'XieBin' },
     }
     const edge = {
       id: `lianjie${nodes.length + 1}`,
       source: `idea${nodes.length + 1}`,
       target: replyId.value,
       animated: true,
-      style: {stroke: vueFlowRef?.value.lineApproveColor || ''}
+      style: { stroke: vueFlowRef?.value.lineApproveColor || '' },
     }
     // 后面要调后端的接口
     nodes.push(node)
@@ -162,57 +245,25 @@ const replyApproveCallback = () => {
   }, 2000)
 }
 
-
-const title = ref('')
-
 const replyId = ref('')
 
 const formItemList = ref([
   {
     title: '🤔你的观点是',
     placeholder: '请输入你的观点',
-    model: 'option'
+    model: 'option',
   },
   {
     title: '😲你的依据是',
     placeholder: '请输入你的依据',
-    model: 'basedOption'
+    model: 'basedOption',
   },
   {
     title: '😛你的观点的局限在于(选填)',
     placeholder: '请输入你的观点的局限',
-    model: 'limitation'
-  }
+    model: 'limitation',
+  },
 ])
-
-
-const handleViewIdea = () => {
-  action.value = Action.proposal
-  title.value = '发表观点'
-  ideaForm.value = {
-    option: '',
-    basedOption: '',
-    limitation: '',
-  }
-  formItemList.value = [
-    {
-      title: '🤔你的观点是',
-      placeholder: '请输入你的观点',
-      model: 'option'
-    },
-    {
-      title: '😲你的依据是',
-      placeholder: '请输入你的依据',
-      model: 'basedOption'
-    },
-    {
-      title: '😛你的观点的局限在于(选填)',
-      placeholder: '请输入你的观点的局限',
-      model: 'limitation'
-    }
-  ]
-  handleViewIdeaDialog()
-}
 
 const handleReplyOppose = (data: any) => {
   console.log(data)
@@ -228,17 +279,17 @@ const handleReplyOppose = (data: any) => {
     {
       title: '🤔我不认同你观点中的...',
       placeholder: '不赞同的点',
-      model: 'disagreeOption'
+      model: 'disagreeOption',
     },
     {
       title: '😛我对这一观点的看法是...',
       placeholder: '输入看法...',
-      model: 'myOpinion'
+      model: 'myOpinion',
     },
     {
       title: '😲我的依据是...',
       placeholder: '依据...',
-      model: 'basedOption'
+      model: 'basedOption',
     },
   ]
   handleViewIdeaDialog()
@@ -257,23 +308,21 @@ const handleReplyApprove = (data: any) => {
     {
       title: '🤔我同意你观点中的...',
       placeholder: '同意的点',
-      model: 'agreeOption'
+      model: 'agreeOption',
     },
     {
       title: '😛但是这一观点可能存在以下局限性...',
       placeholder: '输入看法...',
-      model: 'myOpinion'
+      model: 'myOpinion',
     },
     {
       title: '😲我的依据是...',
       placeholder: '依据...',
-      model: 'basedOption'
-    }
+      model: 'basedOption',
+    },
   ]
   handleViewIdeaDialog()
 }
-
-
 </script>
 
 <template>
@@ -283,32 +332,36 @@ const handleReplyApprove = (data: any) => {
         <template #header>
           <h1>{{ title }}</h1>
         </template>
-        <el-form :model="ideaForm" style="max-width: 700px">
-          <el-form-item v-for="(item, index) in formItemList">
+        <el-form
+          :model="proposeIdeaForm"
+          style="max-width: 700px"
+          v-if="action === Action.proposal"
+        >
+          <el-form-item v-for="(item, index) in proposeIdeaFormList">
             <h3>{{ item.title }}</h3>
-            <!-- FIXME: 重构输入框，不能用一个列表来渲染，这样会导致学生的输入在关闭弹窗之后丢失  -->
             <el-input
-                :key="index"
-                v-model="ideaForm[item.model]"
-                :placeholder="item.placeholder"
-                type="textarea"
-                rows="4"
-                show-word-limit
-                maxlength="200"
+              :key="index"
+              v-model="proposeIdeaForm[item.model]"
+              :placeholder="item.placeholder"
+              type="textarea"
+              rows="4"
+              show-word-limit
+              maxlength="200"
             ></el-input>
           </el-form-item>
         </el-form>
         <template #footer>
           <div style="display: flex; justify-content: flex-end; width: 100%">
-            <el-button plain @click="handleViewIdeaDialog" :color="themeColor">取消</el-button>
-            <el-button
-                :color="themeColor"
-                style="margin-left: 10px"
-                @click="handleSwitchCallback"
-                :loading="loading"
-            >确定
-            </el-button
+            <el-button plain @click="handleViewIdeaDialog" :color="themeColor"
+              >取消</el-button
             >
+            <el-button
+              :color="themeColor"
+              style="margin-left: 10px"
+              @click="handleSwitchCallback"
+              :loading="loading"
+              >确定
+            </el-button>
           </div>
         </template>
       </el-card>
@@ -316,27 +369,36 @@ const handleReplyApprove = (data: any) => {
   </section>
 
   <div class="vue-flow-container">
-    <flow-component ref="vueFlowRef" @reply-oppose="handleReplyOppose" @replyApprove="handleReplyApprove">
+    <flow-component
+      ref="vueFlowRef"
+      @reply-oppose="handleReplyOppose"
+      @replyApprove="handleReplyApprove"
+    >
       <div class="layout-panel">
-        <button title="发表观点" @click="handleViewIdea">
-          <Icon name="idea"/>
+        <button title="发表观点" @click="handleProposeIdea">
+          <Icon name="idea" />
         </button>
         <button title="返回首页" @click="handleGoHome">
-          <Icon name="home"/>
+          <Icon name="home" />
         </button>
         <button title="设置" @click="handleGoHome">
-          <Icon name="setting"/>
+          <Icon name="setting" />
         </button>
-        <button title="垂直排列" @click="handleLayoutGraph(LayoutDirection.Vertical)">
-          <Icon name="horizontal"/>
+        <button
+          title="垂直排列"
+          @click="handleLayoutGraph(LayoutDirection.Vertical)"
+        >
+          <Icon name="horizontal" />
         </button>
-        <button title="水平排列" @click="handleLayoutGraph(LayoutDirection.Horizontal)">
-          <Icon name="vertical"/>
+        <button
+          title="水平排列"
+          @click="handleLayoutGraph(LayoutDirection.Horizontal)"
+        >
+          <Icon name="vertical" />
         </button>
       </div>
     </flow-component>
   </div>
-
 </template>
 
 <style scoped lang="scss">
@@ -362,7 +424,6 @@ const handleReplyApprove = (data: any) => {
     --el-input-focus-border-color: var(--theme-color);
     //box-shadow: 0 0 0 1px #2563eb;
   }
-
 }
 
 :deep(.el-dialog__header) {
