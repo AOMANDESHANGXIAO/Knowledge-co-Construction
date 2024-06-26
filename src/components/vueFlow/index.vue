@@ -27,10 +27,9 @@ defineOptions({
 })
 
 // FIXME: 解决layout定位失败的原因
+// 已解决
 
 const { onPaneReady } = useVueFlow()
-
-const position = { x: 0, y: 0 }
 
 const lineNormalColor = useCssVar('--normal-line-color')
 const lineApproveColor = useCssVar('--approve-line-color')
@@ -230,13 +229,8 @@ const queryFlowData = () => {
       const data = res.data
 
       if (data.success) {
-        // drawFlow(data.data.nodes, data.data.edges)
         nodes.value = data.data.nodes
         edges.value = data.data.edges
-        // onPaneReady(() => {
-        //   console.log('绘制')
-        //   layoutGraph(LayoutDirection.Vertical)
-        // }) 
       }
       console.log(res)
     })
@@ -246,7 +240,7 @@ const queryFlowData = () => {
 }
 
 onPaneReady(() => {
-  if(nodes.value.length && edges.value.length) {
+  if (nodes.value.length && edges.value.length) {
     console.log('绘制')
     console.log(nodes.value, edges.value)
     layoutGraph(LayoutDirection.Vertical)

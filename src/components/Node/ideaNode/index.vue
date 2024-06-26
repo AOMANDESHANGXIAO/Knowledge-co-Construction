@@ -1,84 +1,79 @@
 <script lang="ts" setup>
-import { Handle, Position } from "@vue-flow/core";
-import { watch } from "vue";
-import lottie from "@/components/common/lottie/index.vue";
-import LoadingAnimation from "@/assets/animation/loading.json";
-import { useCssVar, useElementHover } from "@vueuse/core";
-import { IdeaNodeProps } from "./type.ts";
+import { Handle, Position } from '@vue-flow/core'
+import lottie from '@/components/common/lottie/index.vue'
+import LoadingAnimation from '@/assets/animation/loading.json'
+import { IdeaNodeProps } from './type.ts'
+import { queryNodeContentApi } from '@/apis/flow/index.ts'
+import { useCssVar } from '@vueuse/core'
 
 // 控制按钮的主题颜色
-const themeColor = useCssVar("--theme-color");
+const themeColor = useCssVar('--theme-color')
 
 interface Props {
-  data: IdeaNodeProps;
+  data: IdeaNodeProps
 }
 
 const props = withDefaults(defineProps<Props>(), {
   data: () => ({
-    id: "noId",
-    name: "学生",
+    id: 'noId', // 传下来的是节点的id
+    name: '学生',
     sourcePosition: Position.Bottom,
     targetPosition: Position.Top,
   }),
-});
+})
 
 // 控制学生内容信息的加载
-const loading = ref<boolean>(true);
+const loading = ref<boolean>(true)
 
-const optionText = ref<string>("");
+const optionText = ref<string>('')
 
-const mockData = () => {
-  //  模拟与后端通信拿到学生的观点信息
-  let timer = setTimeout(() => {
-    optionText.value =
-      "我认为人工智能在2020年，将会成为人类生活必需品。而且2020年，人工智能将改变世界。我的依据是，人工智能将改变世界。我的依据是，人工智能将改变世界。我的依据是，人工智能将改变世界。我的依据是，人工智能将改变世界。我的依据";
-    clearTimeout(timer);
-    loading.value = false;
-  }, 2000);
-};
+const isShow = ref<boolean>(false)
+const isSuccess = ref<boolean>(false) // 判定是否成功加载
 
-// ========== 实现悬停时至少显示一秒 ============
-const myHoverableElement = ref();
+const handleIsShow = () => {
+  isShow.value = !isShow.value
+  if (!isSuccess.value && isShow.value) {
+    loading.value = true
+    queryNodeContent()
+  }
+}
 
-const isHovered = useElementHover(myHoverableElement);
+const queryNodeContent = () => {
+  const node_id = Number(props.data.id)
 
-const isShow = ref<boolean>(false);
-
-const timer = ref();
-
-watch(
-  () => isHovered.value,
-  (newVal) => {
-    if (newVal) {
-      // 只要鼠标悬浮在上面就开始定时器，如果超过
-      isShow.value = true;
-      if (timer.value) {
-        clearTimeout(timer.value);
+  queryNodeContentApi(node_id)
+    .then(res => {
+      const data = res.data
+      if (data.success) {
+        isSuccess.value = true
+        optionText.value = data.data.content
+      } else {
+        optionText.value = data.message
+        console.log(data.message)
       }
-      if (loading.value) {
-        mockData();
-      }
-    } else {
-      timer.value = setTimeout(() => {
-        isShow.value = false;
-      }, 1000);
-    }
-  },
-);
+    })
+    .catch(err => {
+      optionText.value = '加载失败'
+      console.log(err)
+    })
+    .finally(() => {
+      loading.value = false
+    })
+}
 
 // 向父组件传递事件，同意或者反对
-const emits = defineEmits(["reply-oppose", "reply-approve"]);
+const emits = defineEmits(['reply-oppose', 'reply-approve'])
 
-const sendReply = (emitEvent: "reply-oppose" | "reply-approve") => {
-  emits(emitEvent, props.data.id);
-};
+const sendReply = (emitEvent: 'reply-oppose' | 'reply-approve') => {
+  emits(emitEvent, props.data.id)
+}
 </script>
 
 <template>
   <div class="idea-node" ref="myHoverableElement">
     <Handle :position="props.data.targetPosition" type="target" />
     <Handle :position="props.data.sourcePosition" type="source" />
-    <span>{{ props.data.name }}</span>
+    <span @click="handleIsShow">{{ props.data.name }}</span>
     <transition name="fade">
       <section v-if="isShow" class="content-container">
         <div class="idea-container">
