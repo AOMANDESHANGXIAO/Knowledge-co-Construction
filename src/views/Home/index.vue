@@ -6,8 +6,15 @@ import Icon from '@/components/Icons/HomePageIcon/index.vue'
 import { useColorStore } from '@/store/modules/color'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/modules/user'
-import { proposeIdeaApi } from '@/apis/flow/index.ts'
-import type { ProposeIdeaParams } from '@/apis/flow/type.ts'
+import { proposeIdeaApi, replyIdeaApi } from '@/apis/flow/index.ts'
+import type { ProposeIdeaParams, ReplyIdeaParams } from '@/apis/flow/type.ts'
+import {
+  Action,
+  FormListItem,
+  ProposeIdeaModelType,
+  ApproveIdeaModelType,
+  OpposeIdeaModelType,
+} from './type.ts'
 
 // TODO: 代码重构，这里写的太屎了
 
@@ -32,26 +39,20 @@ const visible = ref<boolean>(false)
 
 const title = ref('')
 
+const replyToId = ref<string>('')
+
 const handleViewIdeaDialog = () => {
   visible.value = !visible.value
 }
 
-
 // ====提出观点逻辑=====
-const ideaForm = ref({
-  title: '',
-  stuIdea: '',
-  basedOption: '',
-  limitation: '',
-})
-
-const proposeIdeaForm = ref({
+const proposeIdeaModel = ref<ProposeIdeaModelType>({
   option: '',
   basedOption: '',
   limitation: '',
 })
 
-const proposeIdeaFormList = ref([
+const proposeIdeaFormList = ref<FormListItem[]>([
   {
     title: '🤔你的观点是',
     placeholder: '请输入你的观点',
@@ -80,13 +81,14 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const proposeIdeaCallBack = () => {
-  const content = `观点是:${proposeIdeaForm.value.option}\n依据是:${proposeIdeaForm.value.basedOption}\n局限在于:${proposeIdeaForm.value.limitation}`
+  const content = `观点是:${proposeIdeaModel.value.option}\n依据是:${proposeIdeaModel.value.basedOption}\n局限在于:${proposeIdeaModel.value.limitation}`
 
   const params: ProposeIdeaParams = {
     topic_id: router.currentRoute.value.query?.topic_id as unknown as number,
     student_id: userStore.userInfo.id,
     content: content,
   }
+  loading.value = true
   proposeIdeaApi(params)
     .then(res => {
       const data = res.data
@@ -114,214 +116,182 @@ const proposeIdeaCallBack = () => {
         type: 'error',
       })
       console.log(err)
-    }).finally(() => {
+    })
+    .finally(() => {
       handleViewIdeaDialog()
+      loading.value = false
     })
 }
-
-// ====================
 
 // 控制按钮加载状态
 const loading = ref(false)
 
-// 控制不同的弹窗显示
-enum Action {
-  proposal,
-  oppose,
-  approve,
-  summary,
-}
-
 const action = ref<Action>(Action.proposal)
 
+// ====================
+
+// =====同意观点逻辑=====
+const approveIdeaModel = ref<ApproveIdeaModelType>({
+  agreeOption: '',
+  limitation: '',
+  basedOption: '',
+})
+
+const approveIdeamFormList = ref<FormListItem[]>([
+  {
+    title: '🤔我同意你观点中的...',
+    placeholder: '同意的点',
+    model: 'agreeOption',
+  },
+  {
+    title: '😛但是这一观点可能存在以下局限性...',
+    placeholder: '输入看法...',
+    model: 'limitation',
+  },
+  {
+    title: '😲我的依据是...',
+    placeholder: '依据...',
+    model: 'basedOption',
+  },
+])
+
+const handleApproveIdea = (id: string) => {
+  action.value = Action.approve
+  title.value = '回复观点-有点赞成'
+  replyToId.value = id
+  handleViewIdeaDialog()
+}
+
+const approveIdeaCallBack = () => {
+  const content = `观点是:${approveIdeaModel.value.agreeOption}\n依据是:${approveIdeaModel.value.limitation}\n局限在于:${approveIdeaModel.value.basedOption}`
+
+  const params: ReplyIdeaParams = {
+    topic_id: router.currentRoute.value.query?.topic_id as unknown as number,
+    student_id: userStore.userInfo.id,
+    content: content,
+    reply_to: Number(replyToId.value),
+    reply_type: 1,
+  }
+  loading.value = true
+  replyIdeaApi(params)
+    .then(res => {
+      const data = res.data
+
+      if (data.success) {
+        ElNotification({
+          title: 'Success',
+          message: data.message,
+          type: 'success',
+        })
+        vueFlowRef.value?.refresh()
+      } else {
+        ElNotification({
+          title: 'Error',
+          message: data.message,
+          type: 'error',
+        })
+      }
+    })
+    .catch(err => {
+      ElNotification({
+        title: 'Error',
+        message: '服务器有点累~',
+        type: 'error',
+      })
+      console.log(err)
+    })
+    .finally(() => {
+      handleViewIdeaDialog()
+      loading.value = false
+    })
+}
+// ====================
+
+// ===== 不同意观点逻辑 =====
+const opposeIdeaModel = ref<OpposeIdeaModelType>({
+  disagreeOption: '',
+  myOption: '',
+  basedOption: '',
+})
+
+const opposeIdeaFormList = ref<FormListItem[]>([
+  {
+    title: '🤔我不认同你观点中的...',
+    placeholder: '不赞同的点',
+    model: 'disagreeOption',
+  },
+  {
+    title: '😛我对这一观点的看法是...',
+    placeholder: '输入看法...',
+    model: 'myOption',
+  },
+  {
+    title: '😲我的依据是...',
+    placeholder: '依据...',
+    model: 'basedOption',
+  },
+])
+
+const handleOpposeIdea = (id: string) => {
+  action.value = Action.oppose
+  title.value = '回复观点-有点不赞成'
+  replyToId.value = id
+  handleViewIdeaDialog()
+}
+
+const opposeIdeaCallBack = () => {
+  const content = `我不同意的观点是:${opposeIdeaModel.value.disagreeOption}\n我的观点是:${opposeIdeaModel.value.myOption}\n我的依据是:${opposeIdeaModel.value.basedOption}`
+
+  const params: ReplyIdeaParams = {
+    topic_id: router.currentRoute.value.query?.topic_id as unknown as number,
+    student_id: userStore.userInfo.id,
+    content: content,
+    reply_to: Number(replyToId.value),
+    reply_type: 1,
+  }
+  loading.value = true
+  replyIdeaApi(params)
+    .then(res => {
+      const data = res.data
+
+      if (data.success) {
+        ElNotification({
+          title: 'Success',
+          message: data.message,
+          type: 'success',
+        })
+        vueFlowRef.value?.refresh()
+      } else {
+        ElNotification({
+          title: 'Error',
+          message: data.message,
+          type: 'error',
+        })
+      }
+    })
+    .catch(err => {
+      ElNotification({
+        title: 'Error',
+        message: '服务器有点累~',
+        type: 'error',
+      })
+      console.log(err)
+    })
+    .finally(() => {
+      handleViewIdeaDialog()
+      loading.value = false
+    })
+}
+
+// 根据当前的状态选择回调函数
 const handleSwitchCallback = () => {
   if (action.value === Action.proposal) {
     proposeIdeaCallBack()
   } else if (action.value === Action.oppose) {
-    replyOpposeCallback()
+    opposeIdeaCallBack()
   } else if (action.value === Action.approve) {
-    replyApproveCallback()
+    approveIdeaCallBack()
   }
-}
-
-// const proposeIdeaCallback = () => {
-//   // FIXME: 模拟与后端交互发表观点
-//   // 发表的观点应该挂到小组节点上
-//   loading.value = true
-//   setTimeout(() => {
-//     const position = { x: 0, y: 0 }
-//     const { nodes, edges } = vueFlowRef.value?.getNodesAndEdges()
-//     const node = {
-//       id: `idea${nodes.length + 1}`,
-//       type: 'idea',
-//       position,
-//       data: { name: 'XieBin' },
-//     }
-//     const edge = {
-//       id: `lianjie${nodes.length + 1}`,
-//       source: `idea${nodes.length + 1}`,
-//       target: '2',
-//       animated: true,
-//       style: { stroke: vueFlowRef?.value.lineNormalColor || '' },
-//     }
-//     // 后面要调后端的接口
-//     nodes.push(node)
-//     edges.push(edge)
-//     loading.value = false
-//     handleViewIdeaDialog()
-//     vueFlowRef.value?.drawFlow(nodes, edges)
-//     ElMessage({
-//       message: '发布观点成功!',
-//       type: 'success',
-//     })
-//   }, 2000)
-// }
-
-const replyOpposeCallback = () => {
-  // FIXME: 模拟与后端交互发表观点
-  // 发表的观点应该挂到小组节点上
-  loading.value = true
-  console.log('回复的id是', replyId.value)
-  setTimeout(() => {
-    const position = { x: 0, y: 0 }
-    const { nodes, edges } = vueFlowRef.value?.getNodesAndEdges()
-    const node = {
-      id: `idea${nodes.length + 1}`,
-      type: 'idea',
-      position,
-      data: { name: 'XieBin' },
-    }
-    const edge = {
-      id: `lianjie${nodes.length + 1}`,
-      source: `idea${nodes.length + 1}`,
-      target: replyId.value,
-      animated: true,
-      style: { stroke: vueFlowRef?.value.lineOpposeColor || '' },
-    }
-    // 后面要调后端的接口
-    nodes.push(node)
-    edges.push(edge)
-    loading.value = false
-    handleViewIdeaDialog()
-    vueFlowRef.value?.drawFlow(nodes, edges)
-    ElMessage({
-      message: '反馈成功!',
-      type: 'success',
-    })
-  }, 2000)
-}
-
-const replyApproveCallback = () => {
-  // FIXME: 模拟与后端交互发表观点
-  // 发表的观点应该挂到小组节点上
-  loading.value = true
-  console.log('回复的id是', replyId.value)
-  setTimeout(() => {
-    const position = { x: 0, y: 0 }
-    const { nodes, edges } = vueFlowRef.value?.getNodesAndEdges()
-    const node = {
-      id: `idea${nodes.length + 1}`,
-      type: 'idea',
-      position,
-      data: { name: 'XieBin' },
-    }
-    const edge = {
-      id: `lianjie${nodes.length + 1}`,
-      source: `idea${nodes.length + 1}`,
-      target: replyId.value,
-      animated: true,
-      style: { stroke: vueFlowRef?.value.lineApproveColor || '' },
-    }
-    // 后面要调后端的接口
-    nodes.push(node)
-    edges.push(edge)
-    loading.value = false
-    handleViewIdeaDialog()
-    vueFlowRef.value?.drawFlow(nodes, edges)
-    ElMessage({
-      message: '反馈成功!',
-      type: 'success',
-    })
-  }, 2000)
-}
-
-const replyId = ref('')
-
-const formItemList = ref([
-  {
-    title: '🤔你的观点是',
-    placeholder: '请输入你的观点',
-    model: 'option',
-  },
-  {
-    title: '😲你的依据是',
-    placeholder: '请输入你的依据',
-    model: 'basedOption',
-  },
-  {
-    title: '😛你的观点的局限在于(选填)',
-    placeholder: '请输入你的观点的局限',
-    model: 'limitation',
-  },
-])
-
-const handleReplyOppose = (data: any) => {
-  console.log(data)
-  action.value = Action.oppose
-  title.value = '不支持该观点'
-  replyId.value = data
-  ideaForm.value = {
-    disagreeOption: '',
-    myOpinion: '',
-    basedOption: '',
-  }
-  formItemList.value = [
-    {
-      title: '🤔我不认同你观点中的...',
-      placeholder: '不赞同的点',
-      model: 'disagreeOption',
-    },
-    {
-      title: '😛我对这一观点的看法是...',
-      placeholder: '输入看法...',
-      model: 'myOpinion',
-    },
-    {
-      title: '😲我的依据是...',
-      placeholder: '依据...',
-      model: 'basedOption',
-    },
-  ]
-  handleViewIdeaDialog()
-}
-
-const handleReplyApprove = (data: any) => {
-  action.value = Action.approve
-  title.value = '支持观点'
-  replyId.value = data
-  ideaForm.value = {
-    agreeOption: '',
-    myOpinion: '',
-    basedOption: '',
-  }
-  formItemList.value = [
-    {
-      title: '🤔我同意你观点中的...',
-      placeholder: '同意的点',
-      model: 'agreeOption',
-    },
-    {
-      title: '😛但是这一观点可能存在以下局限性...',
-      placeholder: '输入看法...',
-      model: 'myOpinion',
-    },
-    {
-      title: '😲我的依据是...',
-      placeholder: '依据...',
-      model: 'basedOption',
-    },
-  ]
-  handleViewIdeaDialog()
 }
 </script>
 
@@ -332,8 +302,9 @@ const handleReplyApprove = (data: any) => {
         <template #header>
           <h1>{{ title }}</h1>
         </template>
+
         <el-form
-          :model="proposeIdeaForm"
+          :model="proposeIdeaModel"
           style="max-width: 700px"
           v-if="action === Action.proposal"
         >
@@ -341,7 +312,7 @@ const handleReplyApprove = (data: any) => {
             <h3>{{ item.title }}</h3>
             <el-input
               :key="index"
-              v-model="proposeIdeaForm[item.model]"
+              v-model="proposeIdeaModel[item.model]"
               :placeholder="item.placeholder"
               type="textarea"
               rows="4"
@@ -350,6 +321,45 @@ const handleReplyApprove = (data: any) => {
             ></el-input>
           </el-form-item>
         </el-form>
+
+        <el-form
+          :model="approveIdeaModel"
+          style="max-width: 700px"
+          v-else-if="action === Action.approve"
+        >
+          <el-form-item v-for="(item, index) in approveIdeamFormList">
+            <h3>{{ item.title }}</h3>
+            <el-input
+              :key="index"
+              v-model="approveIdeaModel[item.model]"
+              :placeholder="item.placeholder"
+              type="textarea"
+              rows="4"
+              show-word-limit
+              maxlength="200"
+            ></el-input>
+          </el-form-item>
+        </el-form>
+
+        <el-form
+          :model="opposeIdeaModel"
+          style="max-width: 700px"
+          v-else-if="action === Action.oppose"
+        >
+          <el-form-item v-for="(item, index) in opposeIdeaFormList">
+            <h3>{{ item.title }}</h3>
+            <el-input
+              :key="index"
+              v-model="opposeIdeaModel[item.model]"
+              :placeholder="item.placeholder"
+              type="textarea"
+              rows="4"
+              show-word-limit
+              maxlength="200"
+            ></el-input>
+          </el-form-item>
+        </el-form>
+
         <template #footer>
           <div style="display: flex; justify-content: flex-end; width: 100%">
             <el-button plain @click="handleViewIdeaDialog" :color="themeColor"
@@ -371,8 +381,8 @@ const handleReplyApprove = (data: any) => {
   <div class="vue-flow-container">
     <flow-component
       ref="vueFlowRef"
-      @reply-oppose="handleReplyOppose"
-      @replyApprove="handleReplyApprove"
+      @reply-oppose="handleOpposeIdea"
+      @reply-approve="handleApproveIdea"
     >
       <div class="layout-panel">
         <button title="发表观点" @click="handleProposeIdea">
