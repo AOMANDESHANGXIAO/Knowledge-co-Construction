@@ -255,15 +255,15 @@ const opposeIdeaCallBack = () => {
   handleReplyIdea(params)
 }
 
+const callBackObj = {
+  [Action.proposal]: proposeIdeaCallBack,
+  [Action.oppose]: opposeIdeaCallBack,
+  [Action.approve]: approveIdeaCallBack,
+}
+
 // 根据当前的状态选择回调函数
 const handleSwitchCallback = () => {
-  if (action.value === Action.proposal) {
-    proposeIdeaCallBack()
-  } else if (action.value === Action.oppose) {
-    opposeIdeaCallBack()
-  } else if (action.value === Action.approve) {
-    approveIdeaCallBack()
-  }
+  callBackObj[action.value]?.call()
 }
 </script>
 

@@ -11,6 +11,7 @@ const props = withDefaults(defineProps<Props>(), {
   data: () => ({
     groupName: "小组A",
     groupConclusion: "暂时没有讨论结果...",
+    bgc: "#FFA62F",
     sourcePosition: Position.Bottom, // 出来
     targetPosition: Position.Top, // 进来
   }),
@@ -19,23 +20,13 @@ const props = withDefaults(defineProps<Props>(), {
 const handleClick = () => {
   console.log("click");
 };
-
-const groupColor = computed((): string => {
-  // 随机颜色
-  const groupColorList: string[] = ["#AF47D2", "#FFA62F", "#FF0000"];
-  let min = 0;
-  let max = groupColorList.length - 1;
-  let randomInteger = Math.floor(Math.random() * (max - min + 1)) + min;
-  console.log(randomInteger, groupColorList[randomInteger]);
-  return groupColorList[randomInteger];
-});
 </script>
 
 <template>
   <div class="container" @click="handleClick">
     <Handle type="target" :position="props.data.targetPosition" />
     <Handle type="source" :position="props.data.sourcePosition" />
-    <div class="title" :style="{ backgroundColor: groupColor }">
+    <div class="title" :style="{ backgroundColor: props.data.bgc }">
       {{ props.data.groupName }}
     </div>
     <div class="content">

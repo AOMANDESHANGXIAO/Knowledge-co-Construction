@@ -17,6 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
   data: () => ({
     id: 'noId', // 传下来的是节点的id
     name: '学生',
+    bgc: '#fff',
     sourcePosition: Position.Bottom,
     targetPosition: Position.Top,
   }),
@@ -70,10 +71,12 @@ const sendReply = (emitEvent: 'reply-oppose' | 'reply-approve') => {
 </script>
 
 <template>
-  <div class="idea-node" ref="myHoverableElement">
+  <div class="idea-node" ref="myHoverableElement" :style="{ backgroundColor: props.data.bgc }">
     <Handle :position="props.data.targetPosition" type="target" />
     <Handle :position="props.data.sourcePosition" type="source" />
-    <span @click="handleIsShow">{{ props.data.name }}</span>
+    <span @click="handleIsShow">{{
+      props.data.name
+    }}</span>
     <transition name="fade">
       <section v-if="isShow" class="content-container">
         <div class="idea-container">
