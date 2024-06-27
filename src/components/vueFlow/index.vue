@@ -1,10 +1,5 @@
 <script setup lang="ts">
-import {
-  VueFlow,
-  Panel,
-  useVueFlow,
-  Position,
-} from '@vue-flow/core'
+import { VueFlow, Panel, useVueFlow, Position } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { MiniMap } from '@vue-flow/minimap'
 import '@vue-flow/minimap/dist/style.css'
@@ -19,20 +14,35 @@ import { useCssVar } from '@vueuse/core'
 import { queryFlowDataApi } from '@/apis/flow/index.ts'
 import { useRouter } from 'vue-router'
 
-import { LayoutDirection, VueFlowNode, VueFlowEdge, NodeType } from './type.ts'
+import { LayoutDirection, VueFlowNode, VueFlowEdge, NodeType, EdgeType } from './type.ts'
 
 defineOptions({
   option: 'flow-component',
 })
-
-// FIXME: 解决layout定位失败的原因
-// 已解决
 
 const { onPaneReady } = useVueFlow()
 
 const lineNormalColor = useCssVar('--normal-line-color')
 const lineApproveColor = useCssVar('--approve-line-color')
 const lineOpposeColor = useCssVar('--oppose-line-color')
+
+const lineColors = {
+  group_to_discuss: lineNormalColor.value,
+  idea_to_group: lineNormalColor.value, 
+  approve: lineApproveColor.value,
+  reject: lineOpposeColor.value,
+}
+
+const DEFAULT_STROKE_COLOR = '#fff'
+
+const handlerEdgesColor = (edges: VueFlowEdge[]) => {
+  return edges.map(edge => {
+    
+    const color = lineColors[edge._type as EdgeType] || DEFAULT_STROKE_COLOR
+
+    return { ...edge, style: { stroke: color }  }
+  })
+}
 
 // =======查询节点数据和边的数据逻辑==========
 const nodes = ref<VueFlowNode[]>([])
@@ -44,6 +54,7 @@ const router = useRouter()
 async function drawFlow(newNodes: VueFlowNode[], newEdges: VueFlowEdge[]) {
   nodes.value = [...newNodes]
   edges.value = [...newEdges]
+  edges.value =[...handlerEdgesColor(edges.value)]
 
   await nextTick(() => {
     layoutGraph(LayoutDirection.Vertical)
@@ -76,6 +87,7 @@ onPaneReady(() => {
   if (nodes.value.length && edges.value.length) {
     console.log('绘制')
     console.log(nodes.value, edges.value)
+    edges.value = handlerEdgesColor(edges.value)
     layoutGraph(LayoutDirection.Vertical)
   }
 })

@@ -16,8 +16,6 @@ import {
   OpposeIdeaModelType,
 } from './type.ts'
 
-// TODO: 代码重构，这里写的太屎了
-
 const colorStore = useColorStore()
 
 const themeColor = colorStore.themeColor
@@ -162,16 +160,7 @@ const handleApproveIdea = (id: string) => {
   handleViewIdeaDialog()
 }
 
-const approveIdeaCallBack = () => {
-  const content = `观点是:${approveIdeaModel.value.agreeOption}\n依据是:${approveIdeaModel.value.limitation}\n局限在于:${approveIdeaModel.value.basedOption}`
-
-  const params: ReplyIdeaParams = {
-    topic_id: router.currentRoute.value.query?.topic_id as unknown as number,
-    student_id: userStore.userInfo.id,
-    content: content,
-    reply_to: Number(replyToId.value),
-    reply_type: 1,
-  }
+const handleReplyIdea = (params: ReplyIdeaParams) => {
   loading.value = true
   replyIdeaApi(params)
     .then(res => {
@@ -204,6 +193,20 @@ const approveIdeaCallBack = () => {
       handleViewIdeaDialog()
       loading.value = false
     })
+}
+
+const approveIdeaCallBack = () => {
+  const content = `观点是:${approveIdeaModel.value.agreeOption}\n依据是:${approveIdeaModel.value.limitation}\n局限在于:${approveIdeaModel.value.basedOption}`
+
+  const params: ReplyIdeaParams = {
+    topic_id: router.currentRoute.value.query?.topic_id as unknown as number,
+    student_id: userStore.userInfo.id,
+    content: content,
+    reply_to: Number(replyToId.value),
+    reply_type: 1,
+  }
+
+  handleReplyIdea(params)
 }
 // ====================
 
@@ -247,40 +250,9 @@ const opposeIdeaCallBack = () => {
     student_id: userStore.userInfo.id,
     content: content,
     reply_to: Number(replyToId.value),
-    reply_type: 1,
+    reply_type: 0,
   }
-  loading.value = true
-  replyIdeaApi(params)
-    .then(res => {
-      const data = res.data
-
-      if (data.success) {
-        ElNotification({
-          title: 'Success',
-          message: data.message,
-          type: 'success',
-        })
-        vueFlowRef.value?.refresh()
-      } else {
-        ElNotification({
-          title: 'Error',
-          message: data.message,
-          type: 'error',
-        })
-      }
-    })
-    .catch(err => {
-      ElNotification({
-        title: 'Error',
-        message: '服务器有点累~',
-        type: 'error',
-      })
-      console.log(err)
-    })
-    .finally(() => {
-      handleViewIdeaDialog()
-      loading.value = false
-    })
+  handleReplyIdea(params)
 }
 
 // 根据当前的状态选择回调函数
