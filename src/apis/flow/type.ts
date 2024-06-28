@@ -11,4 +11,11 @@ interface ReplyIdeaParams {
   reply_to: number
   reply_type: 1 | 0 // 1 表示统一， 0表示反对
 }
-export type { ProposeIdeaParams, ReplyIdeaParams }
+
+interface ReviseGroupConclusionParams {
+  topic_id: number
+  student_id: number
+  group_id: number
+  conclusion: string
+}
+export type { ProposeIdeaParams, ReplyIdeaParams, ReviseGroupConclusionParams }

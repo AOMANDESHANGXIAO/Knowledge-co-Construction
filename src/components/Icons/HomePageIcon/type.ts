@@ -4,4 +4,6 @@ export enum IconName {
   Home = "home",
   Idea = "idea",
   Setting = "setting",
+  Summary = "summary",
+  Refresh = "refresh",
 }

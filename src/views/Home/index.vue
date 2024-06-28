@@ -5,15 +5,26 @@ import { LayoutDirection } from '@/components/vueFlow/type.ts'
 import Icon from '@/components/Icons/HomePageIcon/index.vue'
 import { useColorStore } from '@/store/modules/color'
 import { useRouter } from 'vue-router'
+import router from '@/router/index.ts'
 import { useUserStore } from '@/store/modules/user'
-import { proposeIdeaApi, replyIdeaApi } from '@/apis/flow/index.ts'
-import type { ProposeIdeaParams, ReplyIdeaParams } from '@/apis/flow/type.ts'
+import {
+  proposeIdeaApi,
+  replyIdeaApi,
+  reviseGroupConclusionApi,
+} from '@/apis/flow/index.ts'
+import type {
+  ProposeIdeaParams,
+  ReplyIdeaParams,
+  ReviseGroupConclusionParams,
+} from '@/apis/flow/type.ts'
+import { IconName } from '@/components/Icons/HomePageIcon/type.ts'
 import {
   Action,
   FormListItem,
   ProposeIdeaModelType,
   ApproveIdeaModelType,
   OpposeIdeaModelType,
+  SummaryIdeaModelType,
 } from './type.ts'
 
 const colorStore = useColorStore()
@@ -30,7 +41,7 @@ const handleLayoutGraph = (direction: LayoutDirection) => {
 }
 
 const handleGoHome = () => {
-  console.log('返回首页了')
+  router.push('/manage')
 }
 
 const visible = ref<boolean>(false)
@@ -74,7 +85,7 @@ const handleProposeIdea = () => {
   handleViewIdeaDialog()
 }
 
-const router = useRouter()
+const _router = useRouter()
 
 const userStore = useUserStore()
 
@@ -82,7 +93,7 @@ const proposeIdeaCallBack = () => {
   const content = `观点是:${proposeIdeaModel.value.option}\n依据是:${proposeIdeaModel.value.basedOption}\n局限在于:${proposeIdeaModel.value.limitation}`
 
   const params: ProposeIdeaParams = {
-    topic_id: router.currentRoute.value.query?.topic_id as unknown as number,
+    topic_id: _router.currentRoute.value.query?.topic_id as unknown as number,
     student_id: userStore.userInfo.id,
     content: content,
   }
@@ -199,7 +210,7 @@ const approveIdeaCallBack = () => {
   const content = `观点是:${approveIdeaModel.value.agreeOption}\n依据是:${approveIdeaModel.value.limitation}\n局限在于:${approveIdeaModel.value.basedOption}`
 
   const params: ReplyIdeaParams = {
-    topic_id: router.currentRoute.value.query?.topic_id as unknown as number,
+    topic_id: _router.currentRoute.value.query?.topic_id as unknown as number,
     student_id: userStore.userInfo.id,
     content: content,
     reply_to: Number(replyToId.value),
@@ -246,7 +257,7 @@ const opposeIdeaCallBack = () => {
   const content = `我不同意的观点是:${opposeIdeaModel.value.disagreeOption}\n我的观点是:${opposeIdeaModel.value.myOption}\n我的依据是:${opposeIdeaModel.value.basedOption}`
 
   const params: ReplyIdeaParams = {
-    topic_id: router.currentRoute.value.query?.topic_id as unknown as number,
+    topic_id: _router.currentRoute.value.query?.topic_id as unknown as number,
     student_id: userStore.userInfo.id,
     content: content,
     reply_to: Number(replyToId.value),
@@ -254,17 +265,82 @@ const opposeIdeaCallBack = () => {
   }
   handleReplyIdea(params)
 }
+// =====================
+
+// ===== 总结观点逻辑 ====
+const summaryIdeaModel = ref<SummaryIdeaModelType>({
+  summary: '',
+})
+
+const summaryFormList = ref<FormListItem[]>([
+  {
+    title: '总结观点',
+    placeholder: '总结本组的观点',
+    model: 'summary',
+  },
+])
+
+const handleSummaryIdea = () => {
+  action.value = Action.summary
+  title.value = '总结本组的观点'
+  handleViewIdeaDialog()
+}
+
+// 刷新页面
+const handleRefresh = () => {
+  vueFlowRef.value?.refresh()
+}
+
+const summaryIdeaCallBack = () => {
+  const params: ReviseGroupConclusionParams = {
+    topic_id: _router.currentRoute.value.query?.topic_id as unknown as number,
+    group_id: userStore.userInfo.group_id as number,
+    student_id: userStore.userInfo.id,
+    conclusion: summaryIdeaModel.value.summary,
+  }
+  reviseGroupConclusionApi(params).then((res) => {
+    const data = res.data
+    if(data.success) {
+      ElNotification({
+        title: 'Success',
+        message: data.message,
+        type: 'success',
+      })
+      handleRefresh()
+    } else {
+      ElNotification({
+        title: 'Error',
+        message: data.message,
+        type: 'error',
+      })
+    }
+  }).catch(err => {
+    ElNotification({
+      title: 'Error',
+      message: '服务器有点累~',
+      type: 'error',
+    })
+    console.log(err)
+  }).finally(() => {
+    handleViewIdeaDialog()
+  })
+}
+
+// =====================
 
 const callBackObj = {
   [Action.proposal]: proposeIdeaCallBack,
   [Action.oppose]: opposeIdeaCallBack,
   [Action.approve]: approveIdeaCallBack,
+  [Action.summary]: summaryIdeaCallBack,
 }
 
 // 根据当前的状态选择回调函数
 const handleSwitchCallback = () => {
   callBackObj[action.value]?.call()
 }
+
+
 </script>
 
 <template>
@@ -332,6 +408,25 @@ const handleSwitchCallback = () => {
           </el-form-item>
         </el-form>
 
+        <el-form
+          :model="summaryIdeaModel"
+          style="max-width: 700px"
+          v-else-if="action === Action.summary"
+        >
+          <el-form-item v-for="(item, index) in summaryFormList">
+            <h3>{{ item.title }}</h3>
+            <el-input
+              :key="index"
+              v-model="summaryIdeaModel[item.model]"
+              :placeholder="item.placeholder"
+              type="textarea"
+              rows="4"
+              show-word-limit
+              maxlength="500"
+            ></el-input>
+          </el-form-item>
+        </el-form>
+
         <template #footer>
           <div style="display: flex; justify-content: flex-end; width: 100%">
             <el-button plain @click="handleViewIdeaDialog" :color="themeColor"
@@ -358,25 +453,31 @@ const handleSwitchCallback = () => {
     >
       <div class="layout-panel">
         <button title="发表观点" @click="handleProposeIdea">
-          <Icon name="idea" />
+          <Icon :name="IconName.Idea" />
+        </button>
+        <button title="总结观点" @click="handleSummaryIdea">
+          <Icon :name="IconName.Summary" />
+        </button>
+        <button title="刷新" @click="handleRefresh">
+          <Icon :name="IconName.Refresh" />
         </button>
         <button title="返回首页" @click="handleGoHome">
-          <Icon name="home" />
+          <Icon :name="IconName.Home" />
         </button>
         <button title="设置" @click="handleGoHome">
-          <Icon name="setting" />
+          <Icon :name="IconName.Setting" />
         </button>
         <button
           title="垂直排列"
           @click="handleLayoutGraph(LayoutDirection.Vertical)"
         >
-          <Icon name="horizontal" />
+          <Icon :name="IconName.Vertical" />
         </button>
         <button
           title="水平排列"
           @click="handleLayoutGraph(LayoutDirection.Horizontal)"
         >
-          <Icon name="vertical" />
+          <Icon :name="IconName.Horizontal" />
         </button>
       </div>
     </flow-component>

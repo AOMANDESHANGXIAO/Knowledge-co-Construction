@@ -43,7 +43,7 @@ Service.interceptors.response.use(
     error => {
         ElMessage({
             type: 'error',
-            message: `请求出错。错误代码:${error.response.status}`,
+            message: `请求出错。错误代码`,
         })
         return Promise.reject(error.response.data)
     }

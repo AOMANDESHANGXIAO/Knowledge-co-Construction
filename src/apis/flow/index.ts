@@ -1,5 +1,9 @@
 import Service from '@/apis/index.ts'
-import type { ProposeIdeaParams, ReplyIdeaParams } from './type.ts'
+import type {
+  ProposeIdeaParams,
+  ReplyIdeaParams,
+  ReviseGroupConclusionParams,
+} from './type.ts'
 
 const queryFlowDataApi = (topic_id: number) => {
   return Service.get(`/flow/query?topic_id=${topic_id}`)
@@ -17,4 +21,14 @@ const replyIdeaApi = (params: ReplyIdeaParams) => {
   return Service.post('/flow/reply_idea', params)
 }
 
-export { queryFlowDataApi, queryNodeContentApi, proposeIdeaApi, replyIdeaApi }
+const reviseGroupConclusionApi = (params: ReviseGroupConclusionParams) => {
+  return Service.post('/flow/revise_group_conclusion', params)
+}
+
+export {
+  queryFlowDataApi,
+  queryNodeContentApi,
+  proposeIdeaApi,
+  replyIdeaApi,
+  reviseGroupConclusionApi,
+}

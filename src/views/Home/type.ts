@@ -29,4 +29,8 @@ export interface OpposeIdeaModelType {
   basedOption: string
 }
 
+export interface SummaryIdeaModelType {
+  summary: string
+}
+
 export { Action }

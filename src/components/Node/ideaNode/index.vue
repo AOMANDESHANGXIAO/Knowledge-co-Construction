@@ -66,6 +66,7 @@ const queryNodeContent = () => {
 const emits = defineEmits(['reply-oppose', 'reply-approve'])
 
 const sendReply = (emitEvent: 'reply-oppose' | 'reply-approve') => {
+  console.log('点击了同意或者反对')
   emits(emitEvent, props.data.id)
 }
 </script>
@@ -87,12 +88,12 @@ const sendReply = (emitEvent: 'reply-oppose' | 'reply-approve') => {
             <div class="button-group">
               <el-button
                 type="danger"
-                @click.prevent="sendReply('reply-oppose')"
+                @click="sendReply('reply-oppose')"
                 >比较反对</el-button
               >
               <el-button
                 :color="themeColor"
-                @click.prevent="sendReply('reply-approve')"
+                @click="sendReply('reply-approve')"
                 >比较赞同</el-button
               >
             </div>
