@@ -100,7 +100,7 @@ const proposeIdeaCallBack = () => {
   loading.value = true
   proposeIdeaApi(params)
     .then(res => {
-      const data = res.data
+      const data: any = res
 
       if (data.success) {
         ElNotification({
@@ -117,14 +117,6 @@ const proposeIdeaCallBack = () => {
         })
       }
       console.log(res)
-    })
-    .catch(err => {
-      ElNotification({
-        title: 'Error',
-        message: '服务器有点累~',
-        type: 'error',
-      })
-      console.log(err)
     })
     .finally(() => {
       handleViewIdeaDialog()
@@ -175,7 +167,7 @@ const handleReplyIdea = (params: ReplyIdeaParams) => {
   loading.value = true
   replyIdeaApi(params)
     .then(res => {
-      const data = res.data
+      const data: any = res
 
       if (data.success) {
         ElNotification({
@@ -191,14 +183,6 @@ const handleReplyIdea = (params: ReplyIdeaParams) => {
           type: 'error',
         })
       }
-    })
-    .catch(err => {
-      ElNotification({
-        title: 'Error',
-        message: '服务器有点累~',
-        type: 'error',
-      })
-      console.log(err)
     })
     .finally(() => {
       handleViewIdeaDialog()
@@ -298,32 +282,35 @@ const summaryIdeaCallBack = () => {
     student_id: userStore.userInfo.id,
     conclusion: summaryIdeaModel.value.summary,
   }
-  reviseGroupConclusionApi(params).then((res) => {
-    const data = res.data
-    if(data.success) {
-      ElNotification({
-        title: 'Success',
-        message: data.message,
-        type: 'success',
-      })
-      handleRefresh()
-    } else {
+  reviseGroupConclusionApi(params)
+    .then(res => {
+      const data = res.data
+      if (data.success) {
+        ElNotification({
+          title: 'Success',
+          message: data.message,
+          type: 'success',
+        })
+        handleRefresh()
+      } else {
+        ElNotification({
+          title: 'Error',
+          message: data.message,
+          type: 'error',
+        })
+      }
+    })
+    .catch(err => {
       ElNotification({
         title: 'Error',
-        message: data.message,
+        message: '服务器有点累~',
         type: 'error',
       })
-    }
-  }).catch(err => {
-    ElNotification({
-      title: 'Error',
-      message: '服务器有点累~',
-      type: 'error',
+      console.log(err)
     })
-    console.log(err)
-  }).finally(() => {
-    handleViewIdeaDialog()
-  })
+    .finally(() => {
+      handleViewIdeaDialog()
+    })
 }
 
 // =====================
@@ -339,8 +326,6 @@ const callBackObj = {
 const handleSwitchCallback = () => {
   callBackObj[action.value]?.call()
 }
-
-
 </script>
 
 <template>

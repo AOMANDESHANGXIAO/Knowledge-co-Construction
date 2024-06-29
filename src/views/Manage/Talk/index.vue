@@ -17,7 +17,7 @@ const queryTopicList = () => {
 
   queryTopicListApi(class_id)
     .then(res => {
-      const data = res.data
+      const data: any = res
 
       if (data.success) {
         talkCardList.value = data.data.list

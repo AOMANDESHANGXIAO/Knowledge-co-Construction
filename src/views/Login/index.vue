@@ -171,16 +171,13 @@ const submitRegister = () => {
       }
       signUpAction(params)
         .then(res => {
-          const data = res.data
+          const data: any = res
           if (data.success) {
             ElMessage.success('注册成功!')
             toggleRegisterAndLogin()
           } else {
             ElMessage.error('注册失败')
           }
-        })
-        .catch(err => {
-          console.log(err)
         })
         .finally(() => {
           registerButtonLoading.value = false

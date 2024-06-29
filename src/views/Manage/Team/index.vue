@@ -93,16 +93,13 @@ const onCreateTeam = () => {
 
       createGroupApi(params)
         .then(res => {
-          const data = res.data
+          const data: any = res
           if (data.success) {
             isCreateButtonLoading.value = false
 
             const result = data.data
-            console.log('result ===> ', result)
 
             userStore.setUserInfo(result)
-
-            console.log('userInfo ===> ', userStore.userInfo)
 
             ElNotification({
               title: '创建成功',
@@ -122,9 +119,6 @@ const onCreateTeam = () => {
               duration: 5000,
             })
           }
-        })
-        .catch(err => {
-          console.log(err)
         })
         .finally(() => {
           isCreateButtonLoading.value = false
@@ -161,8 +155,7 @@ const onJoinTeam = () => {
 
   joinGroupApi(params)
     .then(res => {
-      const data = res.data
-      
+      const data: any = res
       if (data.success) {
         const result = data.data
         userStore.setUserInfo(result)
@@ -186,9 +179,6 @@ const onJoinTeam = () => {
         })
       }
     })
-    .catch(err => {
-      console.log(err)
-    })
     .finally(() => {})
 }
 
@@ -200,12 +190,11 @@ const queryCollaborationDataApi = () => {
   const group_id = userStore.userInfo.group_id as unknown as number
 
   queryCollaborationData(group_id)
-    .then(res => {
-      const data = res.data
-      if (data.success) {
-        groupAnalysisList.value = data.data.list
+    .then((res: any) => {
+      if (res.success) {
+        groupAnalysisList.value = res.data.list
       } else {
-        console.log(data.message)
+        console.log(res.message)
       }
     })
     .catch(err => {
