@@ -7,7 +7,7 @@ import manageHeader from '@/components/common/manageHeader/index.vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useUserStore } from '@/store/modules/user'
 import { useColorStore } from '@/store/modules/color'
-import { createGroupApi, joinGroupApi,queryCollaborationData } from '@/apis/group/index.ts'
+import { createGroupApi, joinGroupApi,queryCollaborationData, queryMemberData } from '@/apis/group/index.ts'
 import { CreateGroupParams } from '@/apis/group/type.ts'
 import { TeamStatus } from './type.ts'
 
@@ -204,38 +204,25 @@ const queryCollaborationDataApi = () => {
 
 queryCollaborationDataApi()
 
-const chartDataList = ref([
-  {
-    list: [
-      { value: 18, name: '张伟' },
-      { value: 10, name: '李娜' },
-      { value: 28, name: '王浩' },
-      { value: 29, name: '赵构' },
-      { value: 30, name: '刘洋' },
-    ],
-    title: '😁分享观点',
-  },
-  {
-    list: [
-      { value: 9, name: '张伟' },
-      { value: 10, name: '李娜' },
-      { value: 3, name: '王浩' },
-      { value: 21, name: '赵构' },
-      { value: 35, name: '刘洋' },
-    ],
-    title: '🤔反馈观点',
-  },
-  {
-    list: [
-      { value: 10, name: '张伟' },
-      { value: 21, name: '李娜' },
-      { value: 22, name: '王浩' },
-      { value: 45, name: '赵构' },
-      { value: 21, name: '刘洋' },
-    ],
-    title: '😎总结观点',
-  },
-])
+const chartDataList_ = ref({
+  feedbackList: [],
+  proposeList: [],
+  summaryList: []
+})
+
+const queryMemberDataApi = () => {
+
+  const group_id = userStore.userInfo.group_id as unknown as number
+
+  queryMemberData(group_id).then((res: any) => {
+    if (res.success) {
+      chartDataList_.value = res.data
+    } else {
+      console.log(res.message)
+    }
+  })
+}
+queryMemberDataApi()
 </script>
 
 <template>
@@ -354,10 +341,16 @@ const chartDataList = ref([
         </section>
         <section class="group-member-analysis">
           <member-analysis
-            v-for="(item, index) in chartDataList"
-            :key="index"
-            :chart-data="item.list"
-            :title="item.title"
+            :chart-data="chartDataList_.proposeList"
+            title="😁分享观点"
+          ></member-analysis>
+          <member-analysis
+            :chart-data="chartDataList_.feedbackList"
+            title="🤔反馈观点"
+          ></member-analysis>
+          <member-analysis
+            :chart-data="chartDataList_.summaryList"
+            title="😎总结观点"
           ></member-analysis>
         </section>
       </main>

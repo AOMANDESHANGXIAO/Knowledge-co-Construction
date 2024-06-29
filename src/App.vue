@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router';
-const route = useRoute();
+import { useRoute } from 'vue-router'
+const route = useRoute()
 </script>
 
 <template>
-  <router-view :key="route.path"></router-view>
+  <router-view :key="route.path" />
 </template>
 
-<style scoped lang="scss">
-</style>
+<style scoped lang="scss"></style>

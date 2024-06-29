@@ -13,4 +13,8 @@ const queryCollaborationData = (groud_id: number) => {
   return Service.get(`/group/query_collaboration_data?group_id=${groud_id}`)
 }
 
-export { queryCollaborationData, createGroupApi, joinGroupApi }
+const queryMemberData = (group_id: number) => {
+  return Service.get(`/group/query_member_data?group_id=${group_id}`)
+}
+
+export { queryCollaborationData, createGroupApi, joinGroupApi, queryMemberData }

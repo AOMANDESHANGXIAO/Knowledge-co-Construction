@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import Icon from '@/components/Icons/ManagePageIcon/index.vue'
 import { Name } from '@/components/Icons/ManagePageIcon/type.ts'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+
 // 根据当前的路由确定el-menu-item的激活状态
 const router = useRouter()
 
@@ -9,6 +10,8 @@ const defaultActive = computed(() => {
   // 获取当前的路由的path
   return router.currentRoute.value.path
 })
+
+const route = useRoute()
 </script>
 
 <template>
@@ -45,7 +48,7 @@ const defaultActive = computed(() => {
         </el-menu>
       </el-col>
       <el-col :span="21" style="height: 100%">
-        <router-view />
+        <router-view :key="route.path"/>
       </el-col>
     </el-row>
   </div>

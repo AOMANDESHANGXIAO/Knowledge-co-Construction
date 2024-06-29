@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import * as echarts from "echarts/core";
-import { onMounted } from "vue";
+import * as echarts from 'echarts/core'
+import { onMounted } from 'vue'
 
 import {
   TooltipComponent,
   TooltipComponentOption,
   LegendComponent,
   LegendComponentOption,
-} from "echarts/components";
-import { PieChart, PieSeriesOption } from "echarts/charts";
-import { LabelLayout } from "echarts/features";
-import { CanvasRenderer } from "echarts/renderers";
+} from 'echarts/components'
+import { PieChart, PieSeriesOption } from 'echarts/charts'
+import { LabelLayout } from 'echarts/features'
+import { CanvasRenderer } from 'echarts/renderers'
+import { watch, computed } from 'vue'
 
 echarts.use([
   TooltipComponent,
@@ -18,7 +19,7 @@ echarts.use([
   PieChart,
   CanvasRenderer,
   LabelLayout,
-]);
+])
 
 const props = defineProps({
   chartData: {
@@ -27,65 +28,76 @@ const props = defineProps({
   },
   title: {
     type: String,
-    default: "",
+    default: '',
   },
-});
+})
 
 type EChartsOption = echarts.ComposeOption<
   TooltipComponentOption | LegendComponentOption | PieSeriesOption
->;
+>
 
-const chartRef = ref<HTMLElement | null>(null);
+const chartRef = ref<HTMLElement | null>(null)
 
-const myChart = ref<echarts.ECharts | null>(null);
+const myChart = ref<echarts.ECharts | null>(null)
 
-let option: EChartsOption = {
-  tooltip: {
-    trigger: "item",
-  },
-  legend: {
-    top: "5%",
-    left: "center",
-    textStyle: {
-      color: "#fff",
+let option = computed((): EChartsOption => {
+  return {
+    tooltip: {
+      trigger: 'item',
     },
-  },
-  color: ["#91DDCF", "#F7F9F2", "#E8C5E5", "#F19ED2", "#D8EFD3"],
-  series: [
-    {
-      group_name: "来自",
-      type: "pie",
-      radius: ["40%", "70%"],
-      avoidLabelOverlap: false,
-      itemStyle: {
-        borderRadius: 10,
-        borderColor: "#fff",
-        borderWidth: 2,
+    legend: {
+      top: '5%',
+      left: 'center',
+      textStyle: {
+        color: '#fff',
       },
-      label: {
-        show: false,
-        position: "center",
-      },
-      emphasis: {
-        label: {
-          show: true,
-          fontSize: 40,
-          fontWeight: "bold",
-          color: "#fff",
+    },
+    color: ['#91DDCF', '#F7F9F2', '#E8C5E5', '#F19ED2', '#D8EFD3'],
+    series: [
+      {
+        group_name: '来自',
+        type: 'pie',
+        radius: ['40%', '70%'],
+        avoidLabelOverlap: false,
+        itemStyle: {
+          // borderRadius: 10,
+          // borderColor: '#fff',
+          // borderWidth: 2,
         },
+        label: {
+          show: false,
+          position: 'center',
+        },
+        emphasis: {
+          label: {
+            show: true,
+            fontSize: 40,
+            fontWeight: 'bold',
+            color: '#fff',
+          },
+        },
+        labelLine: {
+          show: false,
+        },
+        data: props.chartData,
       },
-      labelLine: {
-        show: false,
-      },
-      data: props.chartData,
-    },
-  ],
-};
+    ],
+  }
+})
 
 onMounted(() => {
-  myChart.value = echarts.init(chartRef.value!);
-  option && myChart.value.setOption(option);
-});
+  myChart.value = echarts.init(chartRef.value!)
+  option && myChart.value.setOption(option.value)
+})
+
+watch(
+  () => props.chartData,
+  () => {
+    myChart.value?.dispose()
+    myChart.value = echarts.init(chartRef.value!)
+    option && myChart.value?.setOption(option.value)
+  }
+)
 </script>
 
 <template>

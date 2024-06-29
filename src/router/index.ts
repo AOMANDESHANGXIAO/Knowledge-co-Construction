@@ -84,11 +84,4 @@ const router = createRouter({
   routes,
 })
 
-// const route = useRoute()
-
-// watch(route, (to, from) => {
-//   console.log('路由切换')
-//   router.go(0)
-// })
-
 export default router
