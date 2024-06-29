@@ -70,7 +70,7 @@ const queryFlowData = (callback: Function = () => {}) => {
   if (!topic_id) return
   queryFlowDataApi(topic_id)
     .then(res => {
-      const data = res.data
+      const data: any = res
 
       if (data.success) {
         nodes.value = data.data.nodes

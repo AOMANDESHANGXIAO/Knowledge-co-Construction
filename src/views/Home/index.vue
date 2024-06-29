@@ -42,6 +42,7 @@ const handleLayoutGraph = (direction: LayoutDirection) => {
 
 const handleGoHome = () => {
   router.push('/manage')
+  // router.go(0)
 }
 
 const visible = ref<boolean>(false)
@@ -284,7 +285,7 @@ const summaryIdeaCallBack = () => {
   }
   reviseGroupConclusionApi(params)
     .then(res => {
-      const data = res.data
+      const data: any = res
       if (data.success) {
         ElNotification({
           title: 'Success',

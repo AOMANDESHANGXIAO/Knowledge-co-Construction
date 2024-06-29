@@ -9,7 +9,7 @@ export const useUserStore = defineStore(
       id: 1,
       username: 'Bin',
       nickname: 'Admin Bin',
-      token: '122DADS',
+      token: '',
       class_id: -1,
       group_id: null,
       group_code: 'CKC001',

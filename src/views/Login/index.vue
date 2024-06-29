@@ -62,13 +62,12 @@ const submitLogin = () => {
       }
       signInAction(<SignInParams>params)
         .then(res => {
-          const data = res.data
+          const data: any = res
           if (data.success) {
             ElMessage.success('登录成功!')
             // 存储用户信息
             const userStore = useUserStore()
             userStore.setUserInfo(data.data)
-            // console.log('用户信息 ===> ', userStore.userInfo)
             router.push('/manage')
           } else {
             const msg = data.message

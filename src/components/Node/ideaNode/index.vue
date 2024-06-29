@@ -44,7 +44,7 @@ const queryNodeContent = () => {
 
   queryNodeContentApi(node_id)
     .then(res => {
-      const data = res.data
+      const data: any = res
       if (data.success) {
         isSuccess.value = true
         optionText.value = data.data.content

@@ -45,6 +45,7 @@ queryTopicList()
 
 const handleClick = (topic_id: number) => {
   router.push({ path: '/home', query: { topic_id: topic_id } })
+  // router.go(0)
 }
 </script>
 
