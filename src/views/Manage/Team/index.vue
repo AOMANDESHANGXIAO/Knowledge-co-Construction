@@ -7,7 +7,7 @@ import manageHeader from '@/components/common/manageHeader/index.vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useUserStore } from '@/store/modules/user'
 import { useColorStore } from '@/store/modules/color'
-import { createGroupApi, joinGroupApi } from '@/apis/group/index.ts'
+import { createGroupApi, joinGroupApi,queryCollaborationData } from '@/apis/group/index.ts'
 import { CreateGroupParams } from '@/apis/group/type.ts'
 import { TeamStatus } from './type.ts'
 
@@ -131,7 +131,6 @@ const onCreateTeam = () => {
         })
     } else {
       console.log('error submit!')
-      return false
     }
   })
 }
@@ -193,29 +192,28 @@ const onJoinTeam = () => {
     .finally(() => {})
 }
 
-// 样例
-const groupAnalysisList = ref([
-  {
-    iconName: 'discussion',
-    text: '参与了讨论',
-    num: 28,
-  },
-  {
-    iconName: 'share',
-    text: '分享过观点',
-    num: 180,
-  },
-  {
-    iconName: 'feedback',
-    text: '反馈过观点',
-    num: 247,
-  },
-  {
-    iconName: 'summary',
-    text: '总结过观点',
-    num: 156,
-  },
-])
+
+const groupAnalysisList = ref([])
+
+const queryCollaborationDataApi = () => {
+
+  const group_id = userStore.userInfo.group_id as unknown as number
+
+  queryCollaborationData(group_id)
+    .then(res => {
+      const data = res.data
+      if (data.success) {
+        groupAnalysisList.value = data.data.list
+      } else {
+        console.log(data.message)
+      }
+    })
+    .catch(err => {
+      console.log(err)
+    })
+}
+
+queryCollaborationDataApi()
 
 const chartDataList = ref([
   {

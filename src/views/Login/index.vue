@@ -204,7 +204,7 @@ const submitRegister = () => {
         class="login-form-container"
         :class="{ 'is-transform-left': !isLogin }"
       >
-        <div class="title">登录StreamFlow协作知识建构平台</div>
+        <div class="title">登录Stream of Thoughts平台</div>
         <el-form
           style="width: 600px"
           :model="loginForm"
@@ -248,7 +248,7 @@ const submitRegister = () => {
         class="register-form-container"
         :class="{ 'is-not-transform': !isLogin }"
       >
-        <div class="title">注册StreamFlow协作知识建构平台</div>
+        <div class="title">注册Stream of Thoughts平台</div>
         <el-form
           style="width: 600px"
           :model="registerForm"

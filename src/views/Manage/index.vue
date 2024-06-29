@@ -15,7 +15,7 @@ const defaultActive = computed(() => {
   <div class="manage-page">
     <el-row style="height: 100%">
       <el-col :span="3" style="height: 100%">
-        <h2>StreamFlow</h2>
+        <h2>Stream of Thoughts</h2>
         <el-menu
           mode="vertical"
           style="height: calc(100% - 60px)"
@@ -61,7 +61,7 @@ const defaultActive = computed(() => {
     height: 60px;
     padding: 10px;
     background-color: #222d3c;
-    font-size: 20px;
+    font-size: 14px;
     font-weight: 700;
     color: #fff;
     text-align: center;
