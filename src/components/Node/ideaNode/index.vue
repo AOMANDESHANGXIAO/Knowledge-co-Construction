@@ -72,28 +72,26 @@ const sendReply = (emitEvent: 'reply-oppose' | 'reply-approve') => {
 </script>
 
 <template>
-  <div class="idea-node" ref="myHoverableElement" :style="{ backgroundColor: props.data.bgc }">
+  <div
+    class="idea-node"
+    ref="myHoverableElement"
+    :style="{ backgroundColor: props.data.bgc }"
+  >
     <Handle :position="props.data.targetPosition" type="target" />
     <Handle :position="props.data.sourcePosition" type="source" />
-    <span @click="handleIsShow">{{
-      props.data.name
-    }}</span>
+    <span @click="handleIsShow">{{ props.data.name }}</span>
     <transition name="fade">
       <section v-if="isShow" class="content-container">
         <div class="idea-container">
           <lottie v-if="loading" :animation-data="LoadingAnimation" />
           <div v-else style="width: 100%">
             <el-text>{{ optionText }}</el-text>
-            <el-divider content-position="left">🤔回应观点</el-divider>
+            <el-divider content-position="center">🤔回应</el-divider>
             <div class="button-group">
-              <el-button
-                type="danger"
-                @click="sendReply('reply-oppose')"
+              <el-button type="danger" @click="sendReply('reply-oppose')"
                 >比较反对</el-button
               >
-              <el-button
-                :color="themeColor"
-                @click="sendReply('reply-approve')"
+              <el-button :color="themeColor" @click="sendReply('reply-approve')"
                 >比较赞同</el-button
               >
             </div>
@@ -106,6 +104,7 @@ const sendReply = (emitEvent: 'reply-oppose' | 'reply-approve') => {
 
 <style lang="scss" scoped>
 $node-width: 50px;
+
 .idea-node {
   position: relative;
   width: $node-width;
@@ -135,13 +134,13 @@ $node-width: 50px;
     width: 200px;
     min-height: 100px;
     max-height: 500px;
-    overflow: auto;
+    // overflow: auto;
     padding: 10px;
-    border-radius: 10px;
+    border-radius: 4px;
     background-color: #fff;
     color: #242424;
     font-size: 12px;
-    box-shadow: 0 2px 2px 2px #f3f3f3;
+    box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.12);
     z-index: 999; // 保证显示在最上层
     .idea-container {
       width: 100%;
@@ -154,6 +153,18 @@ $node-width: 50px;
       }
     }
 
+    &::after {
+      content: '';
+      display: block;
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 20px;
+      height: 20px;
+      transform: translateY(-10px) rotate(45deg);
+      background-color: #fff;
+    }
+
     .button-group {
       display: flex;
       justify-content: space-between;
@@ -163,6 +174,7 @@ $node-width: 50px;
         margin-left: 0;
 
         span {
+          color: #f3f3f3;
           font-size: 14px;
         }
 
