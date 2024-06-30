@@ -5,6 +5,7 @@ import LoadingAnimation from '@/assets/animation/loading.json'
 import { IdeaNodeProps } from './type.ts'
 import { queryNodeContentApi } from '@/apis/flow/index.ts'
 import { useCssVar } from '@vueuse/core'
+import NodePopover from '@/components/NodePopover/index.vue'
 
 // 控制按钮的主题颜色
 const themeColor = useCssVar('--theme-color')
@@ -66,8 +67,11 @@ const queryNodeContent = () => {
 const emits = defineEmits(['reply-oppose', 'reply-approve'])
 
 const sendReply = (emitEvent: 'reply-oppose' | 'reply-approve') => {
-  console.log('点击了同意或者反对')
-  emits(emitEvent, props.data.id)
+  const payload = {
+    id: props.data.id,
+    content: optionText.value,
+  }
+  emits(emitEvent, payload)
 }
 </script>
 
@@ -80,25 +84,23 @@ const sendReply = (emitEvent: 'reply-oppose' | 'reply-approve') => {
     <Handle :position="props.data.targetPosition" type="target" />
     <Handle :position="props.data.sourcePosition" type="source" />
     <span @click="handleIsShow">{{ props.data.name }}</span>
-    <transition name="fade">
-      <section v-if="isShow" class="content-container">
-        <div class="idea-container">
-          <lottie v-if="loading" :animation-data="LoadingAnimation" />
-          <div v-else style="width: 100%">
-            <el-text>{{ optionText }}</el-text>
-            <el-divider content-position="center">🤔回应</el-divider>
-            <div class="button-group">
-              <el-button type="danger" @click="sendReply('reply-oppose')"
-                >比较反对</el-button
-              >
-              <el-button :color="themeColor" @click="sendReply('reply-approve')"
-                >比较赞同</el-button
-              >
-            </div>
+    <NodePopover :is-show="isShow" :offset-width="50" :offset-height="50">
+      <div class="idea-container">
+        <lottie v-if="loading" :animation-data="LoadingAnimation" />
+        <div v-else style="width: 100%">
+          <el-text>{{ optionText }}</el-text>
+          <el-divider content-position="center">🤔回应</el-divider>
+          <div class="button-group">
+            <el-button type="danger" @click="sendReply('reply-oppose')"
+              >比较反对</el-button
+            >
+            <el-button :color="themeColor" @click="sendReply('reply-approve')"
+              >比较赞同</el-button
+            >
           </div>
         </div>
-      </section>
-    </transition>
+      </div>
+    </NodePopover>
   </div>
 </template>
 
@@ -126,43 +128,14 @@ $node-width: 50px;
     background-color: lighten($color: #67c23a, $amount: 10%);
   }
 
-  .content-container {
-    position: absolute;
-    top: 0;
-    left: calc(#{$node-width} + 10px);
-    transform: translateY(calc(-50% + #{$node-width} / 2));
-    width: 200px;
-    min-height: 100px;
-    max-height: 500px;
-    // overflow: auto;
-    padding: 10px;
-    border-radius: 4px;
-    background-color: #fff;
-    color: #242424;
-    font-size: 12px;
-    box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.12);
-    z-index: 999; // 保证显示在最上层
-    .idea-container {
-      width: 100%;
-      height: 100%;
-      text-align: left;
-      line-height: 1;
+  .idea-container {
+    width: 100%;
+    height: 100%;
+    text-align: left;
+    line-height: 1;
 
-      &:deep(.el-text) {
-        font-size: 12px;
-      }
-    }
-
-    &::after {
-      content: '';
-      display: block;
-      position: absolute;
-      top: 50%;
-      left: 0;
-      width: 20px;
-      height: 20px;
-      transform: translateY(-10px) rotate(45deg);
-      background-color: #fff;
+    &:deep(.el-text) {
+      font-size: 12px;
     }
 
     .button-group {
@@ -182,15 +155,5 @@ $node-width: 50px;
       }
     }
   }
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.5s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
 }
 </style>

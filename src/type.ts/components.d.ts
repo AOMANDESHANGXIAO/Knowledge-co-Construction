@@ -33,6 +33,7 @@ declare module 'vue' {
     ManageHeader: typeof import('./../components/common/manageHeader/index.vue')['default']
     ManagePageIcon: typeof import('./../components/Icons/ManagePageIcon/index.vue')['default']
     MemberAnalysis: typeof import('./../components/common/memberAnalysis/index.vue')['default']
+    NodePopover: typeof import('./../components/NodePopover/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     TalkCard: typeof import('./../components/common/talkCard/index.vue')['default']

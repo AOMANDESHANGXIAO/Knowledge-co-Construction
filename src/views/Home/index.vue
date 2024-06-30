@@ -42,7 +42,6 @@ const handleLayoutGraph = (direction: LayoutDirection) => {
 
 const handleGoHome = () => {
   router.push('/manage')
-  // router.go(0)
 }
 
 const visible = ref<boolean>(false)
@@ -130,6 +129,8 @@ const loading = ref(false)
 
 const action = ref<Action>(Action.proposal)
 
+const ideaContent = ref<string>('')
+
 // ====================
 
 // =====同意观点逻辑=====
@@ -157,10 +158,11 @@ const approveIdeamFormList = ref<FormListItem[]>([
   },
 ])
 
-const handleApproveIdea = (id: string) => {
+const handleApproveIdea = (payload: { id: string; content: string }) => {
   action.value = Action.approve
   title.value = '回复观点-有点赞成'
-  replyToId.value = id
+  replyToId.value = payload.id
+  ideaContent.value = payload.content
   handleViewIdeaDialog()
 }
 
@@ -231,10 +233,12 @@ const opposeIdeaFormList = ref<FormListItem[]>([
   },
 ])
 
-const handleOpposeIdea = (id: string) => {
+const handleOpposeIdea = (payload: { id: string; content: string }) => {
+  console.log(payload.content)
   action.value = Action.oppose
   title.value = '回复观点-有点不赞成'
-  replyToId.value = id
+  ideaContent.value = payload.content
+  replyToId.value = payload.id
   handleViewIdeaDialog()
 }
 
@@ -361,6 +365,8 @@ const handleSwitchCallback = () => {
           style="max-width: 700px"
           v-else-if="action === Action.approve"
         >
+        <el-text><strong>当前正在回应的观点是: </strong>{{ ideaContent }}</el-text>
+        <el-divider></el-divider>
           <el-form-item v-for="(item, index) in approveIdeamFormList">
             <h3>{{ item.title }}</h3>
             <el-input
@@ -380,6 +386,8 @@ const handleSwitchCallback = () => {
           style="max-width: 700px"
           v-else-if="action === Action.oppose"
         >
+        <el-text><strong>当前正在回应的观点是: </strong>{{ ideaContent }}</el-text>
+        <el-divider></el-divider>
           <el-form-item v-for="(item, index) in opposeIdeaFormList">
             <h3>{{ item.title }}</h3>
             <el-input
@@ -585,5 +593,9 @@ h3 {
   100% {
     transform: rotate(360deg);
   }
+}
+
+:deep(.el-text) {
+  font-size: 18px;
 }
 </style>
