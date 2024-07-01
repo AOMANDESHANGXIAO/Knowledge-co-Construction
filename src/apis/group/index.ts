@@ -17,4 +17,19 @@ const queryMemberData = (group_id: number) => {
   return Service.get(`/group/query_member_data?group_id=${group_id}`)
 }
 
-export { queryCollaborationData, createGroupApi, joinGroupApi, queryMemberData }
+const queryReviseData = (group_id: number, topic_id: number) => {
+  return Service.get(`/group/query_revise_data`, {
+    params: {
+      group_id,
+      topic_id,
+    },
+  })
+}
+
+export {
+  queryCollaborationData,
+  createGroupApi,
+  joinGroupApi,
+  queryMemberData,
+  queryReviseData,
+}

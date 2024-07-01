@@ -159,7 +159,7 @@ defineExpose({
   lineOpposeColor,
 })
 
-const emits = defineEmits(['reply-approve', 'reply-oppose'])
+const emits = defineEmits(['reply-approve', 'reply-oppose', 'revise'])
 
 const handleReplyApprove = (id: string) => {
   emits('reply-approve', id)
@@ -167,6 +167,9 @@ const handleReplyApprove = (id: string) => {
 
 const handleReplyOppose = (id: string) => {
   emits('reply-oppose', id)
+}
+const handleEmitRevise = () => {
+  emits('revise')
 }
 </script>
 
@@ -178,7 +181,7 @@ const handleReplyOppose = (id: string) => {
         <topicNode :data="props.data" />
       </template>
       <template #node-group="props">
-        <groupNode :data="props.data" />
+        <groupNode :data="props.data" @revise="handleEmitRevise"/>
       </template>
       <template #node-idea="props">
         <ideaNode

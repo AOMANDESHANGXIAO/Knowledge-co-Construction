@@ -15,6 +15,10 @@ const props = defineProps({
     type: Number,
     default: 50,
   },
+  width: {
+    type: Number,
+    default: 200,
+  },
 })
 </script>
 
@@ -25,6 +29,7 @@ const props = defineProps({
       class="content-container"
       :style="{
         left: `calc(${props.offsetWidth}px + 10px)`,
+        width: `${props.width}px`,
         transform: `translateY(calc(-50% + ${props.offsetHeight}px / 2))`,
       }"
     >
@@ -37,7 +42,8 @@ const props = defineProps({
 .content-container {
   position: absolute;
   top: 0;
-  width: 200px;
+  min-width: 200px;
+  max-width: 500px;
   min-height: 100px;
   max-height: 500px;
   padding: 10px;
@@ -57,6 +63,7 @@ const props = defineProps({
     height: 20px;
     transform: translateY(-10px) rotate(45deg);
     background-color: #fff;
+    z-index: -10;
   }
 }
 .fade-enter-active,

@@ -444,6 +444,7 @@ const handleSwitchCallback = () => {
       ref="vueFlowRef"
       @reply-oppose="handleOpposeIdea"
       @reply-approve="handleApproveIdea"
+      @revise="handleSummaryIdea"
     >
       <div class="layout-panel">
         <button title="发表观点" @click="handleProposeIdea">
