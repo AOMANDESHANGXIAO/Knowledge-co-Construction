@@ -9,6 +9,7 @@ import { useUserStore } from '@/store/modules/user'
 import { queryReviseData } from '@/apis/group'
 import type { ElScrollbar } from 'element-plus'
 import router from '@/router/index.ts'
+import { useScroll } from '@vueuse/core'
 
 interface Props {
   data: GroupNodeProps
@@ -86,11 +87,9 @@ const handleClickReviseButton = () => {
 
 const scrollbarRef = ref<InstanceType<typeof ElScrollbar> | null>(null)
 
-const handleScrollToBottom = () => {
-  scrollbarRef.value?.setScrollTop(9999999)
-}
+const handleScroll = () => {}
 
-const isShowDotArrow = ref(true)
+const handleMouseWheel = () => {}
 </script>
 
 <template>
@@ -109,10 +108,22 @@ const isShowDotArrow = ref(true)
       :offset-height="height"
       :width="400"
     >
-      <el-scrollbar max-height="400px" style="position: relative" ref="scrollbarRef">
-        <div class="dot-arrow" @click="handleScrollToBottom">
-          <el-icon><Bottom /></el-icon>
-        </div>
+      <el-button
+        :color="colorStore.themeColor"
+        size="large"
+        width="100%"
+        plain
+        @click="handleClickReviseButton"
+        >修改</el-button
+      >
+      <el-divider></el-divider>
+      <el-scrollbar
+        max-height="400px"
+        style="position: relative"
+        ref="scrollbarRef"
+        @scroll="handleScroll"
+        @mousewheel.stop="handleMouseWheel"
+      >
         <el-timeline>
           <el-timeline-item
             :timestamp="item.timestamp"
@@ -131,15 +142,6 @@ const isShowDotArrow = ref(true)
             </el-card>
           </el-timeline-item>
         </el-timeline>
-        <el-divider></el-divider>
-        <el-button
-          :color="colorStore.themeColor"
-          size="large"
-          width="100%"
-          round
-          @click="handleClickReviseButton"
-          >修改</el-button
-        >
       </el-scrollbar>
     </NodePopover>
   </div>
@@ -162,7 +164,6 @@ const isShowDotArrow = ref(true)
     line-height: 40px;
     text-align: center;
     color: #f9f9f9;
-    //background-color: #67c23a;
   }
 
   .content {
@@ -179,30 +180,6 @@ const isShowDotArrow = ref(true)
   }
   :deep(.el-button) {
     width: 100%;
-  }
-}
-
-.dot-arrow {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  bottom: 20px;
-  left: 0;
-  margin-left: 50%;
-  transform: translateX(-50%);
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: #fff;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
-  z-index: 10;
-  cursor: pointer;
-  &:hover {
-    background-color: var(--theme-color);
-    .el-icon {
-      color: #fff;
-    }
   }
 }
 </style>
