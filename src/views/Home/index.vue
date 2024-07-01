@@ -29,6 +29,7 @@ import {
   SummaryIdeaModelType,
   ReviseSelfFormModelType,
 } from './type.ts'
+import type { FormRules, FormInstance } from 'element-plus'
 
 const colorStore = useColorStore()
 
@@ -58,6 +59,8 @@ const handleViewIdeaDialog = () => {
 }
 
 // ====提出观点逻辑=====
+const proposeIdeaFormRef = ref<FormInstance | null>(null)
+
 const proposeIdeaModel = ref<ProposeIdeaModelType>({
   option: '',
   basedOption: '',
@@ -81,6 +84,23 @@ const proposeIdeaFormList = ref<FormListItem[]>([
     model: 'limitation',
   },
 ])
+
+const proposeIdeaFormRules: FormRules = reactive({
+  option: [
+    {
+      required: true,
+      message: '观点不能为空!',
+      trigger: 'blur',
+    },
+  ],
+  basedOption: [
+    {
+      required: true,
+      message: '依据不能为空!',
+      trigger: 'blur',
+    },
+  ],
+})
 
 const handleProposeIdea = () => {
   action.value = Action.proposal
@@ -139,6 +159,8 @@ const ideaContent = ref<string>('')
 // ====================
 
 // =====同意观点逻辑=====
+const approveIdeaFormRef = ref<FormInstance | null>(null)
+
 const approveIdeaModel = ref<ApproveIdeaModelType>({
   agreeOption: '',
   limitation: '',
@@ -162,6 +184,30 @@ const approveIdeamFormList = ref<FormListItem[]>([
     model: 'basedOption',
   },
 ])
+
+const approveIdeaFormRules: FormRules = reactive({
+  agreeOption: [
+    {
+      required: true,
+      message: '同意的观点不能为空!',
+      trigger: 'blur',
+    },
+  ],
+  limitation: [
+    {
+      required: true,
+      message: '观点局限不能为空!',
+      trigger: 'blur',
+    },
+  ],
+  basedOption: [
+    {
+      required: true,
+      message: '依据不能为空!',
+      trigger: 'blur',
+    },
+  ],
+})
 
 const handleApproveIdea = (payload: { id: string; content: string }) => {
   action.value = Action.approve
@@ -216,6 +262,8 @@ const approveIdeaCallBack = () => {
 // ====================
 
 // ===== 不同意观点逻辑 =====
+const opposeIdeaFormRef = ref<FormInstance | null>(null)
+
 const opposeIdeaModel = ref<OpposeIdeaModelType>({
   disagreeOption: '',
   myOption: '',
@@ -239,6 +287,30 @@ const opposeIdeaFormList = ref<FormListItem[]>([
     model: 'basedOption',
   },
 ])
+
+const opposeIdeaFormRules: FormRules = reactive({
+  disagreeOption: [
+    {
+      required: true,
+      message: '不同意的观点不能为空!',
+      trigger: 'blur',
+    },
+  ],
+  myOption: [
+    {
+      required: true,
+      message: '观点看法不能为空!',
+      trigger: 'blur',
+    },
+  ],
+  basedOption: [
+    {
+      required: true,
+      message: '依据不能为空!',
+      trigger: 'blur',
+    },
+  ],
+})
 
 const handleOpposeIdea = (payload: { id: string; content: string }) => {
   console.log(payload.content)
@@ -264,6 +336,8 @@ const opposeIdeaCallBack = () => {
 // =====================
 
 // ===== 修改自己观点逻辑 ===
+const reviseIdeaFormRef = ref<FormInstance | null>(null)
+
 const reviseSelfFormModel = ref<ReviseSelfFormModelType>({
   limitation: '',
   basedOption: '',
@@ -288,6 +362,30 @@ const reviseIdeaFormList = ref<FormListItem[]>([
   },
 ])
 
+const reviseFormRules: FormRules = reactive({
+  limitation: [
+    {
+      required: true,
+      message: '局限性不能为空!',
+      trigger: 'blur',
+    },
+  ],
+  basedOption: [
+    {
+      required: true,
+      message: '依据不能为空!',
+      trigger: 'blur',
+    },
+  ],
+  newOption: [
+    {
+      required: true,
+      message: '观点不能为空!',
+      trigger: 'blur',
+    },
+  ],
+})
+
 const handleReviseSelfIead = (payload: { id: string; content: string }) => {
   action.value = Action.revise
   title.value = '修改观点'
@@ -305,23 +403,27 @@ const reviseIdeaCallBack = () => {
     student_id: userStore.userInfo.id,
   }
 
-  reviseSelfIdeaApi(params).then(res => {
-    const data: any = res
-    if (data.success) {
-      ElNotification({
-        title: '成功',
-        message: '修改成功',
-        type: 'success',
-        position: 'bottom-right',
-      })
-      handleRefresh()
-    }
-  }).finally(() => {
-    handleViewIdeaDialog()
-  })
+  reviseSelfIdeaApi(params)
+    .then(res => {
+      const data: any = res
+      if (data.success) {
+        ElNotification({
+          title: '成功',
+          message: '修改成功',
+          type: 'success',
+          position: 'bottom-right',
+        })
+        handleRefresh()
+      }
+    })
+    .finally(() => {
+      handleViewIdeaDialog()
+    })
 }
 
 // ===== 总结观点逻辑 ====
+const summaryIdeaFormRef = ref<FormInstance | null>(null)
+
 const summaryIdeaModel = ref<SummaryIdeaModelType>({
   summary: '',
 })
@@ -333,6 +435,16 @@ const summaryFormList = ref<FormListItem[]>([
     model: 'summary',
   },
 ])
+
+const summaryFormRules: FormRules = reactive({
+  summary: [
+    {
+      required: true,
+      message: '总结不能为空!',
+      trigger: 'blur',
+    },
+  ],
+})
 
 const handleSummaryIdea = () => {
   action.value = Action.summary
@@ -396,9 +508,21 @@ const callBackObj = {
   [Action.revise]: reviseIdeaCallBack,
 }
 
+const formRefs = {
+  [Action.proposal]: proposeIdeaFormRef,
+  [Action.oppose]: opposeIdeaFormRef,
+  [Action.approve]: approveIdeaFormRef,
+  [Action.summary]: summaryIdeaFormRef,
+  [Action.revise]: reviseIdeaFormRef,
+}
+
 // 根据当前的状态选择回调函数
 const handleSwitchCallback = () => {
-  callBackObj[action.value]?.call()
+  formRefs[action.value]?.value.validate(valid => {
+    if (valid) {
+      callBackObj[action.value]?.call()
+    }
+  })
 }
 </script>
 
@@ -412,10 +536,15 @@ const handleSwitchCallback = () => {
 
         <el-form
           :model="proposeIdeaModel"
+          :rules="proposeIdeaFormRules"
+          ref="proposeIdeaFormRef"
           style="max-width: 700px"
           v-if="action === Action.proposal"
         >
-          <el-form-item v-for="(item, index) in proposeIdeaFormList">
+          <el-form-item
+            v-for="(item, index) in proposeIdeaFormList"
+            :prop="item.model"
+          >
             <h3>{{ item.title }}</h3>
             <el-input
               :key="index"
@@ -431,6 +560,8 @@ const handleSwitchCallback = () => {
 
         <el-form
           :model="approveIdeaModel"
+          :rules="approveIdeaFormRules"
+          ref="approveIdeaFormRef"
           style="max-width: 700px"
           v-else-if="action === Action.approve"
         >
@@ -438,7 +569,10 @@ const handleSwitchCallback = () => {
             ><strong>当前正在回应的观点是: </strong>{{ ideaContent }}</el-text
           >
           <el-divider></el-divider>
-          <el-form-item v-for="(item, index) in approveIdeamFormList">
+          <el-form-item
+            v-for="(item, index) in approveIdeamFormList"
+            :prop="item.model"
+          >
             <h3>{{ item.title }}</h3>
             <el-input
               :key="index"
@@ -455,13 +589,18 @@ const handleSwitchCallback = () => {
         <el-form
           :model="opposeIdeaModel"
           style="max-width: 700px"
+          ref="opposeIdeaFormRef"
+          :rules="opposeIdeaFormRules"
           v-else-if="action === Action.oppose"
         >
           <el-text
             ><strong>当前正在回应的观点是: </strong>{{ ideaContent }}</el-text
           >
           <el-divider></el-divider>
-          <el-form-item v-for="(item, index) in opposeIdeaFormList">
+          <el-form-item
+            v-for="(item, index) in opposeIdeaFormList"
+            :prop="item.model"
+          >
             <h3>{{ item.title }}</h3>
             <el-input
               :key="index"
@@ -478,9 +617,14 @@ const handleSwitchCallback = () => {
         <el-form
           :model="summaryIdeaModel"
           style="max-width: 700px"
+          ref="summaryIdeaFormRef"
+          :rules="summaryFormRules"
           v-else-if="action === Action.summary"
         >
-          <el-form-item v-for="(item, index) in summaryFormList">
+          <el-form-item
+            v-for="(item, index) in summaryFormList"
+            :prop="item.model"
+          >
             <h3>{{ item.title }}</h3>
             <el-input
               :key="index"
@@ -496,12 +640,17 @@ const handleSwitchCallback = () => {
 
         <el-form
           :model="reviseSelfFormModel"
+          :rules="reviseFormRules"
+          ref="reviseIdeaFormRef"
           style="max-width: 700px"
           v-else-if="action === Action.revise"
         >
           <el-text><strong>原先的观点是: </strong>{{ ideaContent }}</el-text>
           <el-divider></el-divider>
-          <el-form-item v-for="(item, index) in reviseIdeaFormList">
+          <el-form-item
+            v-for="(item, index) in reviseIdeaFormList"
+            :prop="item.model"
+          >
             <h3>{{ item.title }}</h3>
             <el-input
               :key="index"
