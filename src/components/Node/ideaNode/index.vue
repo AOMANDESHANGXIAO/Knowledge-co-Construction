@@ -6,6 +6,7 @@ import { IdeaNodeProps } from './type.ts'
 import { queryNodeContentApi } from '@/apis/flow/index.ts'
 import { useCssVar } from '@vueuse/core'
 import NodePopover from '@/components/NodePopover/index.vue'
+import {useUserStore} from '@/store/modules/user'
 
 // 控制按钮的主题颜色
 const themeColor = useCssVar('--theme-color')
@@ -19,6 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
     id: 'noId', // 传下来的是节点的id
     name: '学生',
     bgc: '#fff',
+    student_id: 0,
     sourcePosition: Position.Bottom,
     targetPosition: Position.Top,
   }),
@@ -64,13 +66,31 @@ const queryNodeContent = () => {
 }
 
 // 向父组件传递事件，同意或者反对
-const emits = defineEmits(['reply-oppose', 'reply-approve'])
+const emits = defineEmits(['reply-oppose', 'reply-approve', 'revise-self'])
 
-const sendReply = (emitEvent: 'reply-oppose' | 'reply-approve') => {
+const sendReply = (emitEvent: 'reply-oppose' | 'reply-approve' | 'revise-self') => {
   const payload = {
     id: props.data.id,
     content: optionText.value,
   }
+  emits(emitEvent, payload)
+}
+
+const userStore = useUserStore()
+
+const isStudentSelf = computed(() => {
+  return props.data.student_id === Number(userStore.userInfo.id)
+})
+
+const handleReviseSelfIead = (emitEvent : 'revise-self') => {
+  const payload = {
+    id: props.data.id,
+    content: optionText.value,
+  }
+  isShow.value = false
+  isSuccess.value = false
+  console.log(payload)
+  
   emits(emitEvent, payload)
 }
 </script>
@@ -87,7 +107,7 @@ const sendReply = (emitEvent: 'reply-oppose' | 'reply-approve') => {
     <NodePopover :is-show="isShow" :offset-width="50" :offset-height="50">
       <div class="idea-container">
         <lottie v-if="loading" :animation-data="LoadingAnimation" />
-        <div v-else style="width: 100%">
+        <div v-else-if="!loading && !isStudentSelf" style="width: 100%">
           <el-text>{{ optionText }}</el-text>
           <el-divider content-position="center">🤔回应</el-divider>
           <div class="button-group">
@@ -99,6 +119,11 @@ const sendReply = (emitEvent: 'reply-oppose' | 'reply-approve') => {
             >
           </div>
         </div>
+        <div v-else-if="!loading && isStudentSelf" style="width: 100%;">
+          <el-text>{{ optionText }}</el-text>
+          <el-divider content-position="center">🤔修改</el-divider>
+          <el-button :color="themeColor" @click="handleReviseSelfIead('revise-self')" style="width: 100%;color: #fff;">修改</el-button>
+        </div> 
       </div>
     </NodePopover>
   </div>

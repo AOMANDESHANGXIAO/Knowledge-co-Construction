@@ -3,6 +3,7 @@ import type {
   ProposeIdeaParams,
   ReplyIdeaParams,
   ReviseGroupConclusionParams,
+  ReviseSelfIdeaParams
 } from './type.ts'
 
 const queryFlowDataApi = (topic_id: number) => {
@@ -25,10 +26,15 @@ const reviseGroupConclusionApi = (params: ReviseGroupConclusionParams) => {
   return Service.post('/flow/revise_group_conclusion', params)
 }
 
+const reviseSelfIdeaApi = (params: ReviseSelfIdeaParams) => {
+  return Service.post('/flow/revise_self_idea', params)
+}
+
 export {
   queryFlowDataApi,
   queryNodeContentApi,
   proposeIdeaApi,
   replyIdeaApi,
   reviseGroupConclusionApi,
+  reviseSelfIdeaApi
 }

@@ -3,6 +3,7 @@ enum Action {
   oppose,
   approve,
   summary,
+  revise,
 }
 
 export interface FormListItem {
@@ -31,6 +32,12 @@ export interface OpposeIdeaModelType {
 
 export interface SummaryIdeaModelType {
   summary: string
+}
+
+export interface ReviseSelfFormModelType {
+  limitation: string
+  basedOption: string
+  newOption: string
 }
 
 export { Action }

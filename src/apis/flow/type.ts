@@ -18,4 +18,16 @@ interface ReviseGroupConclusionParams {
   group_id: number
   conclusion: string
 }
-export type { ProposeIdeaParams, ReplyIdeaParams, ReviseGroupConclusionParams }
+
+interface ReviseSelfIdeaParams {
+  node_id: number
+  content: string
+  student_id: number
+}
+
+export type {
+  ProposeIdeaParams,
+  ReplyIdeaParams,
+  ReviseGroupConclusionParams,
+  ReviseSelfIdeaParams,
+}

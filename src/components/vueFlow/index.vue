@@ -14,8 +14,13 @@ import { useCssVar } from '@vueuse/core'
 import { queryFlowDataApi } from '@/apis/flow/index.ts'
 import { useRouter } from 'vue-router'
 
-
-import { LayoutDirection, VueFlowNode, VueFlowEdge, NodeType, EdgeType } from './type.ts'
+import {
+  LayoutDirection,
+  VueFlowNode,
+  VueFlowEdge,
+  NodeType,
+  EdgeType,
+} from './type.ts'
 
 defineOptions({
   option: 'flow-component',
@@ -29,7 +34,7 @@ const lineOpposeColor = useCssVar('--oppose-line-color')
 
 const lineColors = {
   group_to_discuss: lineNormalColor.value,
-  idea_to_group: lineNormalColor.value, 
+  idea_to_group: lineNormalColor.value,
   approve: lineApproveColor.value,
   reject: lineOpposeColor.value,
 }
@@ -38,10 +43,9 @@ const DEFAULT_STROKE_COLOR = '#fff'
 
 const handlerEdgesColor = (edges: VueFlowEdge[]) => {
   return edges.map(edge => {
-    
     const color = lineColors[edge._type as EdgeType] || DEFAULT_STROKE_COLOR
 
-    return { ...edge, style: { stroke: color }  }
+    return { ...edge, style: { stroke: color } }
   })
 }
 
@@ -55,7 +59,7 @@ const router = useRouter()
 async function drawFlow(newNodes: VueFlowNode[], newEdges: VueFlowEdge[]) {
   nodes.value = [...newNodes]
   edges.value = [...newEdges]
-  edges.value =[...handlerEdgesColor(edges.value)]
+  edges.value = [...handlerEdgesColor(edges.value)]
 
   await nextTick(() => {
     layoutGraph(LayoutDirection.Vertical)
@@ -159,7 +163,12 @@ defineExpose({
   lineOpposeColor,
 })
 
-const emits = defineEmits(['reply-approve', 'reply-oppose', 'revise'])
+const emits = defineEmits([
+  'reply-approve',
+  'reply-oppose',
+  'revise',
+  'revise-self',
+])
 
 const handleReplyApprove = (id: string) => {
   emits('reply-approve', id)
@@ -171,6 +180,9 @@ const handleReplyOppose = (id: string) => {
 const handleEmitRevise = () => {
   emits('revise')
 }
+const handleReviseSelf = (payload: { id: string; content: string }) => {
+  emits('revise-self', payload)
+}
 </script>
 
 <template>
@@ -181,11 +193,12 @@ const handleEmitRevise = () => {
         <topicNode :data="props.data" />
       </template>
       <template #node-group="props">
-        <groupNode :data="props.data" @revise="handleEmitRevise"/>
+        <groupNode :data="props.data" @revise="handleEmitRevise" />
       </template>
       <template #node-idea="props">
         <ideaNode
           :data="props.data"
+          @revise-self="handleReviseSelf"
           @reply-approve="handleReplyApprove"
           @reply-oppose="handleReplyOppose"
         />

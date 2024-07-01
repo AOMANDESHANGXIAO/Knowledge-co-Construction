@@ -11,11 +11,13 @@ import {
   proposeIdeaApi,
   replyIdeaApi,
   reviseGroupConclusionApi,
+  reviseSelfIdeaApi,
 } from '@/apis/flow/index.ts'
 import type {
   ProposeIdeaParams,
   ReplyIdeaParams,
   ReviseGroupConclusionParams,
+  ReviseSelfIdeaParams,
 } from '@/apis/flow/type.ts'
 import { IconName } from '@/components/Icons/HomePageIcon/type.ts'
 import {
@@ -25,6 +27,7 @@ import {
   ApproveIdeaModelType,
   OpposeIdeaModelType,
   SummaryIdeaModelType,
+  ReviseSelfFormModelType,
 } from './type.ts'
 
 const colorStore = useColorStore()
@@ -107,6 +110,7 @@ const proposeIdeaCallBack = () => {
           title: 'Success',
           message: data.message,
           type: 'success',
+          position: 'bottom-right',
         })
         vueFlowRef.value?.refresh()
       } else {
@@ -114,6 +118,7 @@ const proposeIdeaCallBack = () => {
           title: 'Error',
           message: data.message,
           type: 'error',
+          position: 'bottom-right',
         })
       }
       console.log(res)
@@ -177,13 +182,15 @@ const handleReplyIdea = (params: ReplyIdeaParams) => {
           title: 'Success',
           message: data.message,
           type: 'success',
+          position: 'bottom-right',
         })
-        vueFlowRef.value?.refresh()
+        handleRefresh()
       } else {
         ElNotification({
           title: 'Error',
           message: data.message,
           type: 'error',
+          position: 'bottom-right',
         })
       }
     })
@@ -256,6 +263,64 @@ const opposeIdeaCallBack = () => {
 }
 // =====================
 
+// ===== 修改自己观点逻辑 ===
+const reviseSelfFormModel = ref<ReviseSelfFormModelType>({
+  limitation: '',
+  basedOption: '',
+  newOption: '',
+})
+
+const reviseIdeaFormList = ref<FormListItem[]>([
+  {
+    title: '🤔原先观点的局限性',
+    placeholder: '请输入你的观点中的局限性',
+    model: 'limitation',
+  },
+  {
+    title: '😲你的依据是',
+    placeholder: '请输入你的依据',
+    model: 'basedOption',
+  },
+  {
+    title: '😛修正后的观点',
+    placeholder: '请输入修正后的观点',
+    model: 'newOption',
+  },
+])
+
+const handleReviseSelfIead = (payload: { id: string; content: string }) => {
+  action.value = Action.revise
+  title.value = '修改观点'
+  ideaContent.value = payload.content
+  replyToId.value = payload.id
+  handleViewIdeaDialog()
+}
+
+const reviseIdeaCallBack = () => {
+  const content = `新的观点是:${reviseSelfFormModel.value.newOption}\n依据是:${reviseSelfFormModel.value.basedOption}\n原先观点的局限在于:${reviseSelfFormModel.value.limitation}`
+
+  const params: ReviseSelfIdeaParams = {
+    node_id: Number(replyToId.value),
+    content: content,
+    student_id: userStore.userInfo.id,
+  }
+
+  reviseSelfIdeaApi(params).then(res => {
+    const data: any = res
+    if (data.success) {
+      ElNotification({
+        title: '成功',
+        message: '修改成功',
+        type: 'success',
+        position: 'bottom-right',
+      })
+      handleRefresh()
+    }
+  }).finally(() => {
+    handleViewIdeaDialog()
+  })
+}
+
 // ===== 总结观点逻辑 ====
 const summaryIdeaModel = ref<SummaryIdeaModelType>({
   summary: '',
@@ -295,6 +360,7 @@ const summaryIdeaCallBack = () => {
           title: 'Success',
           message: data.message,
           type: 'success',
+          position: 'bottom-right',
         })
         handleRefresh()
       } else {
@@ -302,6 +368,7 @@ const summaryIdeaCallBack = () => {
           title: 'Error',
           message: data.message,
           type: 'error',
+          position: 'bottom-right',
         })
       }
     })
@@ -310,6 +377,7 @@ const summaryIdeaCallBack = () => {
         title: 'Error',
         message: '服务器有点累~',
         type: 'error',
+        position: 'bottom-right',
       })
       console.log(err)
     })
@@ -325,6 +393,7 @@ const callBackObj = {
   [Action.oppose]: opposeIdeaCallBack,
   [Action.approve]: approveIdeaCallBack,
   [Action.summary]: summaryIdeaCallBack,
+  [Action.revise]: reviseIdeaCallBack,
 }
 
 // 根据当前的状态选择回调函数
@@ -365,8 +434,10 @@ const handleSwitchCallback = () => {
           style="max-width: 700px"
           v-else-if="action === Action.approve"
         >
-        <el-text><strong>当前正在回应的观点是: </strong>{{ ideaContent }}</el-text>
-        <el-divider></el-divider>
+          <el-text
+            ><strong>当前正在回应的观点是: </strong>{{ ideaContent }}</el-text
+          >
+          <el-divider></el-divider>
           <el-form-item v-for="(item, index) in approveIdeamFormList">
             <h3>{{ item.title }}</h3>
             <el-input
@@ -386,8 +457,10 @@ const handleSwitchCallback = () => {
           style="max-width: 700px"
           v-else-if="action === Action.oppose"
         >
-        <el-text><strong>当前正在回应的观点是: </strong>{{ ideaContent }}</el-text>
-        <el-divider></el-divider>
+          <el-text
+            ><strong>当前正在回应的观点是: </strong>{{ ideaContent }}</el-text
+          >
+          <el-divider></el-divider>
           <el-form-item v-for="(item, index) in opposeIdeaFormList">
             <h3>{{ item.title }}</h3>
             <el-input
@@ -421,6 +494,27 @@ const handleSwitchCallback = () => {
           </el-form-item>
         </el-form>
 
+        <el-form
+          :model="reviseSelfFormModel"
+          style="max-width: 700px"
+          v-else-if="action === Action.revise"
+        >
+          <el-text><strong>原先的观点是: </strong>{{ ideaContent }}</el-text>
+          <el-divider></el-divider>
+          <el-form-item v-for="(item, index) in reviseIdeaFormList">
+            <h3>{{ item.title }}</h3>
+            <el-input
+              :key="index"
+              v-model="reviseSelfFormModel[item.model]"
+              :placeholder="item.placeholder"
+              type="textarea"
+              rows="4"
+              show-word-limit
+              maxlength="200"
+            ></el-input>
+          </el-form-item>
+        </el-form>
+
         <template #footer>
           <div style="display: flex; justify-content: flex-end; width: 100%">
             <el-button plain @click="handleViewIdeaDialog" :color="themeColor"
@@ -445,6 +539,7 @@ const handleSwitchCallback = () => {
       @reply-oppose="handleOpposeIdea"
       @reply-approve="handleApproveIdea"
       @revise="handleSummaryIdea"
+      @revise-self="handleReviseSelfIead"
     >
       <div class="layout-panel">
         <button title="发表观点" @click="handleProposeIdea">

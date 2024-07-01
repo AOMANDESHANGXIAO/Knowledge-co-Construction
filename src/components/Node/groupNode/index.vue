@@ -9,7 +9,7 @@ import { useUserStore } from '@/store/modules/user'
 import { queryReviseData } from '@/apis/group'
 import type { ElScrollbar } from 'element-plus'
 import router from '@/router/index.ts'
-import { useScroll } from '@vueuse/core'
+import { Edit } from '@element-plus/icons-vue'
 
 interface Props {
   data: GroupNodeProps
@@ -20,6 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
     groupName: '小组A',
     groupConclusion: '暂时没有讨论结果...',
     bgc: '#FFA62F',
+    group_id: 1,
     sourcePosition: Position.Bottom, // 出来
     targetPosition: Position.Top, // 进来
   }),
@@ -66,18 +67,7 @@ const isShow = ref(false)
 
 const colorStore = useColorStore()
 
-const timeLineList = ref<TimeLineItem[]>([
-  {
-    timestamp: '2018/4/12',
-    content: 'We think that we can do better.',
-    creator: 'Tom',
-  },
-  {
-    timestamp: '2018/4/13',
-    content: 'We think that we can do Best!!.',
-    creator: 'Jerry',
-  },
-])
+const timeLineList = ref<TimeLineItem[]>([])
 
 const emits = defineEmits(['revise'])
 
@@ -90,6 +80,11 @@ const scrollbarRef = ref<InstanceType<typeof ElScrollbar> | null>(null)
 const handleScroll = () => {}
 
 const handleMouseWheel = () => {}
+
+const isEdit = computed(() => {
+  return userStore.userInfo.group_id === props.data.group_id
+})
+
 </script>
 
 <template>
@@ -110,14 +105,17 @@ const handleMouseWheel = () => {}
     >
       <el-button
         :color="colorStore.themeColor"
+        v-if="isEdit"
         size="large"
         width="100%"
         plain
         @click="handleClickReviseButton"
+        :icon="Edit"
         >修改</el-button
       >
       <el-divider></el-divider>
       <el-scrollbar
+        v-if="timeLineList.length > 0"
         max-height="400px"
         style="position: relative"
         ref="scrollbarRef"
@@ -143,6 +141,7 @@ const handleMouseWheel = () => {}
           </el-timeline-item>
         </el-timeline>
       </el-scrollbar>
+      <el-empty v-else description="暂无同学总结观点..."></el-empty>
     </NodePopover>
   </div>
 </template>
