@@ -18,7 +18,6 @@ import {
   LayoutDirection,
   VueFlowNode,
   VueFlowEdge,
-  NodeType,
   EdgeType,
 } from './type.ts'
 
@@ -177,8 +176,8 @@ const handleReplyApprove = (id: string) => {
 const handleReplyOppose = (id: string) => {
   emits('reply-oppose', id)
 }
-const handleEmitRevise = () => {
-  emits('revise')
+const handleEmitRevise = (payload: {content: string}) => {
+  emits('revise', payload)
 }
 const handleReviseSelf = (payload: { id: string; content: string }) => {
   emits('revise-self', payload)

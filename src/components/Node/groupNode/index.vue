@@ -72,7 +72,11 @@ const timeLineList = ref<TimeLineItem[]>([])
 const emits = defineEmits(['revise'])
 
 const handleClickReviseButton = () => {
-  emits('revise')
+
+  const payload = {
+    content: props.data.groupConclusion
+  }
+  emits('revise', payload)
 }
 
 const scrollbarRef = ref<InstanceType<typeof ElScrollbar> | null>(null)

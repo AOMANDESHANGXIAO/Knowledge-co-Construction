@@ -446,9 +446,26 @@ const summaryFormRules: FormRules = reactive({
   ],
 })
 
-const handleSummaryIdea = () => {
+const handleSummaryIdea = (payload: { content: string } = { content: '' }) => {
   action.value = Action.summary
   title.value = '总结本组的观点'
+  if (payload.content !== '') {
+    ideaContent.value = payload.content
+  } else {
+    // 查找nodes表
+    const { nodes } = vueFlowRef.value?.getNodesAndEdges()
+
+    let content = ''
+
+    const group_id = userStore.userInfo.group_id as number
+    nodes.forEach(node => {
+      if (node.type === 'group' && node.data.group_id === group_id) {
+        content += node.data.groupConclusion
+      }
+    })
+
+    ideaContent.value = content
+  }
   handleViewIdeaDialog()
 }
 
@@ -518,11 +535,13 @@ const formRefs = {
 
 // 根据当前的状态选择回调函数
 const handleSwitchCallback = () => {
-  formRefs[action.value]?.value.validate(valid => {
-    if (valid) {
-      callBackObj[action.value]?.call()
-    }
-  })
+  if (formRefs[action.value]) {
+    formRefs[action.value]!.value!.validate(valid => {
+      if (valid) {
+        callBackObj[action.value]!.call()
+      }
+    })
+  }
 }
 </script>
 
@@ -621,6 +640,10 @@ const handleSwitchCallback = () => {
           :rules="summaryFormRules"
           v-else-if="action === Action.summary"
         >
+          <el-text
+            ><strong>本小组之前的观点为: </strong>{{ ideaContent }}</el-text
+          >
+          <el-divider></el-divider>
           <el-form-item
             v-for="(item, index) in summaryFormList"
             :prop="item.model"
@@ -694,7 +717,7 @@ const handleSwitchCallback = () => {
         <button title="发表观点" @click="handleProposeIdea">
           <Icon :name="IconName.Idea" />
         </button>
-        <button title="总结观点" @click="handleSummaryIdea">
+        <button title="总结观点" @click="handleSummaryIdea({ content: '' })">
           <Icon :name="IconName.Summary" />
         </button>
         <button title="刷新" @click="handleRefresh">
