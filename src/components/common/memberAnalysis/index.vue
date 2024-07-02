@@ -52,7 +52,7 @@ let option = computed((): EChartsOption => {
         color: '#fff',
       },
     },
-    color: ['#91DDCF', '#F7F9F2', '#E8C5E5', '#F19ED2', '#D8EFD3'],
+    color: ['#badab5', '#72b063', '#719aac', '#e29135', '#94c6cd', '#4a5f7e'],
     series: [
       {
         group_name: '来自',
