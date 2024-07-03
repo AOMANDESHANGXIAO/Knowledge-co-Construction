@@ -76,7 +76,9 @@ const handleClick = (topic_id: number) => {
 .manage-page-talk {
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  // overflow: hidden;
   color: #f9f9f9;
 
   main {
