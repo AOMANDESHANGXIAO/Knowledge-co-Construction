@@ -144,11 +144,12 @@ const classnameList = ref<classItem[]>()
 const handleQueryClassList = () => {
   queryClassRoomList()
     .then(res => {
-      const data = res.data
+      const data: any = res
+      // console.log('data ===> ', data)
       if (data.success) {
         classnameList.value = data.data.list
       }
-      console.log('接口查询列表所得===>', classnameList)
+      // console.log('接口查询列表所得===>', classnameList)
     })
     .catch(err => {
       console.log(err)
