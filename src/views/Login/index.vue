@@ -124,6 +124,7 @@ const registerRules: FormRules = reactive({
     { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' },
     {
       validator: function (rule, value, callback) {
+        console.log(rule)
         if (value !== registerForm.value.password) {
           callback(new Error('两次输入密码不一致'))
         } else {
@@ -144,8 +145,8 @@ const classnameList = ref<classItem[]>()
 const handleQueryClassList = () => {
   queryClassRoomList()
     .then(res => {
-      const data: any = res
-      // console.log('data ===> ', data)
+      const data = res
+      console.log('data ===> ', data)
       if (data.success) {
         classnameList.value = data.data.list
       }
@@ -171,7 +172,7 @@ const submitRegister = () => {
       }
       signUpAction(params)
         .then(res => {
-          const data: any = res
+          const data= res
           if (data.success) {
             ElMessage.success('注册成功!')
             toggleRegisterAndLogin()

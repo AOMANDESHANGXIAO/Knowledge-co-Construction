@@ -3,11 +3,12 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
 import { escapeData } from '@/utils/escapeHandler'
+
 axios.defaults.timeout = 10000 // 请求超时时间
 
 const Service = axios.create({
   baseURL: 'http://127.0.0.1:8000',
-  // baseURL: 'www.tender.host:8000',
+  // baseURL: 'http://122.51.107.161:8000',
 })
 
 // axios 请求拦截器
@@ -35,7 +36,7 @@ Service.interceptors.request.use(
 )
 // axios respone拦截器
 Service.interceptors.response.use(
-  function (response) {
+  function (response){
     console.log(response)
     if (response.status == 200) {
       return response.data

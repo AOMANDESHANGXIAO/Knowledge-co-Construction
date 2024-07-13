@@ -1,20 +1,23 @@
 import Service from '@/apis/index.ts'
-import {SignInParams, SignUpParams} from './type.ts'
+import {
+  SignInParams,
+  SignUpParams,
+  ClassRoomList,
+  SignInData,
+  SignUpData,
+} from './type.ts'
+import { Response } from '../libcommon/index.ts'
 
-const queryClassRoomList = () => {
-    return Service.get('/classroom/queryClassroomList')
+const queryClassRoomList = (): Promise<Response<ClassRoomList>> => {
+  return Service.get('/classroom/queryClassroomList')
 }
 
-const signInAction = (params: SignInParams) => {
-    return Service.post('/user/signin', params)
+const signInAction = (params: SignInParams): Promise<Response<SignInData>> => {
+  return Service.post('/user/signin', params)
 }
 
-const signUpAction = (params: SignUpParams) => {
-    return Service.post('/user/signup', params)
+const signUpAction = (params: SignUpParams): Promise<Response<SignUpData>> => {
+  return Service.post('/user/signup', params)
 }
 
-export {
-    signInAction,
-    signUpAction,
-    queryClassRoomList,
-}
+export { signInAction, signUpAction, queryClassRoomList }

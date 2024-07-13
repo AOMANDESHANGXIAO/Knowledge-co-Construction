@@ -1,23 +1,40 @@
 import Service from '@/apis/index.ts'
-import { CreateGroupParams, JoinGroupParams } from './type.ts'
+import {
+  CreateGroupParams,
+  JoinGroupParams,
+  JoinGroupData,
+  QueryCollaborationData,
+  QueryMemeberData,
+  QueryReviseData,
+} from './type.ts'
+import { Response } from '../libcommon/index.ts'
 
-const createGroupApi = (params: CreateGroupParams) => {
+const createGroupApi = (params: CreateGroupParams): Promise<Response> => {
   return Service.post('/group/create', params)
 }
 
-const joinGroupApi = (params: JoinGroupParams) => {
+const joinGroupApi = (
+  params: JoinGroupParams
+): Promise<Response<JoinGroupData>> => {
   return Service.post('/group/join', params)
 }
 
-const queryCollaborationData = (groud_id: number) => {
+const queryCollaborationData = (
+  groud_id: number
+): Promise<Response<QueryCollaborationData>> => {
   return Service.get(`/group/query_collaboration_data?group_id=${groud_id}`)
 }
 
-const queryMemberData = (group_id: number) => {
+const queryMemberData = (
+  group_id: number
+): Promise<Response<QueryMemeberData>> => {
   return Service.get(`/group/query_member_data?group_id=${group_id}`)
 }
 
-const queryReviseData = (group_id: number, topic_id: number) => {
+const queryReviseData = (
+  group_id: number,
+  topic_id: number
+): Promise<Response<QueryReviseData>> => {
   return Service.get(`/group/query_revise_data`, {
     params: {
       group_id,

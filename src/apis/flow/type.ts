@@ -25,9 +25,46 @@ interface ReviseSelfIdeaParams {
   student_id: number
 }
 
+interface QueryFlowData {
+  edges: Edge[];
+  nodes: Node[];
+  [property: string]: any;
+}
+
+interface Edge {
+  id: number;
+  source: number;
+  target: number;
+  type: string;
+  [property: string]: any;
+}
+
+interface Node {
+  data: NodeData;
+  id: number;
+  type: string;
+  [property: string]: any;
+}
+
+interface NodeData {
+  groupConclusion?: string;
+  groupName?: string;
+  id: number;
+  name: string;
+  text?: string;
+  [property: string]: any;
+}
+
+interface QueryNodeContentData {
+  content: string
+  [property: string]: any
+}
+
 export type {
   ProposeIdeaParams,
   ReplyIdeaParams,
   ReviseGroupConclusionParams,
   ReviseSelfIdeaParams,
+  QueryFlowData,
+  QueryNodeContentData
 }
