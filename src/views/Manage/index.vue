@@ -39,12 +39,12 @@ const route = useRoute()
               <span>讨论管理</span>
             </section>
           </el-menu-item>
-          <!-- <el-menu-item index="/manage/my">
+          <el-menu-item index="/manage/my">
             <section class="menu-item">
               <Icon :name="Name.User"></Icon>
               <span>个人管理</span>
             </section>
-          </el-menu-item> -->
+          </el-menu-item>
         </el-menu>
       </el-col>
       <el-col :span="21" style="height: 100%">

@@ -2,22 +2,22 @@
 import manageHeader from '@/components/common/manageHeader/index.vue'
 import { useUserStore } from '@/store/modules/user'
 import talkCard from '@/components/common/talkCard/index.vue'
-import type { TalkCardItem } from './type.ts'
-import { queryTopicListApi } from '@/apis/manage_talk/index.ts'
+import type { ListItem } from './type.ts'
+import { queryTopicListApi } from '@/apis/manageTalk/index.ts'
 import router from '@/router/index.ts'
 
 const userStore = useUserStore()
 
 const { userInfo } = userStore
 
-const talkCardList = ref<TalkCardItem[]>([])
+const talkCardList = ref<ListItem[]>([])
 
 const queryTopicList = () => {
   const class_id = userStore.userInfo.class_id
 
   queryTopicListApi(class_id)
     .then(res => {
-      const data: any = res
+      const data = res
 
       if (data.success) {
         talkCardList.value = data.data.list

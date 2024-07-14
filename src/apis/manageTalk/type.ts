@@ -11,13 +11,14 @@ interface TopicListData {
 }
 
 interface ListItem {
-  created_time?: string;
-  created_user_name?: string;
-  id?: number;
-  topic_content?: string;
+  created_time: string;
+  created_user_name: string;
+  id: number;
+  topic_content: string;
   [property: string]: any;
 }
 
 export type {
-  TopicListData
+  TopicListData,
+  ListItem
 }

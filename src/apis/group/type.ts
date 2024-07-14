@@ -1,3 +1,4 @@
+import { QueryUserCollInfoData } from '@/apis/user/type'
 interface CreateGroupParams {
   student_id?: number
   group_name: string
@@ -34,41 +35,52 @@ interface CollaborationListItem {
 }
 
 interface QueryMemeberData {
-  feedbackList: FeedbackList[];
-  proposeList: ProposeList[];
-  summaryList: SummaryList[];
-  [property: string]: any;
+  feedbackList: FeedbackList[]
+  proposeList: ProposeList[]
+  summaryList: SummaryList[]
+  [property: string]: any
 }
 
 interface FeedbackList {
-  name?: string;
-  value?: number;
-  [property: string]: any;
+  name?: string
+  value?: number
+  [property: string]: any
 }
 
 interface ProposeList {
-  name?: string;
-  value?: number;
-  [property: string]: any;
+  name?: string
+  value?: number
+  [property: string]: any
 }
 
 interface SummaryList {
-  name?: string;
-  value?: number;
-  [property: string]: any;
+  name?: string
+  value?: number
+  [property: string]: any
 }
 
-
 interface QueryReviseData {
-  list: QueryReviseListItem[];
-  [property: string]: any;
+  list: QueryReviseListItem[]
+  [property: string]: any
 }
 
 interface QueryReviseListItem {
-  content: string;
-  creator: string;
-  timestamp: string;
-  [property: string]: any;
+  content: string
+  creator: string
+  timestamp: string
+  [property: string]: any
+}
+
+interface QueryGroupMemberItem {
+  id: number | string // 成员id
+  name: string // 成员昵称
+  data?: QueryUserCollInfoData // 成员数据
+  title?: string
+}
+
+interface QueryGroupMemeberData {
+  list: QueryGroupMemberItem[]
+  [property: string]: any
 }
 
 export type {
@@ -76,6 +88,9 @@ export type {
   JoinGroupParams,
   JoinGroupData,
   QueryCollaborationData,
+  CollaborationListItem,
   QueryMemeberData,
-  QueryReviseData
+  QueryReviseData,
+  QueryGroupMemberItem,
+  QueryGroupMemeberData,
 }

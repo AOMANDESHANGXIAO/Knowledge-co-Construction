@@ -6,6 +6,7 @@ import {
   QueryCollaborationData,
   QueryMemeberData,
   QueryReviseData,
+  QueryGroupMemeberData,
 } from './type.ts'
 import { Response } from '../libcommon/index.ts'
 
@@ -43,10 +44,21 @@ const queryReviseData = (
   })
 }
 
+const queryGroupStudentsApi = (
+  id: string | number
+): Promise<Response<QueryGroupMemeberData>> => {
+  return Service.get('/group/query_member', {
+    params: {
+      id,
+    },
+  })
+}
+
 export {
   queryCollaborationData,
   createGroupApi,
   joinGroupApi,
   queryMemberData,
   queryReviseData,
+  queryGroupStudentsApi
 }

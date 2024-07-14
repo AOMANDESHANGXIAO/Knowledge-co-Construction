@@ -6,9 +6,9 @@ import {
   queryClassRoomList,
   signInAction,
   signUpAction,
-} from '@/apis/login/index.ts'
+} from '@/apis/user/index.ts'
 import router from '@/router/index.ts'
-import { SignInParams } from '@/apis/login/type.ts'
+import { SignInParams } from '@/apis/user/type.ts'
 import { useUserStore } from '@/store/modules/user/index.ts'
 
 const themeColor = useCssVar('--theme-color')
@@ -172,7 +172,7 @@ const submitRegister = () => {
       }
       signUpAction(params)
         .then(res => {
-          const data= res
+          const data = res
           if (data.success) {
             ElMessage.success('注册成功!')
             toggleRegisterAndLogin()

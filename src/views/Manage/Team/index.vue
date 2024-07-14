@@ -7,14 +7,25 @@ import manageHeader from '@/components/common/manageHeader/index.vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useUserStore } from '@/store/modules/user'
 import { useColorStore } from '@/store/modules/color'
-import { createGroupApi, joinGroupApi,queryCollaborationData, queryMemberData } from '@/apis/group/index.ts'
-import { CreateGroupParams } from '@/apis/group/type.ts'
+import {
+  createGroupApi,
+  joinGroupApi,
+  queryCollaborationData,
+  queryMemberData,
+  queryGroupStudentsApi,
+} from '@/apis/group/index.ts'
+import {
+  CreateGroupParams,
+  CollaborationListItem,
+  QueryGroupMemberItem,
+} from '@/apis/group/type.ts'
+import { queryUserCollInfo } from '@/apis/user/index.ts'
 import { TeamStatus } from './type.ts'
+import groupMemberItem from './components/groupMember/index.vue'
 
 const userStore = useUserStore()
 
 const { userInfo } = userStore
-
 
 // 管理当前页面的状态
 const teamStatus = ref<TeamStatus>(TeamStatus.groupAnalysis)
@@ -36,10 +47,7 @@ const setTeamStatus = (status: TeamStatus) => {
 
 const { themeColor } = useColorStore()
 
-
-
 const isCreateButtonLoading = ref<boolean>(false)
-
 
 const groupForm = ref({
   group_name: '',
@@ -159,7 +167,7 @@ const onJoinTeam = () => {
       if (data.success) {
         const result = data.data
         userStore.setUserInfo(result)
-        
+
         ElNotification({
           title: '加入成功',
           dangerouslyUseHTMLString: true,
@@ -182,11 +190,9 @@ const onJoinTeam = () => {
     .finally(() => {})
 }
 
-
-const groupAnalysisList = ref([])
+const groupAnalysisList = ref<CollaborationListItem[]>([])
 
 const queryCollaborationDataApi = () => {
-
   const group_id = userStore.userInfo.group_id as unknown as number
 
   queryCollaborationData(group_id)
@@ -207,11 +213,10 @@ queryCollaborationDataApi()
 const chartDataList_ = ref({
   feedbackList: [],
   proposeList: [],
-  summaryList: []
+  summaryList: [],
 })
 
 const queryMemberDataApi = () => {
-
   const group_id = userStore.userInfo.group_id as unknown as number
 
   queryMemberData(group_id).then((res: any) => {
@@ -223,11 +228,47 @@ const queryMemberDataApi = () => {
   })
 }
 queryMemberDataApi()
+
+const groupStudentList = ref<QueryGroupMemberItem[]>([])
+
+const queryGroupStudents = () => {
+  const id = userStore.userInfo.group_id as unknown as number
+
+  queryGroupStudentsApi(id).then(res => {
+    if (res.success) {
+      groupStudentList.value = res.data.list
+    } else {
+      console.log(res.message)
+    }
+  })
+}
+queryGroupStudents()
+
+/**
+ * @description: 处理查询成员信息
+ */
+const handleQueryMemberInfo = (obj: {id: number, callBack: Function}) => {
+  const {id, callBack} = obj
+  queryUserCollInfo(id).then(res => {
+    if (res.success) {
+      /**
+       * 通过调用子组件的回调函数重新渲染
+       * 大坑：直接更改数组的值并不会引起视图的更新
+       */
+      callBack(res.data)
+    } else {
+      console.log(res.message)
+    }
+  })
+}
 </script>
 
 <template>
   <div class="team-manage-page">
-    <section v-if="teamStatus===TeamStatus.creating" class="creating-team-container">
+    <section
+      v-if="teamStatus === TeamStatus.creating"
+      class="creating-team-container"
+    >
       <transition name="scale">
         <el-card class="box-card" style="width: 500px">
           <template #header>
@@ -286,7 +327,10 @@ queryMemberDataApi()
       </section>
     </section>
 
-    <section v-else-if="teamStatus===TeamStatus.notJoinGroup" class="empty-container">
+    <section
+      v-else-if="teamStatus === TeamStatus.notJoinGroup"
+      class="empty-container"
+    >
       <el-empty description="还没有加入团队哦,你可以...">
         <div>
           <el-button
@@ -320,13 +364,29 @@ queryMemberDataApi()
       </el-empty>
     </section>
 
-    <section v-else-if="teamStatus===TeamStatus.groupAnalysis" class="group-manage-container">
+    <section
+      v-else-if="teamStatus === TeamStatus.groupAnalysis"
+      class="group-manage-container"
+    >
       <manage-header :username="userInfo.nickname"></manage-header>
       <main>
         <section class="group-info">
           <div class="title">{{ userStore.userInfo.group_name }}的团队统计</div>
           <div class="group-code">
             团队码:&nbsp;{{ userStore.userInfo.group_code }}
+          </div>
+          <el-divider></el-divider>
+          <div class="group-member">
+            <h3>团队成员:</h3>
+            <div class="memeber-list">
+              <group-member-item
+                v-for="item in groupStudentList"
+                @click="handleQueryMemberInfo"
+                :name="item.name"
+                :id="item.id"
+                :key="item.id"
+              ></group-member-item>
+            </div>
           </div>
           <el-divider></el-divider>
           <section class="group-analysis">
@@ -365,7 +425,7 @@ queryMemberDataApi()
 @mixin group-analysis-container-layout {
   width: calc(100% - 160px);
   margin: 0 auto;
-  height: 400px;
+  min-height: 400px;
   padding: 30px;
   border-radius: 30px;
   background-color: var(--dark-color);
@@ -454,6 +514,7 @@ queryMemberDataApi()
 
     .group-info {
       @include group-analysis-container-layout;
+      color: #fff;
 
       .title {
         color: #fff;

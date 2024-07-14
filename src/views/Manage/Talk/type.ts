@@ -1,3 +1,5 @@
+import type { ListItem } from '@/apis/manageTalk/type.ts'
+
 interface TalkCardItem {
   id: number
   created_time: string
@@ -5,4 +7,4 @@ interface TalkCardItem {
   created_user_name: string
 }
 
-export type { TalkCardItem }
+export type { TalkCardItem, ListItem }

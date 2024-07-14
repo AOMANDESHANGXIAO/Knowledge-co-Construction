@@ -5,6 +5,7 @@ import {
   ClassRoomList,
   SignInData,
   SignUpData,
+  QueryUserCollInfoData,
 } from './type.ts'
 import { Response } from '../libcommon/index.ts'
 
@@ -20,4 +21,14 @@ const signUpAction = (params: SignUpParams): Promise<Response<SignUpData>> => {
   return Service.post('/user/signup', params)
 }
 
-export { signInAction, signUpAction, queryClassRoomList }
+const queryUserCollInfo = (
+  id: number
+): Promise<Response<QueryUserCollInfoData>> => {
+  return Service.get('/user/collInfo', {
+    params: {
+      id,
+    },
+  })
+}
+
+export { signInAction, signUpAction, queryClassRoomList, queryUserCollInfo }
