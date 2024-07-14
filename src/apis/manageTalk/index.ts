@@ -3,9 +3,15 @@ import { Response } from '../libcommon'
 import { TopicListData } from './type.ts'
 
 const queryTopicListApi = (
-  class_id: number
+  class_id: number,
+  content: string = ''
 ): Promise<Response<TopicListData>> => {
-  return Service.get(`/discuss/queryTopic?class_id=${class_id}`)
+  return Service.get(`/discuss/queryTopic`, {
+    params: {
+      class_id,
+      content
+    }
+  })
 }
 
 export { queryTopicListApi }

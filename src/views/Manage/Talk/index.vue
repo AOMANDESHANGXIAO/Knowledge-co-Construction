@@ -4,6 +4,7 @@ import { useUserStore } from '@/store/modules/user'
 import talkCard from '@/components/common/talkCard/index.vue'
 import type { ListItem } from './type.ts'
 import { queryTopicListApi } from '@/apis/manageTalk/index.ts'
+import { Search } from '@element-plus/icons-vue'
 import router from '@/router/index.ts'
 
 const userStore = useUserStore()
@@ -12,10 +13,12 @@ const { userInfo } = userStore
 
 const talkCardList = ref<ListItem[]>([])
 
+const inputValue = ref('')
+
 const queryTopicList = () => {
   const class_id = userStore.userInfo.class_id
-
-  queryTopicListApi(class_id)
+  const content = inputValue.value
+  queryTopicListApi(class_id, content)
     .then(res => {
       const data = res
 
@@ -47,13 +50,31 @@ const handleClick = (topic_id: number) => {
   router.push({ path: '/home', query: { topic_id: topic_id } })
   // router.go(0)
 }
+
+
+const handleSearch = () => {
+  queryTopicList()
+}
 </script>
 
 <template>
   <section class="manage-page-talk">
     <manage-header :username="userInfo.nickname"></manage-header>
     <main class="join-talk-container">
-      <header>加入讨论!</header>
+      <header class="title-container">
+        <span>加入讨论!</span>
+        <div class="input-container">
+          <el-input
+            v-model="inputValue"
+            placeholder="搜索讨论..."
+            @keyup.enter="handleSearch"
+          >
+            <template #append>
+              <el-button :icon="Search" @click="handleSearch" />
+            </template>
+          </el-input>
+        </div>
+      </header>
       <el-divider></el-divider>
       <section class="talk-card-list-container">
         <talk-card
@@ -92,6 +113,18 @@ const handleClick = (topic_id: number) => {
 
     header {
       @include banner-title;
+    }
+    .input-container {
+      width: 200px;
+      &:deep(.el-input__wrapper.is-focus) {
+        z-index: 10;
+        box-shadow: 0 0 0 1px var(--theme-color);
+      }
+    }
+    .title-container {
+      display: flex;
+      height: 50px;
+      justify-content: space-between;
     }
 
     .talk-card-list-container {

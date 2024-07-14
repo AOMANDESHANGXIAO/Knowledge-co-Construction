@@ -1,12 +1,8 @@
 <script lang="ts" setup>
+import { IconName } from './type.ts'
 defineOptions({
   name: 'icon',
 })
-enum IconName {
-  feedbackKing = 'feedbackKing',
-  summaryKing = 'summaryKing',
-  shareKing = 'shareKing',
-}
 
 const props = defineProps<{
   iconName: string

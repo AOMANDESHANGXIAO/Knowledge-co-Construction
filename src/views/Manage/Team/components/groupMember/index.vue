@@ -1,34 +1,15 @@
 <script lang="ts" setup>
 import icon from '../icons/index.vue'
+import {  Props } from './type.ts'
 defineOptions({
   name: 'group-member-item',
 })
-
-interface Title {
-  type: string
-  text: string
-}
-
-interface Data {
-  discussNum?: number
-  feedbackNum?: number
-  summaryNum?: number
-  proposeNum?: number
-  [propName: string]: any
-}
-
-interface Props {
-  name: string
-  id: string | number
-  title: Title[] // 头衔
-  data: Data
-}
 
 const props = defineProps<Props>()
 </script>
 
 <template>
-  <el-popover placement="right" trigger="click" width="165">
+  <el-popover placement="right" trigger="click" width="150">
     <template #reference>
       <div class="group-member-item">
         <div class="icons">
@@ -40,7 +21,7 @@ const props = defineProps<Props>()
     <!-- 个人参与统计 -->
     <ul>
       <li v-for="t in props.title" :key="t.text">
-        这位是:<span class="title-text"> {{ t.text }}👑</span>
+        <span class="title-text"> {{ t.text }}👑</span>
       </li>
       <li>参与了讨论:{{ props.data?.discussNum || 0 }}次</li>
       <li>分享过观点:{{ props.data?.proposeNum || 0 }}次</li>
