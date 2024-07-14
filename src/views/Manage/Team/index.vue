@@ -423,7 +423,8 @@ queryGroupStudents()
     flex-wrap: wrap;
     gap: 10px;
     justify-content: flex-start;
-    align-items: center;
+    align-items: baseline;
+    // align-items: center;
   }
 
 

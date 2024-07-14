@@ -28,19 +28,19 @@ const props = defineProps<Props>()
 </script>
 
 <template>
-  <el-popover placement="right" trigger="click" width="150">
+  <el-popover placement="right" trigger="click" width="165">
     <template #reference>
       <div class="group-member-item">
-        <span class="icons">
+        <div class="icons">
           <icon v-for="item in props.title" :iconName="item.type" />
-        </span>
-        <span>{{ props.name }}</span>
+        </div>
+        <div class="name">{{ props.name }}</div>
       </div>
     </template>
     <!-- 个人参与统计 -->
     <ul>
       <li v-for="t in props.title" :key="t.text">
-        这位是:<span class="title-text"> {{ t.text }}</span> 
+        这位是:<span class="title-text"> {{ t.text }}👑</span>
       </li>
       <li>参与了讨论:{{ props.data?.discussNum || 0 }}次</li>
       <li>分享过观点:{{ props.data?.proposeNum || 0 }}次</li>
@@ -52,9 +52,12 @@ const props = defineProps<Props>()
 
 <style lang="scss" scoped>
 .group-member-item {
-  // margin-right: 10px;
   position: relative;
   margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   &:hover {
     cursor: pointer;
     text-decoration: underline;
@@ -63,10 +66,9 @@ const props = defineProps<Props>()
 
   .icons {
     position: absolute;
-    display: flex;
-    left: 0;
     top: -20px;
-    gap: 2px;
+    display: flex;
+    gap: -5px;
   }
 }
 
