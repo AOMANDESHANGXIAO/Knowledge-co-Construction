@@ -418,6 +418,15 @@ queryGroupStudents()
   height: 100%;
   overflow-x: hidden;
 
+  .memeber-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-start;
+    align-items: center;
+  }
+
+
   .creating-team-container,
   .empty-container {
     position: relative;
