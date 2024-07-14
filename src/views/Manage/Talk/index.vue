@@ -15,10 +15,25 @@ const talkCardList = ref<ListItem[]>([])
 
 const inputValue = ref('')
 
+const options = [
+  {
+    value: '0',
+    label: '正向时间排序',
+  },
+  {
+    value: '1',
+    label: '逆向时间排序',
+  },
+]
+
+/* 设置默认值 */
+const selectValue = ref(options[0].value)
+
 const queryTopicList = () => {
   const class_id = userStore.userInfo.class_id
   const content = inputValue.value
-  queryTopicListApi(class_id, content)
+  const sort = selectValue.value
+  queryTopicListApi(class_id, content, +sort)
     .then(res => {
       const data = res
 
@@ -51,7 +66,6 @@ const handleClick = (topic_id: number) => {
   // router.go(0)
 }
 
-
 const handleSearch = () => {
   queryTopicList()
 }
@@ -64,10 +78,23 @@ const handleSearch = () => {
       <header class="title-container">
         <span>加入讨论!</span>
         <div class="input-container">
+          <el-select
+            v-model="selectValue"
+            placeholder="时间排序"  
+            style="width: 200px;"
+          >
+            <el-option
+              v-for="item in options"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
           <el-input
             v-model="inputValue"
             placeholder="搜索讨论..."
             @keyup.enter="handleSearch"
+            style="width: 200px"
           >
             <template #append>
               <el-button :icon="Search" @click="handleSearch" />
@@ -115,7 +142,13 @@ const handleSearch = () => {
       @include banner-title;
     }
     .input-container {
-      width: 200px;
+      display: flex;
+      gap: 10px;
+      &:deep(.el-select__wrapper) {
+        height: 28px;
+        // box-sizing: border-box;
+      }
+
       &:deep(.el-input__wrapper.is-focus) {
         z-index: 10;
         box-shadow: 0 0 0 1px var(--theme-color);
@@ -123,7 +156,7 @@ const handleSearch = () => {
     }
     .title-container {
       display: flex;
-      height: 50px;
+      height: 32px;
       justify-content: space-between;
     }
 

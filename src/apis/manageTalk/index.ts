@@ -4,12 +4,14 @@ import { TopicListData } from './type.ts'
 
 const queryTopicListApi = (
   class_id: number,
-  content: string = ''
+  content: string = '',
+  sort: number = 0
 ): Promise<Response<TopicListData>> => {
   return Service.get(`/discuss/queryTopic`, {
     params: {
       class_id,
-      content
+      content,
+      sort
     }
   })
 }
