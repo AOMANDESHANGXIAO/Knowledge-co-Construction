@@ -19,7 +19,6 @@ import {
   CollaborationListItem,
   QueryGroupMemberItem,
 } from '@/apis/group/type.ts'
-import { queryUserCollInfo } from '@/apis/user/index.ts'
 import { TeamStatus } from './type.ts'
 import groupMemberItem from './components/groupMember/index.vue'
 
@@ -243,24 +242,6 @@ const queryGroupStudents = () => {
   })
 }
 queryGroupStudents()
-
-/**
- * @description: 处理查询成员信息
- */
-const handleQueryMemberInfo = (obj: {id: number, callBack: Function}) => {
-  const {id, callBack} = obj
-  queryUserCollInfo(id).then(res => {
-    if (res.success) {
-      /**
-       * 通过调用子组件的回调函数重新渲染
-       * 大坑：直接更改数组的值并不会引起视图的更新
-       */
-      callBack(res.data)
-    } else {
-      console.log(res.message)
-    }
-  })
-}
 </script>
 
 <template>
@@ -381,7 +362,8 @@ const handleQueryMemberInfo = (obj: {id: number, callBack: Function}) => {
             <div class="memeber-list">
               <group-member-item
                 v-for="item in groupStudentList"
-                @click="handleQueryMemberInfo"
+                :data="item.data"
+                :title="item.title"
                 :name="item.name"
                 :id="item.id"
                 :key="item.id"

@@ -71,11 +71,17 @@ interface QueryReviseListItem {
   [property: string]: any
 }
 
+interface Title {
+  type: string
+  text: string
+}
+
+
 interface QueryGroupMemberItem {
   id: number | string // 成员id
   name: string // 成员昵称
-  data?: QueryUserCollInfoData // 成员数据
-  title?: string
+  data: QueryUserCollInfoData // 成员数据
+  title: Title[]
 }
 
 interface QueryGroupMemeberData {

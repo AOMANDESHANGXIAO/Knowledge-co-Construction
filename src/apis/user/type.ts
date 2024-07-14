@@ -34,10 +34,11 @@ interface SignUpData {
 }
 
 interface QueryUserCollInfoData {
-  proposeNum: number
-  feedbackNum: number
-  summaryNum: number
-  discussNum: number
+  proposeNum?: number
+  feedbackNum?: number
+  summaryNum?: number
+  discussNum?: number
+  [propName: string]: any
 }
 
 export type {
