@@ -3,4 +3,5 @@ export type IdeaNodeProps = {
   id: string // 节点的id
   bgc: string // 背景颜色
   student_id: string | number
+  highlight?: boolean
 }

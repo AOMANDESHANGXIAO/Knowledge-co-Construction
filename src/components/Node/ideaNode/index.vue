@@ -6,7 +6,8 @@ import { IdeaNodeProps } from './type.ts'
 import { queryNodeContentApi } from '@/apis/flow/index.ts'
 import { useCssVar } from '@vueuse/core'
 import NodePopover from '@/components/NodePopover/index.vue'
-import {useUserStore} from '@/store/modules/user'
+import { useUserStore } from '@/store/modules/user'
+import icon from './components/icon/index.vue'
 
 // 控制按钮的主题颜色
 const themeColor = useCssVar('--theme-color')
@@ -23,6 +24,7 @@ const props = withDefaults(defineProps<Props>(), {
     student_id: 0,
     sourcePosition: Position.Bottom,
     targetPosition: Position.Top,
+    highlight: true,
   }),
 })
 
@@ -68,7 +70,9 @@ const queryNodeContent = () => {
 // 向父组件传递事件，同意或者反对
 const emits = defineEmits(['reply-oppose', 'reply-approve', 'revise-self'])
 
-const sendReply = (emitEvent: 'reply-oppose' | 'reply-approve' | 'revise-self') => {
+const sendReply = (
+  emitEvent: 'reply-oppose' | 'reply-approve' | 'revise-self'
+) => {
   const payload = {
     id: props.data.id,
     content: optionText.value,
@@ -82,7 +86,7 @@ const isStudentSelf = computed(() => {
   return props.data.student_id === Number(userStore.userInfo.id)
 })
 
-const handleReviseSelfIead = (emitEvent : 'revise-self') => {
+const handleReviseSelfIead = (emitEvent: 'revise-self') => {
   const payload = {
     id: props.data.id,
     content: optionText.value,
@@ -90,7 +94,7 @@ const handleReviseSelfIead = (emitEvent : 'revise-self') => {
   isShow.value = false
   isSuccess.value = false
   console.log(payload)
-  
+
   emits(emitEvent, payload)
 }
 </script>
@@ -103,7 +107,12 @@ const handleReviseSelfIead = (emitEvent : 'revise-self') => {
   >
     <Handle :position="props.data.targetPosition" type="target" />
     <Handle :position="props.data.sourcePosition" type="source" />
-    <span @click="handleIsShow">{{ props.data.name }}</span>
+    <span @click="handleIsShow">
+      {{ props.data.name }}
+    </span>
+
+    <icon class="icon" v-if="props.data?.highlight"></icon>
+
     <NodePopover :is-show="isShow" :offset-width="50" :offset-height="50">
       <div class="idea-container">
         <lottie v-if="loading" :animation-data="LoadingAnimation" />
@@ -119,11 +128,16 @@ const handleReviseSelfIead = (emitEvent : 'revise-self') => {
             >
           </div>
         </div>
-        <div v-else-if="!loading && isStudentSelf" style="width: 100%;">
+        <div v-else-if="!loading && isStudentSelf" style="width: 100%">
           <el-text>{{ optionText }}</el-text>
           <el-divider content-position="center">🤔修改</el-divider>
-          <el-button :color="themeColor" @click="handleReviseSelfIead('revise-self')" style="width: 100%;color: #fff;">修改</el-button>
-        </div> 
+          <el-button
+            :color="themeColor"
+            @click="handleReviseSelfIead('revise-self')"
+            style="width: 100%; color: #fff"
+            >修改</el-button
+          >
+        </div>
       </div>
     </NodePopover>
   </div>
@@ -142,6 +156,12 @@ $node-width: 50px;
   font-size: 10px;
   text-align: center;
   line-height: $node-width;
+
+  .icon {
+    position: absolute;
+    top: 0;
+    left:-5px;
+  }
 
   span {
     display: block;
@@ -179,6 +199,20 @@ $node-width: 50px;
         //font-size: 14px;
       }
     }
+  }
+}
+
+.idea-node.highlight {
+  animation: highlight 0.5s ease-in-out infinite;
+}
+
+@keyframes highlight {
+  0% {
+    // bgackground-color: #fff;
+    bgackground-color: #fff;
+  }
+  100% {
+    background-color: var(--theme-color);
   }
 }
 </style>

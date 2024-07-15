@@ -31,6 +31,7 @@ declare module 'vue' {
     ElTimelineItem: typeof import('element-plus/es')['ElTimelineItem']
     GroupNode: typeof import('./../components/Node/groupNode/index.vue')['default']
     HomePageIcon: typeof import('./../components/Icons/HomePageIcon/index.vue')['default']
+    Icon: typeof import('./../components/Node/ideaNode/components/icon/index.vue')['default']
     IdeaNode: typeof import('./../components/Node/ideaNode/index.vue')['default']
     Lottie: typeof import('./../components/common/lottie/index.vue')['default']
     ManageHeader: typeof import('./../components/common/manageHeader/index.vue')['default']

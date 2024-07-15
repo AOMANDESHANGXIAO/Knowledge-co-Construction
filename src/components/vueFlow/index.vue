@@ -51,10 +51,7 @@ const edges = ref<VueFlowEdge[]>([])
 
 const router = useRouter()
 
-async function drawFlow(
-  newNodes: VueFlowNode[],
-  newEdges: VueFlowEdge[],
-) {
+async function drawFlow(newNodes: VueFlowNode[], newEdges: VueFlowEdge[]) {
   nodes.value = [...newNodes]
   edges.value = [...newEdges]
   edges.value = [...handlerEdgesColor(edges.value)]
@@ -64,7 +61,10 @@ async function drawFlow(
   })
 }
 
-const nodeId = ref('')
+/**
+ * 定位到屏幕中心点的nodeIds
+ */
+const nodeIds = ref<string[]>([])
 
 const queryFlowData = (callback: Function = () => {}) => {
   const topic_id = router.currentRoute.value.query?.topic_id as unknown as
@@ -77,7 +77,8 @@ const queryFlowData = (callback: Function = () => {}) => {
       const data: any = res
 
       if (data.success) {
-        let node_id
+        let node_id: any
+        nodeIds.value = []
         if (edges.value.length) {
           const newArr = diffArr(edges.value, data.data.edges)
           // console.log('the diff is', newArr)
@@ -87,9 +88,24 @@ const queryFlowData = (callback: Function = () => {}) => {
           if (newArr.length) {
             notes = getNotification(userId.toString(), data.data.nodes, newArr)
 
-            node_id = notes.map(note => note.target)
-            console.log('node_id', node_id)
-            nodeId.value = node_id[0]
+            node_id = notes.map(note => note.source)
+            // 设置highlight
+            data.data.nodes = data.data.nodes.map(node => {
+              // console.log('node is ', node)
+              if (node_id.includes(node.id)) {
+                return {
+                  ...node,
+                  data: {
+                    ...node.data,
+                    highlight: true,
+                  },
+                }
+              }
+
+              return node
+            })
+            // console.log(data.data.nodes, 'data.data.nodes')
+            nodeIds.value = node_id
             ElNotification({
               title: '互动通知',
               message: '有' + notes.length + '人刚刚回复了你的观点, 去看看吧~',
@@ -97,11 +113,11 @@ const queryFlowData = (callback: Function = () => {}) => {
               duration: 5000,
             })
           }
-          // console.log('should be notification', notes)
         }
 
         nodes.value = data.data.nodes
         edges.value = data.data.edges
+        // console.log(nodes.value, 'nodes.value')
 
         callback()
       }
@@ -156,10 +172,16 @@ async function layoutGraph(direction: LayoutDirection) {
   nodes.value = layout(nodes.value, edges.value, direction)
 
   await nextTick(() => {
-    if (nodeId.value) {
-      console.log('fitView', { nodes: [nodeId.value] })
-      fitView({ nodes: [nodeId.value] })
+    if (nodeIds.value.length) {
+      console.log('1', { nodes: nodeIds.value })
+      fitView({ nodes: nodeIds.value }).then(() => {
+        /**
+         * something bug here，have to use fitView twice...
+         */
+        fitView({ nodes: nodeIds.value })
+      })
     } else {
+      console.log('2')
       fitView()
     }
   })
