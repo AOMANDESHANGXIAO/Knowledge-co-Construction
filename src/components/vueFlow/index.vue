@@ -13,13 +13,9 @@ import { useLayout } from '@/hooks/VueFlow/useLayout'
 import { useCssVar } from '@vueuse/core'
 import { queryFlowDataApi } from '@/apis/flow/index.ts'
 import { useRouter } from 'vue-router'
-
-import {
-  LayoutDirection,
-  VueFlowNode,
-  VueFlowEdge,
-  EdgeType,
-} from './type.ts'
+import { diffArr, getNotification } from '@/utils/diffHandler/index.ts'
+import { useUserStore } from '@/store/modules/user'
+import { LayoutDirection, VueFlowNode, VueFlowEdge, EdgeType } from './type.ts'
 
 defineOptions({
   option: 'flow-component',
@@ -55,7 +51,10 @@ const edges = ref<VueFlowEdge[]>([])
 
 const router = useRouter()
 
-async function drawFlow(newNodes: VueFlowNode[], newEdges: VueFlowEdge[]) {
+async function drawFlow(
+  newNodes: VueFlowNode[],
+  newEdges: VueFlowEdge[],
+) {
   nodes.value = [...newNodes]
   edges.value = [...newEdges]
   edges.value = [...handlerEdgesColor(edges.value)]
@@ -64,6 +63,8 @@ async function drawFlow(newNodes: VueFlowNode[], newEdges: VueFlowEdge[]) {
     layoutGraph(LayoutDirection.Vertical)
   })
 }
+
+const nodeId = ref('')
 
 const queryFlowData = (callback: Function = () => {}) => {
   const topic_id = router.currentRoute.value.query?.topic_id as unknown as
@@ -76,8 +77,32 @@ const queryFlowData = (callback: Function = () => {}) => {
       const data: any = res
 
       if (data.success) {
+        let node_id
+        if (edges.value.length) {
+          const newArr = diffArr(edges.value, data.data.edges)
+          // console.log('the diff is', newArr)
+          const userId = useUserStore().userInfo.id
+
+          let notes
+          if (newArr.length) {
+            notes = getNotification(userId.toString(), data.data.nodes, newArr)
+
+            node_id = notes.map(note => note.target)
+            console.log('node_id', node_id)
+            nodeId.value = node_id[0]
+            ElNotification({
+              title: '互动通知',
+              message: '有' + notes.length + '人刚刚回复了你的观点, 去看看吧~',
+              type: 'info',
+              duration: 5000,
+            })
+          }
+          // console.log('should be notification', notes)
+        }
+
         nodes.value = data.data.nodes
         edges.value = data.data.edges
+
         callback()
       }
       console.log(res)
@@ -89,8 +114,6 @@ const queryFlowData = (callback: Function = () => {}) => {
 
 onPaneReady(() => {
   if (nodes.value.length && edges.value.length) {
-    console.log('绘制')
-    console.log(nodes.value, edges.value)
     edges.value = handlerEdgesColor(edges.value)
     layoutGraph(LayoutDirection.Vertical)
   }
@@ -133,7 +156,12 @@ async function layoutGraph(direction: LayoutDirection) {
   nodes.value = layout(nodes.value, edges.value, direction)
 
   await nextTick(() => {
-    fitView()
+    if (nodeId.value) {
+      console.log('fitView', { nodes: [nodeId.value] })
+      fitView({ nodes: [nodeId.value] })
+    } else {
+      fitView()
+    }
   })
 }
 
@@ -176,7 +204,7 @@ const handleReplyApprove = (id: string) => {
 const handleReplyOppose = (id: string) => {
   emits('reply-oppose', id)
 }
-const handleEmitRevise = (payload: {content: string}) => {
+const handleEmitRevise = (payload: { content: string }) => {
   emits('revise', payload)
 }
 const handleReviseSelf = (payload: { id: string; content: string }) => {
