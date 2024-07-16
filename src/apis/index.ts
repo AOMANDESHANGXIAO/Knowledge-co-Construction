@@ -36,8 +36,8 @@ Service.interceptors.request.use(
 )
 // axios respone拦截器
 Service.interceptors.response.use(
-  function (response){
-    console.log(response)
+  async function (response){
+    console.log('response >>>>', response)
     if (response.status == 200) {
       return response.data
     } else if (response.status == 401) {
@@ -67,7 +67,7 @@ Service.interceptors.response.use(
       return response.data
     }
   },
-  function (error) {
+  async function (error) {
     ElMessage({
       type: 'error',
       message: `请求出错。错误代码`,

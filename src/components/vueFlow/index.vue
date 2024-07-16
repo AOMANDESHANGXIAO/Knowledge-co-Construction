@@ -52,6 +52,8 @@ const edges = ref<VueFlowEdge[]>([])
 const router = useRouter()
 
 async function drawFlow(newNodes: VueFlowNode[], newEdges: VueFlowEdge[]) {
+  console.log('newNodes>>>>', newNodes)
+  console.log('newEdges>>>>', newEdges)
   nodes.value = [...newNodes]
   edges.value = [...newEdges]
   edges.value = [...handlerEdgesColor(edges.value)]
@@ -66,6 +68,76 @@ async function drawFlow(newNodes: VueFlowNode[], newEdges: VueFlowEdge[]) {
  */
 const nodeIds = ref<string[]>([])
 
+const groupNodeId = ref<string[]>([])
+
+/**
+ * @description 基于两次数组不同的地方，为学生设置提示
+ */
+const setReplyNotification = (data: any, resNodes: any) => {
+  let node_id: any
+
+  const newArr = diffArr(edges.value, data.data.edges)
+  // console.log('the diff is', newArr)
+  const userId = useUserStore().userInfo.id
+
+  let notes
+  if (newArr.length) {
+    notes = getNotification(userId.toString(), resNodes, newArr)
+
+    node_id = notes.map(note => note.source)
+    // console.log(data.data.nodes, 'data.data.nodes')
+    nodeIds.value = node_id
+    ElNotification({
+      title: '互动通知',
+      message: '有' + notes.length + '人刚刚回复了你的观点, 去看看吧~',
+      type: 'info',
+      duration: 5000,
+    })
+
+    // 设置highlight
+    const res = resNodes.map(node => {
+      // console.log('node is ', node)
+      if (node_id.includes(node.id)) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            highlight: true,
+          },
+        }
+      }
+
+      return node
+    })
+    // console.log('res', res)
+    return res
+  } else {
+    return resNodes
+  }
+}
+
+/**
+ * @description 设置viewPort的中心点为groupConclusion
+ */
+const setGroupNodeAsViewPort = (resNodes: any) => {
+  const groupId = useUserStore().userInfo.group_id as number
+  // nodeIds.value =
+  let groupNode
+  console.log('2', resNodes)
+  for (let i = 0; i < resNodes.length; i++) {
+    if (resNodes[i].data.group_id === groupId && resNodes[i].type === 'group') {
+      groupNode = resNodes[i]
+      break
+    }
+  }
+  groupNodeId.value = [groupNode.id]
+}
+
+/**
+ * 
+ * @param callback 刷新节点的回调
+ * @description 这个函数有一个BUG，可以实现功能，最好不要动任何代码
+ */
 const queryFlowData = (callback: Function = () => {}) => {
   const topic_id = router.currentRoute.value.query?.topic_id as unknown as
     | number
@@ -75,53 +147,31 @@ const queryFlowData = (callback: Function = () => {}) => {
   queryFlowDataApi(topic_id)
     .then(res => {
       const data: any = res
-
+      let resNodes = JSON.parse(JSON.stringify(data.data.nodes))
+      // console.log('1, resNodes', resNodes)
+      if (!data.data.nodes) {
+        console.log('Something bug there...')
+        return
+      }
       if (data.success) {
-        let node_id: any
         nodeIds.value = []
         if (edges.value.length) {
-          const newArr = diffArr(edges.value, data.data.edges)
-          // console.log('the diff is', newArr)
-          const userId = useUserStore().userInfo.id
-
-          let notes
-          if (newArr.length) {
-            notes = getNotification(userId.toString(), data.data.nodes, newArr)
-
-            node_id = notes.map(note => note.source)
-            // 设置highlight
-            data.data.nodes = data.data.nodes.map(node => {
-              // console.log('node is ', node)
-              if (node_id.includes(node.id)) {
-                return {
-                  ...node,
-                  data: {
-                    ...node.data,
-                    highlight: true,
-                  },
-                }
-              }
-
-              return node
-            })
-            // console.log(data.data.nodes, 'data.data.nodes')
-            nodeIds.value = node_id
-            ElNotification({
-              title: '互动通知',
-              message: '有' + notes.length + '人刚刚回复了你的观点, 去看看吧~',
-              type: 'info',
-              duration: 5000,
-            })
-          }
+          resNodes = setReplyNotification(data, resNodes)
+          // console.log('3,resNodes', resNodes)
         }
-
-        nodes.value = data.data.nodes
+        /**
+         * 默认将viewPort的中心设置为本组的结论节点
+         */
+        if (!nodeIds.value.length && !groupNodeId.value.length) {
+          // 如果没有消息提示，则将viewPort的中心设置为本组的结论节点
+          setGroupNodeAsViewPort(resNodes)
+        }
+        // console.log('2, resNodes', resNodes)
+        nodes.value = [...resNodes]
         edges.value = data.data.edges
-        // console.log(nodes.value, 'nodes.value')
 
         callback()
       }
-      console.log(res)
     })
     .catch(err => {
       console.log(err)
@@ -173,15 +223,17 @@ async function layoutGraph(direction: LayoutDirection) {
 
   await nextTick(() => {
     if (nodeIds.value.length) {
-      console.log('1', { nodes: nodeIds.value })
+      // console.log('fitView1', { nodes: nodeIds.value })
       fitView({ nodes: nodeIds.value }).then(() => {
         /**
          * something bug here，have to use fitView twice...
          */
         fitView({ nodes: nodeIds.value })
       })
+    } else if (groupNodeId.value.length) {
+      // console.log('fitView2')
+      fitView({ nodes: groupNodeId.value })
     } else {
-      console.log('2')
       fitView()
     }
   })
