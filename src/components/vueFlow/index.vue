@@ -73,10 +73,10 @@ const groupNodeId = ref<string[]>([])
 /**
  * @description 基于两次数组不同的地方，为学生设置提示
  */
-const setReplyNotification = (data: any, resNodes: any) => {
+const setReplyNotification = (resEdges: any, resNodes: any) => {
   let node_id: any
 
-  const newArr = diffArr(edges.value, data.data.edges)
+  const newArr = diffArr(edges.value, resEdges)
   // console.log('the diff is', newArr)
   const userId = useUserStore().userInfo.id
 
@@ -119,7 +119,7 @@ const setReplyNotification = (data: any, resNodes: any) => {
 /**
  * @description 设置viewPort的中心点为groupConclusion
  */
-const setGroupNodeAsViewPort = (resNodes: any) => {
+const getGroupNodeid = (resNodes: any) => {
   const groupId = useUserStore().userInfo.group_id as number
   // nodeIds.value =
   let groupNode
@@ -130,11 +130,11 @@ const setGroupNodeAsViewPort = (resNodes: any) => {
       break
     }
   }
-  groupNodeId.value = [groupNode.id]
+  return groupNode.id
 }
 
 /**
- * 
+ *
  * @param callback 刷新节点的回调
  * @description 这个函数有一个BUG，可以实现功能，最好不要动任何代码
  */
@@ -148,27 +148,27 @@ const queryFlowData = (callback: Function = () => {}) => {
     .then(res => {
       const data: any = res
       let resNodes = JSON.parse(JSON.stringify(data.data.nodes))
-      // console.log('1, resNodes', resNodes)
-      if (!data.data.nodes) {
-        console.log('Something bug there...')
-        return
-      }
+      let resEdges = JSON.parse(JSON.stringify(data.data.edges))
       if (data.success) {
+        /**
+         * 如果有新的节点，则提示,
+         */
         nodeIds.value = []
         if (edges.value.length) {
-          resNodes = setReplyNotification(data, resNodes)
-          // console.log('3,resNodes', resNodes)
+          /**
+           * 设置收到的回复节点作为viewPort的中心点
+           */
+          resNodes = setReplyNotification(resEdges, resNodes)
         }
         /**
          * 默认将viewPort的中心设置为本组的结论节点
          */
         if (!nodeIds.value.length && !groupNodeId.value.length) {
-          // 如果没有消息提示，则将viewPort的中心设置为本组的结论节点
-          setGroupNodeAsViewPort(resNodes)
+          groupNodeId.value = [getGroupNodeid(resNodes)]
         }
-        // console.log('2, resNodes', resNodes)
+
         nodes.value = [...resNodes]
-        edges.value = data.data.edges
+        edges.value = [...resEdges]
 
         callback()
       }
