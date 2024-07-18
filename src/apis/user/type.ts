@@ -49,11 +49,27 @@ interface SeriesDataItem {
   name: string
 }
 
+interface LinksItem {
+  source: string
+  target: string
+  lineStyle: {
+    width: number
+  }
+
+  [property: string]: any
+}
+
+interface RSSeriesDataItem {
+  name: string
+}
+
 interface QueryUserCollInfoData {
   selfAnalysisList: Array<selfAnalysisListItem>
   Indicator: Array<IndicatorItem>
   LegendData: Array<string>
   SeriesData: Array<SeriesDataItem>
+  LinksData: Array<LinksItem>
+  RelationShipSeriesData: Array<RSSeriesDataItem>
   [propName: string]: any
 }
 
@@ -66,5 +82,7 @@ export type {
   selfAnalysisListItem,
   QueryUserCollInfoData,
   IndicatorItem,
-  SeriesDataItem
+  SeriesDataItem,
+  LinksItem,
+  RSSeriesDataItem
 }

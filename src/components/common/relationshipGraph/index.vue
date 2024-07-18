@@ -9,7 +9,6 @@ import { CanvasRenderer } from 'echarts/renderers'
 
 echarts.use([TitleComponent, TooltipComponent, GraphChart, CanvasRenderer])
 
-// var chartDom = document.getElementById('main');
 const chartRef = ref<HTMLElement | null>(null)
 const myChart = ref()
 
@@ -20,7 +19,7 @@ interface SeriesDataItem {
 interface LinksItem {
   source: number | string
   target: number | string
-  symbolSize: number[]
+  symbolSize?: number[]
   label?: {
     show: boolean
   }
@@ -28,6 +27,7 @@ interface LinksItem {
     width: number
   }
 }
+
 interface Props {
   SeriesData: SeriesDataItem[]
   Links: LinksItem[]
@@ -94,16 +94,6 @@ const option = computed(() => {
               curveness: 0.2,
             },
           },
-          // {
-          //   source: 'Node 2',
-          //   target: 'Node 1',
-          //   label: {
-          //     show: false,
-          //   },
-          //   lineStyle: {
-          //     curveness: 0.2,
-          //   },
-          // },
           {
             source: 'Node 1',
             target: 'Node 3',
@@ -131,10 +121,18 @@ const option = computed(() => {
   }
 })
 
-onMounted(() => {
-  myChart.value = echarts.init(chartRef.value as HTMLElement)
-  option && myChart.value.setOption(option.value)
-})
+const drawRadarGraph = () => {
+  myChart.value?.dispose()
+  myChart.value = echarts.init(chartRef.value!)
+  option && myChart.value?.setOption(option.value)
+}
+
+watch(
+  () => props.SeriesData,
+  () => {
+    drawRadarGraph()
+  }
+)
 </script>
 
 <template>

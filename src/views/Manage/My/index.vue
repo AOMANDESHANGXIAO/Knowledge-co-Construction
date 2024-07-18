@@ -9,6 +9,8 @@ import {
   selfAnalysisListItem,
   IndicatorItem,
   SeriesDataItem,
+  LinksItem,
+  RSSeriesDataItem,
 } from '@/apis/user/type.ts'
 
 const userStore = useUserStore()
@@ -19,6 +21,8 @@ const selfAnalysisList = ref<selfAnalysisListItem[]>([])
 const Indicator = ref<IndicatorItem[]>([])
 const LegendData = ref<string[]>([])
 const SeriesData = ref<SeriesDataItem[]>([])
+const RSSeriesData = ref<RSSeriesDataItem[]>([])
+const LinksData = ref<LinksItem[]>([])
 const radarRef = ref<typeof RadarGraph | null>(null)
 
 if (group_id) {
@@ -28,14 +32,12 @@ if (group_id) {
       Indicator.value = res.data.Indicator
       LegendData.value = res.data.LegendData
       SeriesData.value = res.data.SeriesData
+      LinksData.value = res.data.LinksData
+      RSSeriesData.value = res.data.RelationShipSeriesData
       // radarRef.value?.drawRadarGraph()
       // handleRadarOnReady()
     }
   })
-}
-
-const handleRadarOnReady = () => {
-  console.log('handleRadarOnReady')
 }
 </script>
 
@@ -57,13 +59,15 @@ const handleRadarOnReady = () => {
       <el-divider></el-divider>
       <section class="radar-graph-analysis">
         <radar-graph
-          @onReady="handleRadarOnReady"
           ref="radarRef"
           :Indicator="Indicator"
           :LegendData="LegendData"
           :SeriesData="SeriesData"
         ></radar-graph>
-        <relationship-graph></relationship-graph>
+        <relationship-graph
+          :SeriesData="RSSeriesData"
+          :Links="LinksData"
+        ></relationship-graph>
       </section>
     </section>
   </div>
