@@ -1,8 +1,96 @@
-<!-- TODO: 用户个人管理界面实现，可以看到自己参与协作的情况 -->
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useUserStore } from '@/store/modules/user'
+import ManageHeader from '@/components/common/manageHeader/index.vue'
+import analysisItem from '@/components/common/analysisItem/index.vue'
+import RadarGraph from '@/components/common/radarGraph/index.vue'
+import relationshipGraph from '@/components/common/relationshipGraph/index.vue'
+import { queryUserCollInfo } from '@/apis/user/index.ts'
+import {
+  selfAnalysisListItem,
+  IndicatorItem,
+  SeriesDataItem,
+} from '@/apis/user/type.ts'
+
+const userStore = useUserStore()
+const { userInfo } = userStore
+
+const { id, group_id } = userInfo
+const selfAnalysisList = ref<selfAnalysisListItem[]>([])
+const Indicator = ref<IndicatorItem[]>([])
+const LegendData = ref<string[]>([])
+const SeriesData = ref<SeriesDataItem[]>([])
+const radarRef = ref<typeof RadarGraph | null>(null)
+
+if (group_id) {
+  queryUserCollInfo(id, group_id).then(res => {
+    if (res.success) {
+      selfAnalysisList.value = res.data.selfAnalysisList
+      Indicator.value = res.data.Indicator
+      LegendData.value = res.data.LegendData
+      SeriesData.value = res.data.SeriesData
+      // radarRef.value?.drawRadarGraph()
+      // handleRadarOnReady()
+    }
+  })
+}
+
+const handleRadarOnReady = () => {
+  console.log('handleRadarOnReady')
+}
+</script>
 
 <template>
-  <div>用户管理界面</div>
+  <div class="manage-page-my">
+    <manage-header :username="userInfo.nickname"></manage-header>
+    <section class="dashboard">
+      <header style="font-size: 18px">这是您的个人协作风格分析</header>
+      <el-divider></el-divider>
+      <section class="analysis-container">
+        <analysis-item
+          v-for="item in selfAnalysisList"
+          :key="item.iconName"
+          :iconName="item.iconName"
+          :text="item.text"
+          :num="item.num"
+        ></analysis-item>
+      </section>
+      <el-divider></el-divider>
+      <section class="radar-graph-analysis">
+        <radar-graph
+          @onReady="handleRadarOnReady"
+          ref="radarRef"
+          :Indicator="Indicator"
+          :LegendData="LegendData"
+          :SeriesData="SeriesData"
+        ></radar-graph>
+        <relationship-graph></relationship-graph>
+      </section>
+    </section>
+  </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+@import '@/styles/mixin/layout.scss';
+
+.manage-page-my {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  .dashboard {
+    color: #fff;
+    transform: translateY(-255px);
+    width: calc(100% - 160px);
+    margin: 0 auto;
+    min-height: 400px;
+    padding: 30px;
+    border-radius: 30px;
+    background-color: var(--dark-color);
+  }
+  .analysis-container {
+    @include flex-gap-flex-evenly(30px);
+  }
+  .radar-graph-analysis {
+    @include flex-gap-flex-evenly(30px);
+  }
+}
+</style>

@@ -33,11 +33,27 @@ interface SignUpData {
   [property: string]: any
 }
 
+interface selfAnalysisListItem {
+  iconName: string
+  text: string
+  num: number
+}
+
+interface IndicatorItem {
+  name: string
+  max: number
+}
+
+interface SeriesDataItem {
+  value: Array<number>
+  name: string
+}
+
 interface QueryUserCollInfoData {
-  proposeNum?: number
-  feedbackNum?: number
-  summaryNum?: number
-  discussNum?: number
+  selfAnalysisList: Array<selfAnalysisListItem>
+  Indicator: Array<IndicatorItem>
+  LegendData: Array<string>
+  SeriesData: Array<SeriesDataItem>
   [propName: string]: any
 }
 
@@ -47,5 +63,8 @@ export type {
   SignInParams,
   SignInData,
   SignUpData,
-  QueryUserCollInfoData
+  selfAnalysisListItem,
+  QueryUserCollInfoData,
+  IndicatorItem,
+  SeriesDataItem
 }

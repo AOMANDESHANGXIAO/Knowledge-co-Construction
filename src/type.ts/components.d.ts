@@ -38,6 +38,8 @@ declare module 'vue' {
     ManagePageIcon: typeof import('./../components/Icons/ManagePageIcon/index.vue')['default']
     MemberAnalysis: typeof import('./../components/common/memberAnalysis/index.vue')['default']
     NodePopover: typeof import('./../components/NodePopover/index.vue')['default']
+    RadarGraph: typeof import('./../components/common/radarGraph/index.vue')['default']
+    RelationshipGraph: typeof import('./../components/common/relationshipGraph/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     TalkCard: typeof import('./../components/common/talkCard/index.vue')['default']

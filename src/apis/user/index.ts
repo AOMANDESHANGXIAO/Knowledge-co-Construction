@@ -22,11 +22,13 @@ const signUpAction = (params: SignUpParams): Promise<Response<SignUpData>> => {
 }
 
 const queryUserCollInfo = (
-  id: number
+  id: number,
+  group_id: number
 ): Promise<Response<QueryUserCollInfoData>> => {
   return Service.get('/user/collInfo', {
     params: {
       id,
+      group_id
     },
   })
 }

@@ -543,6 +543,28 @@ const handleSwitchCallback = () => {
     })
   }
 }
+
+/**
+ * 可以设置图像显示的默认值
+ */
+enum ViewPortPos {
+  groupNode = 'groupNode',
+  allNodes = 'allNodes',
+}
+
+interface Setting {
+  layOutDirection: LayoutDirection
+  viewPortPosition: ViewPortPos
+  highlightSelfNode: boolean
+}
+
+const setting = ref<Setting>({
+  layOutDirection: LayoutDirection.Vertical, // 垂直布局 or 水平布局,
+  viewPortPosition: ViewPortPos.groupNode,  // 显示的位置
+  highlightSelfNode: false // 高亮自己的节点
+})
+
+const settingFlowView = () => {}
 </script>
 
 <template>
@@ -726,7 +748,7 @@ const handleSwitchCallback = () => {
         <button title="返回首页" @click="handleGoHome">
           <Icon :name="IconName.Home" />
         </button>
-        <button title="设置" @click="handleGoHome">
+        <button title="设置" @click="settingFlowView">
           <Icon :name="IconName.Setting" />
         </button>
         <button

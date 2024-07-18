@@ -72,9 +72,8 @@ const timeLineList = ref<TimeLineItem[]>([])
 const emits = defineEmits(['revise'])
 
 const handleClickReviseButton = () => {
-
   const payload = {
-    content: props.data.groupConclusion
+    content: props.data.groupConclusion,
   }
   emits('revise', payload)
 }
@@ -89,6 +88,7 @@ const isEdit = computed(() => {
   return userStore.userInfo.group_id === props.data.group_id
 })
 
+const defaultColclusion = ref('还没有总结哦~快来成为第一个总结观点的成员吧!')
 </script>
 
 <template>
@@ -99,7 +99,7 @@ const isEdit = computed(() => {
       {{ props.data.groupName }}
     </div>
     <div class="content" @click="handleClick">
-      <el-text>{{ props.data.groupConclusion }}</el-text>
+      <el-text>{{ props.data.groupConclusion || defaultColclusion }}</el-text>
     </div>
     <NodePopover
       :is-show="isShow"
