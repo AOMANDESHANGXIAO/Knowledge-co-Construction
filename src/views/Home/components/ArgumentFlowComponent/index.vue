@@ -17,7 +17,18 @@ import '@vue-flow/controls/dist/style.css'
 // these components are only shown as examples of how to use a custom node or edge
 // you can find many examples of how to create these custom components in the examples page of the docs
 // these are our nodes
-const nodes = ref([
+interface NodeType {
+  id: string
+  type: string
+  data?: any
+  position: {
+    x: number
+    y: number
+  }
+  [propName: string]: any
+}
+
+const nodes = ref<NodeType[]>([
   // an input node, specified by using `type: 'input'`
   {
     id: 'data',
@@ -28,19 +39,19 @@ const nodes = ref([
     data: { label: 'Node 1' },
   },
 
-  // default node, you can omit `type: 'default'` as it's the fallback type
-  {
-    id: 'connection-warrant', // 理据的连接点
-    position: { x: 0, y: 0 },
-    data: { label: 'Node 2' },
-    type: 'conncetion',
-  },
-  {
-    id: 'connection-qualifier', // 反驳的连接点
-    position: { x: 0, y: 0 },
-    data: { label: 'Node 2' },
-    type: 'conncetion',
-  },
+  // // default node, you can omit `type: 'default'` as it's the fallback type
+  // {
+  //   id: 'connection-warrant', // 理据的连接点
+  //   position: { x: 0, y: 0 },
+  //   data: { label: 'Node 2' },
+  //   type: 'conncetion',
+  // },
+  // {
+  //   id: 'connection-qualifier', // 反驳的连接点
+  //   position: { x: 0, y: 0 },
+  //   data: { label: 'Node 2' },
+  //   type: 'conncetion',
+  // },
   // An output node, specified by using `type: 'output'`
   {
     id: 'claim',
@@ -54,24 +65,34 @@ const nodes = ref([
 ])
 
 // these are our edges
-const edges = ref([
+
+interface EdgeType {
+  id: string
+  source: string
+  target: string
+  _type: string
+  [propName: string]: any
+}
+
+const edges = ref<EdgeType[]>([
   // default bezier edge
   // consists of an edge id, source node id and target node id
   {
-    id: 'data-connect',
+    id: 'init-data-claim',
     source: 'data',
-    target: 'connection-warrant',
-  },
-  {
-    id: 'connect-connect',
-    source: 'connection-warrant',
-    target: 'connection-qualifier',
-  },
-  {
-    id: 'connect-claim',
-    source: 'connection-qualifier',
     target: 'claim',
+    _type: 'data',
   },
+  // {
+  //   id: 'connect-connect',
+  //   source: 'connection-warrant',
+  //   target: 'connection-qualifier',
+  // },
+  // {
+  //   id: 'connect-claim',
+  //   source: 'connection-qualifier',
+  //   target: 'claim',
+  // },
 ])
 
 const { layout } = useLayout()
@@ -127,8 +148,9 @@ const handleAddWarrant = async () => {
 
   const newEdge = {
     id: 'warrant-connect' + nodes.value.length,
+    _type: 'warrant',
     source: 'warrant' + nodes.value.length,
-    target: 'connection-warrant',
+    target: hasQualifier.value ? qualifierId.value : 'claim',
   }
 
   nodes.value = [...nodes.value, newWarrantNode]
@@ -156,9 +178,120 @@ const handleAddBacking = (payload: AddBackPayload) => {
     id: 'backing-connect' + nodes.value.length,
     source: 'backing' + nodes.value.length,
     target: nodeId,
+    _type: 'backing',
   }
 
   nodes.value = [...nodes.value, newBackingNode]
+  edges.value = [...edges.value, newEdge]
+
+  layoutGraph(LayoutDirection.Vertical).then(() => {
+    handleLayoutGraph()
+  })
+}
+
+const hasQualifier = ref(false)
+
+const qualifierId = ref('')
+
+const qualifierEdgeId = ref('')
+
+const handleAddQualifier = () => {
+  /**
+   * 添加限定词
+   */
+  if (!hasQualifier.value) {
+    hasQualifier.value = true
+  } else {
+    ElMessage({
+      type: 'warning',
+      message: '只能添加一次限定词',
+      duration: 1000,
+    })
+    return
+  }
+  qualifierId.value = 'qualifier' + nodes.value.length
+  const newQualifierNode = {
+    id: qualifierId.value,
+    type: 'qualifier',
+    position: { x: 0, y: 0 },
+  }
+  qualifierEdgeId.value = 'qualifier-connect' + nodes.value.length
+  // 限定词指向Calaim结论
+  const newEdge = {
+    id: qualifierEdgeId.value,
+    source: qualifierId.value,
+    target: 'claim',
+    _type: 'qualifier',
+  }
+
+  // 遍历edges，如果有理据就将理据指向限定词
+  edges.value = edges.value.map(edge => {
+    if (edge?._type === 'warrant' || edge?._type === 'data') {
+      return {
+        ...edge,
+        target: qualifierId.value,
+      }
+    }
+    return edge
+  })
+
+  nodes.value = [...nodes.value, newQualifierNode]
+
+  edges.value = [...edges.value, newEdge]
+
+  layoutGraph(LayoutDirection.Vertical).then(() => {
+    handleLayoutGraph()
+  })
+}
+
+const hasRebuttal = ref(false)
+
+const handleAddRebuttal = () => {
+  /**
+   * 添加反驳
+   */
+  // 必须要先添加限定词才可以添加反驳
+  if (!hasQualifier.value) {
+    ElMessage({
+      type: 'warning',
+      message: '请先添加限定词',
+      duration: 1000,
+    })
+    return
+  }
+  if (!hasRebuttal.value) {
+    hasRebuttal.value = true
+  } else {
+    ElMessage({
+      type: 'warning',
+      message: '只能添加一次反驳',
+      duration: 1000,
+    })
+    return
+  }
+
+  const newRebuttalNode = {
+    id: 'rebuttal' + nodes.value.length,
+    type: 'rebuttal',
+    position: { x: 0, y: 0 },
+  }
+
+  // 将限定词的id指向反驳
+  for (let i = 0; i < edges.value.length; i++) {
+    if (edges.value[i]._type === 'qualifier') {
+      edges.value[i].target = 'rebuttal' + nodes.value.length
+      break
+    }
+  }
+
+  const newEdge = {
+    id: 'rebuttal-connect' + nodes.value.length,
+    source: 'rebuttal' + nodes.value.length,
+    target: 'claim',
+    _type: 'rebuttal',
+  }
+
+  nodes.value = [...nodes.value, newRebuttalNode]
   edges.value = [...edges.value, newEdge]
 
   layoutGraph(LayoutDirection.Vertical).then(() => {
@@ -178,7 +311,10 @@ const handleAddBacking = (payload: AddBackPayload) => {
     </template>
 
     <template #node-warrant="props">
-      <WarrantComponent :nodeId="props.data.nodeId" @addBacking="handleAddBacking"></WarrantComponent>
+      <WarrantComponent
+        :nodeId="props.data.nodeId"
+        @addBacking="handleAddBacking"
+      ></WarrantComponent>
     </template>
 
     <template #node-backing>
@@ -223,14 +359,19 @@ const handleAddBacking = (payload: AddBackPayload) => {
         >加入理据</el-button
       >
 
-      <el-button plain style="margin-left: 0" color="#EF5A6F"
-        >添加支撑</el-button
-      >
-
-      <el-button plain style="margin-left: 0" color="#4535C1"
+      <el-button
+        plain
+        style="margin-left: 0"
+        color="#4535C1"
+        @click="handleAddQualifier"
         >加限定词</el-button
       >
-      <el-button plain style="margin-left: 0" color="#DC0083"
+
+      <el-button
+        plain
+        style="margin-left: 0"
+        color="#DC0083"
+        @click="handleAddRebuttal"
         >增加反驳</el-button
       >
     </Panel>
