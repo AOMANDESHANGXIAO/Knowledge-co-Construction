@@ -30,6 +30,8 @@ import {
   ReviseSelfFormModelType,
 } from './type.ts'
 import type { FormRules, FormInstance } from 'element-plus'
+import { useCssVar } from '@vueuse/core'
+import argumentFlowComponent from './components/ArgumentFlowComponent/index.vue'
 
 const colorStore = useColorStore()
 
@@ -560,11 +562,15 @@ interface Setting {
 
 const setting = ref<Setting>({
   layOutDirection: LayoutDirection.Vertical, // 垂直布局 or 水平布局,
-  viewPortPosition: ViewPortPos.groupNode,  // 显示的位置
-  highlightSelfNode: false // 高亮自己的节点
+  viewPortPosition: ViewPortPos.groupNode, // 显示的位置
+  highlightSelfNode: false, // 高亮自己的节点
 })
 
 const settingFlowView = () => {}
+
+const testGroundVisible = ref(true)
+
+const defaultThemeColor = useCssVar('--default-theme-color')
 </script>
 
 <template>
@@ -724,6 +730,17 @@ const settingFlowView = () => {}
           </div>
         </template>
       </el-card>
+    </el-dialog>
+
+    <!-- TODO: 根据图尔敏的论证模型编写一个组件，用来让学生构建论证 -->
+    <el-dialog v-model="testGroundVisible" width="700" :append-to-body="true">
+      <div class="argument-flow-container">
+        <argumentFlowComponent></argumentFlowComponent>
+      </div>
+      <div class="button-footer-container">
+        <el-button plain :color="defaultThemeColor">取消</el-button>
+        <el-button :color="defaultThemeColor">确定</el-button>
+      </div>
     </el-dialog>
   </section>
 
@@ -887,5 +904,22 @@ h3 {
 
 :deep(.el-text) {
   font-size: 18px;
+}
+
+.argument-flow-container {
+  width: 100%;
+  height: 500px;
+}
+
+.button-footer-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+  height: 50px;
+  border-top: 1px solid var(--dark-color);
+  &:deep(.el-button:not(.is-plain)) {
+    color: #fff;
+  }
 }
 </style>

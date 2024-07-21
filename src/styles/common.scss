@@ -7,12 +7,17 @@
 
 :root {
   --theme-color: #2563eb;
+  --default-theme-color: #2563eb;
   --dark-color: #222d3c;
   --light-dark-color:#171717;
   --user-color: #2563eb;
   --normal-line-color: #e5e7eb;
   --approve-line-color: #40A578;
   --oppose-line-color: #EE4E4E;
+}
+
+.el-textarea {
+  --el-input-focus-border-color: #2563eb !important;
 }
 
 @font-face {
