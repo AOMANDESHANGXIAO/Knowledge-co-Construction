@@ -17,7 +17,12 @@ const defaultColor = useCssVar('--default-theme-color')
     <div class="text">{{ inputValue || '此处添加论证的前提条件,双击以编辑' }}</div>
     <Handle
       type="target"
-      :position="Position.Right"
+      :position="Position.Top"
+      :connectable="false"
+    ></Handle>
+    <Handle
+      type="source"
+      :position="Position.Bottom"
       :connectable="false"
     ></Handle>
   </div>
@@ -55,6 +60,7 @@ const defaultColor = useCssVar('--default-theme-color')
   display: flex;
   width: 200px;
   height: 50px;
+  box-sizing: content-box;
   // box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.08);
   border: 1px solid #ff8225;
   background-color: #fff;
@@ -83,10 +89,10 @@ const defaultColor = useCssVar('--default-theme-color')
     // line-height: 50px;
   }
 }
-.vue-flow__handle {
-  height: 24px;
-  width: 10px;
-  background: #ff8225;
-  border-radius: 4px;
-}
+// .vue-flow__handle {
+//   height: 24px;
+//   width: 10px;
+//   background: #ff8225;
+//   border-radius: 4px;
+// }
 </style>

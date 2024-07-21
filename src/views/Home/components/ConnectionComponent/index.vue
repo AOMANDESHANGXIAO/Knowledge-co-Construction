@@ -9,12 +9,12 @@ defineOptions({
   <div class="connection-component-container">
     <Handle
       type="source"
-      :position="Position.Right"
+      :position="Position.Bottom"
       :connectable="false"
     ></Handle>
     <Handle
       type="target"
-      :position="Position.Left"
+      :position="Position.Top"
       :connectable="false"
     ></Handle>
   </div>

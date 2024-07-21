@@ -1,20 +1,44 @@
 <script lang="ts" setup>
 import { useCssVar } from '@vueuse/core'
 import { Handle, Position } from '@vue-flow/core'
+import { Plus } from '@element-plus/icons-vue'
+import type { Props } from './type.ts'
 defineOptions({
   name: 'WarrantComponent',
 })
+
+const props = defineProps<Props>()
+
 const inputValue = ref('')
 
 const dialogVisible = ref(false)
 
 const defaultColor = useCssVar('--default-theme-color')
+
+const emits = defineEmits(['addBacking'])
+
+const handleEmitAddWarrant = () => {
+  const payload = {
+    inputValue,
+    nodeId: props.nodeId,
+  }
+  console.log('payload is ', payload)
+  emits('addBacking', payload)
+}
 </script>
 
 <template>
-  <div class="data-component-container" @dblclick="dialogVisible = true">
+  <div class="data-component-container">
     <div class="title">理据</div>
-    <div class="text">{{ inputValue || '此处添加论证的理据,双击以编辑' }}</div>
+    <div class="text" @dblclick="dialogVisible = true">
+      {{ inputValue || '此处添加论证的理据,双击以编辑' }}
+    </div>
+    <div
+      class="add"
+      @click="handleEmitAddWarrant"
+    >
+      <el-icon><Plus /></el-icon>
+    </div>
     <Handle
       type="target"
       :position="Position.Top"
@@ -56,7 +80,7 @@ const defaultColor = useCssVar('--default-theme-color')
 </template>
 
 <style lang="scss" scoped>
-$color: #88D66C;
+$color: #88d66c;
 .data-component-container {
   display: flex;
   width: 200px;
@@ -85,14 +109,19 @@ $color: #88D66C;
     overflow: hidden;
     text-overflow: ellipsis;
     -webkit-line-clamp: 3;
-    // text-align: center;
-    // line-height: 50px;
+  }
+  .add {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: $color;
+    color: #fff;
+    width: 40px;
+    font-size: 16px;
+    cursor: pointer;
+    &:hover {
+      background-color: darken($color, 10%);
+    }
   }
 }
-// .vue-flow__handle {
-//   height: 24px;
-//   width: 10px;
-//   background: $color;
-//   border-radius: 4px;
-// }
 </style>

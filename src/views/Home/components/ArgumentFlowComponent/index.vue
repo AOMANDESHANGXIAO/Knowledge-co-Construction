@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { VueFlow, Panel } from '@vue-flow/core'
+import { VueFlow, Panel, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
 import dataComponent from '../DataComponent/index.vue'
@@ -10,6 +10,8 @@ import BackingComponent from '../BackingComponent/index.vue'
 import ClaimComponent from '../ClaimComponent/index.vue'
 import QualifierComponent from '../QualifierComponent/index.vue'
 import RebuttalComponent from '../RebuttalComponent/index.vue'
+import { useLayout } from '@/hooks/VueFlow/useLayout'
+import { LayoutDirection } from './type.ts'
 import '@vue-flow/controls/dist/style.css'
 
 // these components are only shown as examples of how to use a custom node or edge
@@ -18,9 +20,9 @@ import '@vue-flow/controls/dist/style.css'
 const nodes = ref([
   // an input node, specified by using `type: 'input'`
   {
-    id: '1',
+    id: 'data',
     type: 'data',
-    position: { x: 250, y: 5 },
+    position: { x: 0, y: 0 },
     // all nodes can have a data object containing any data you want to pass to the node
     // a label can property can be used for default nodes
     data: { label: 'Node 1' },
@@ -28,59 +30,22 @@ const nodes = ref([
 
   // default node, you can omit `type: 'default'` as it's the fallback type
   {
-    id: '2',
-    position: { x: 100, y: 100 },
+    id: 'connection-warrant', // 理据的连接点
+    position: { x: 0, y: 0 },
     data: { label: 'Node 2' },
     type: 'conncetion',
   },
   {
-    id: '3',
-    position: { x: 100, y: 200 },
+    id: 'connection-qualifier', // 反驳的连接点
+    position: { x: 0, y: 0 },
     data: { label: 'Node 2' },
     type: 'conncetion',
   },
   // An output node, specified by using `type: 'output'`
   {
-    id: '4',
-    type: 'warrant',
-    position: { x: 400, y: 200 },
-    data: { label: 'Node 3' },
-  },
-
-  // this is a custom node
-  // we set it by using a custom type name we choose, in this example `special`
-  // the name can be freely chosen, there are no restrictions as long as it's a string
-  {
-    id: '5',
-    type: 'backing', // <-- this is the custom node type name
-    position: { x: 400, y: 200 },
-    data: {
-      label: 'Node 4',
-      hello: 'world',
-    },
-  },
-  {
-    id: '6',
+    id: 'claim',
     type: 'claim', // <-- this is the custom node type name
-    position: { x: 600, y: 400 },
-    data: {
-      label: 'Node 4',
-      hello: 'world',
-    },
-  },
-  {
-    id: '7',
-    type: 'rebuttal', // <-- this is the custom node type name
-    position: { x: 800, y: 400 },
-    data: {
-      label: 'Node 4',
-      hello: 'world',
-    },
-  },
-  {
-    id: '8',
-    type: 'qualifier', // <-- this is the custom node type name
-    position: { x: 800, y: 400 },
+    position: { x: 0, y: 0 },
     data: {
       label: 'Node 4',
       hello: 'world',
@@ -93,78 +58,113 @@ const edges = ref([
   // default bezier edge
   // consists of an edge id, source node id and target node id
   {
-    id: 'e1->2',
-    source: '1',
-    target: '2',
-  },
-
-  // set `animated: true` to create an animated edge path
-  {
-    id: 'e2->3',
-    source: '2',
-    target: '3',
-    animated: true,
+    id: 'data-connect',
+    source: 'data',
+    target: 'connection-warrant',
   },
   {
-    id: 'e4->2',
-    source: '2',
-    target: '3',
-    animated: true,
-  },
-
-  // a custom edge, specified by using a custom type name
-  // we choose `type: 'special'` for this example
-  {
-    id: 'e3->4',
-    source: '3',
-    target: '4',
-
-    // all edges can have a data object containing any data you want to pass to the edge
-    data: {
-      hello: 'world',
-    },
+    id: 'connect-connect',
+    source: 'connection-warrant',
+    target: 'connection-qualifier',
   },
   {
-    id: 'e4->5',
-    source: '4',
-    target: '5',
-
-    // all edges can have a data object containing any data you want to pass to the edge
-    data: {
-      hello: 'world',
-    },
-  },
-  {
-    id: 'e5->6',
-    source: '5',
-    target: '6',
-
-    // all edges can have a data object containing any data you want to pass to the edge
-    data: {
-      hello: 'world',
-    },
-  },
-  {
-    id: 'e6->7',
-    source: '6',
-    target: '7',
-
-    // all edges can have a data object containing any data you want to pass to the edge
-    data: {
-      hello: 'world',
-    },
-  },
-  {
-    id: 'e7->8',
-    source: '7',
-    target: '8',
-
-    // all edges can have a data object containing any data you want to pass to the edge
-    data: {
-      hello: 'world',
-    },
+    id: 'connect-claim',
+    source: 'connection-qualifier',
+    target: 'claim',
   },
 ])
+
+const { layout } = useLayout()
+
+const { fitView } = useVueFlow()
+
+async function layoutGraph(direction: LayoutDirection) {
+  // 如果是上下排列的话要将nodes中的position属性做一个变换，将出去位置改为下
+  // 将别人进来的位置改为上
+  if (direction === LayoutDirection.Vertical) {
+    nodes.value = nodes.value.map(node => {
+      return {
+        ...node,
+      }
+    })
+  } else if (direction === LayoutDirection.Horizontal) {
+    nodes.value = nodes.value.map(node => {
+      return {
+        ...node,
+      }
+    })
+  }
+
+  nodes.value = layout(nodes.value, edges.value, direction)
+
+  await nextTick(() => {
+    fitView()
+  })
+}
+
+const { onPaneReady } = useVueFlow()
+
+onPaneReady(() => {
+  layoutGraph(LayoutDirection.Vertical)
+})
+
+const handleLayoutGraph = () => {
+  layoutGraph(LayoutDirection.Vertical)
+}
+
+const handleAddWarrant = async () => {
+  /**
+   * 向连接点添加一个理据
+   */
+  const newWarrantNode = {
+    id: 'warrant' + nodes.value.length,
+    type: 'warrant',
+    position: { x: 0, y: 0 },
+    data: {
+      nodeId: 'warrant' + nodes.value.length,
+    },
+  }
+
+  const newEdge = {
+    id: 'warrant-connect' + nodes.value.length,
+    source: 'warrant' + nodes.value.length,
+    target: 'connection-warrant',
+  }
+
+  nodes.value = [...nodes.value, newWarrantNode]
+  edges.value = [...edges.value, newEdge]
+
+  layoutGraph(LayoutDirection.Vertical).then(() => {
+    handleLayoutGraph()
+  })
+  // await handleLayoutGraph()
+}
+
+interface AddBackPayload {
+  nodeId: string
+  inputValue: string
+}
+
+const handleAddBacking = (payload: AddBackPayload) => {
+  const { nodeId, inputValue } = payload
+  const newBackingNode = {
+    id: 'backing' + nodes.value.length,
+    type: 'backing',
+    position: { x: 0, y: 0 },
+  }
+  const newEdge = {
+    id: 'backing-connect' + nodes.value.length,
+    source: 'backing' + nodes.value.length,
+    target: nodeId,
+  }
+
+  nodes.value = [...nodes.value, newBackingNode]
+  edges.value = [...edges.value, newEdge]
+
+  layoutGraph(LayoutDirection.Vertical).then(() => {
+    handleLayoutGraph()
+  })
+}
 </script>
 
 <template>
@@ -177,8 +177,8 @@ const edges = ref([
       <conncetionComponent></conncetionComponent>
     </template>
 
-    <template #node-warrant>
-      <WarrantComponent></WarrantComponent>
+    <template #node-warrant="props">
+      <WarrantComponent :nodeId="props.data.nodeId" @addBacking="handleAddBacking"></WarrantComponent>
     </template>
 
     <template #node-backing>
@@ -207,15 +207,26 @@ const edges = ref([
     <Controls />
 
     <Panel position="top-right" class="button-group-container">
-      <el-button plain style="margin-left: 0" color="#FF8225"
-        >添加前提</el-button
+      <el-button
+        plain
+        style="margin-left: 0"
+        color="#FF8225"
+        @click="handleLayoutGraph"
+        >自动布局</el-button
       >
+
+      <el-button
+        plain
+        style="margin-left: 0"
+        color="#88D66C"
+        @click="handleAddWarrant"
+        >加入理据</el-button
+      >
+
       <el-button plain style="margin-left: 0" color="#EF5A6F"
         >添加支撑</el-button
       >
-      <el-button plain style="margin-left: 0" color="#88D66C"
-        >加入理据</el-button
-      >
+
       <el-button plain style="margin-left: 0" color="#4535C1"
         >加限定词</el-button
       >

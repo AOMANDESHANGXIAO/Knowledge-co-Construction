@@ -733,7 +733,7 @@ const defaultThemeColor = useCssVar('--default-theme-color')
     </el-dialog>
 
     <!-- TODO: 根据图尔敏的论证模型编写一个组件，用来让学生构建论证 -->
-    <el-dialog v-model="testGroundVisible" width="700" :append-to-body="true">
+    <el-dialog v-model="testGroundVisible" width="1200" :append-to-body="true">
       <div class="argument-flow-container">
         <argumentFlowComponent></argumentFlowComponent>
       </div>

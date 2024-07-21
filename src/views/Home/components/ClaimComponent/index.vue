@@ -17,12 +17,12 @@ const defaultColor = useCssVar('--default-theme-color')
     <div class="text">{{ inputValue || '此处添加结论,双击编辑' }}</div>
     <Handle
       type="target"
-      :position="Position.Left"
+      :position="Position.Top"
       :connectable="false"
     ></Handle>
     <Handle
       type="source"
-      :position="Position.Right"
+      :position="Position.Bottom"
       :connectable="false"
     ></Handle>
   </div>
