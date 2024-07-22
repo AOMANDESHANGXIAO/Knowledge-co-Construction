@@ -12,7 +12,7 @@ const dialogVisible = ref(false)
 
 const defaultColor = useCssVar('--default-theme-color')
 
-const active = ref('1')
+const active = ref('0')
 
 const form = ref({
   input: '',
@@ -42,8 +42,10 @@ const isHovered = useElementHover(el)
     ref="el"
   >
     <div class="title">前提</div>
-    <div class="text">
-      {{ form.input || '此处添加论证的前提条件,双击以编辑' }}
+    <div class="text-container">
+      <div class="text">
+        {{ form.input || '此处添加前提,双击以编辑' }}
+      </div>
     </div>
     <Handle
       type="target"
@@ -129,21 +131,26 @@ const isHovered = useElementHover(el)
     width: 40px;
     font-size: 16px;
   }
-  .text {
+  .text-container {
     flex: 1;
-    // display: flex;
-    // justify-content: center;
-    // align-items: center;
-    height: 100%;
-    font-size: 10px;
-    padding: 5px;
-    word-break: break-all;
+    padding: 10px;
     overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    // text-align: center;
-    // line-height: 50px;
+    .text {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      font-size: 10px;
+      // padding: 5px;
+      word-break: break-all;
+      // overflow: hidden;
+      // display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      // text-align: center;
+      // line-height: 50px;
+    }
   }
 }
 // .vue-flow__handle {

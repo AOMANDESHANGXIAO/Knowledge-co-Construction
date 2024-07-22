@@ -48,19 +48,21 @@ watch(height, () => {
   padding: 10px;
   font-size: 10px;
   color: #fff;
-  background-color: rgba(0, 0, 0, 0.5);
+  // background-color: rgba(0, 0, 0, 0.5);
+  background-color: #303133;
+  border-radius: 5px;
   &::after {
     // 绘制向下居中的三角形
     content: '';
     position: absolute;
-    bottom: -5px;
+    bottom: -4px;
     left: 50%;
     transform: translateX(-50%);
     width: 0;
     height: 0;
     border-left: 5px solid transparent;
     border-right: 5px solid transparent;
-    border-top: 5px solid rgba(0, 0, 0, 0.5);
+    border-top: 5px solid #303133;
   }
 }
 </style>
