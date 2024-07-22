@@ -1,20 +1,43 @@
 <script lang="ts" setup>
 import { useCssVar } from '@vueuse/core'
 import { Handle, Position } from '@vue-flow/core'
+import type { FormInstance, FormRules } from 'element-plus'
+import tips from '../toolTips/index.vue'
+
 defineOptions({
   name: 'DataComponent',
 })
-const inputValue = ref('')
 
 const dialogVisible = ref(false)
 
 const defaultColor = useCssVar('--default-theme-color')
+
+const active = ref('1')
+
+const form = ref({
+  input: '',
+})
+
+const formRef = ref<FormInstance>()
+
+const rules = reactive<FormRules<typeof form>>({
+  input: [
+    {
+      required: true,
+      message: '论证的前提条件不能为空!',
+      trigger: 'blur',
+    },
+  ],
+})
+
 </script>
 
 <template>
   <div class="data-component-container" @dblclick="dialogVisible = true">
     <div class="title">前提</div>
-    <div class="text">{{ inputValue || '此处添加论证的前提条件,双击以编辑' }}</div>
+    <div class="text">
+      {{ form.input || '此处添加论证的前提条件,双击以编辑' }}
+    </div>
     <Handle
       type="target"
       :position="Position.Top"
@@ -25,7 +48,10 @@ const defaultColor = useCssVar('--default-theme-color')
       :position="Position.Bottom"
       :connectable="false"
     ></Handle>
+
+    <tips :value="form.input" defaultValue="还未添加前提"></tips>
   </div>
+
   <el-dialog
     title="输入论证的前提条件"
     v-if="dialogVisible"
@@ -33,12 +59,29 @@ const defaultColor = useCssVar('--default-theme-color')
     width="500"
     append-to-body
   >
-    <el-input
-      v-model="inputValue"
-      placeholder="论证的前提条件是什么?"
-      type="textarea"
-      :autosize="{ minRows: 4, maxRows: 8 }"
-    ></el-input>
+    <el-collapse v-model="active">
+      <el-collapse-item title="前提条件是什么？" name="1">
+        <el-text>
+          前提条件(Data)是支持论题(Claim)的证据或事实，是你用来证明论题的基础。例如你要证明"人们应该每天锻炼",那么你论证的前提可能是"锻炼有助于保持健康，减少患病的风险。"
+        </el-text>
+        <el-text
+          >我们使用D表示前提,
+          使用C表示论题。那么"D一类的数据使人们得出类似C的结论或提出类似C的主张"，或"既然D,必然C"。</el-text
+        >
+      </el-collapse-item>
+    </el-collapse>
+    <el-form ref="formRef" :rules="rules" :model="form">
+      <el-form-item prop="input">
+        <el-input
+          v-model="form.input"
+          placeholder="论证的前提条件是什么?"
+          type="textarea"
+          :autosize="{ minRows: 6, maxRows: 8 }"
+          show-word-limit
+          maxlength="150"
+        ></el-input>
+      </el-form-item>
+    </el-form>
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="dialogVisible = false" plain :color="defaultColor"
@@ -57,6 +100,7 @@ const defaultColor = useCssVar('--default-theme-color')
 
 <style lang="scss" scoped>
 .data-component-container {
+  position: relative;
   display: flex;
   width: 200px;
   height: 50px;
@@ -95,4 +139,9 @@ const defaultColor = useCssVar('--default-theme-color')
 //   background: #ff8225;
 //   border-radius: 4px;
 // }
+:deep(.el-text) {
+  display: block;
+  text-indent: 2em;
+}
+
 </style>

@@ -11,23 +11,13 @@ import ClaimComponent from '../ClaimComponent/index.vue'
 import QualifierComponent from '../QualifierComponent/index.vue'
 import RebuttalComponent from '../RebuttalComponent/index.vue'
 import { useLayout } from '@/hooks/VueFlow/useLayout'
+import type { NodeType, EdgeType, AddBackPayload } from './type.ts'
 import { LayoutDirection } from './type.ts'
 import '@vue-flow/controls/dist/style.css'
 
 // these components are only shown as examples of how to use a custom node or edge
 // you can find many examples of how to create these custom components in the examples page of the docs
 // these are our nodes
-interface NodeType {
-  id: string
-  type: string
-  data?: any
-  position: {
-    x: number
-    y: number
-  }
-  [propName: string]: any
-}
-
 const nodes = ref<NodeType[]>([
   // an input node, specified by using `type: 'input'`
   {
@@ -65,15 +55,6 @@ const nodes = ref<NodeType[]>([
 ])
 
 // these are our edges
-
-interface EdgeType {
-  id: string
-  source: string
-  target: string
-  _type: string
-  [propName: string]: any
-}
-
 const edges = ref<EdgeType[]>([
   // default bezier edge
   // consists of an edge id, source node id and target node id
@@ -83,16 +64,6 @@ const edges = ref<EdgeType[]>([
     target: 'claim',
     _type: 'data',
   },
-  // {
-  //   id: 'connect-connect',
-  //   source: 'connection-warrant',
-  //   target: 'connection-qualifier',
-  // },
-  // {
-  //   id: 'connect-claim',
-  //   source: 'connection-qualifier',
-  //   target: 'claim',
-  // },
 ])
 
 const { layout } = useLayout()
@@ -102,19 +73,19 @@ const { fitView } = useVueFlow()
 async function layoutGraph(direction: LayoutDirection) {
   // 如果是上下排列的话要将nodes中的position属性做一个变换，将出去位置改为下
   // 将别人进来的位置改为上
-  if (direction === LayoutDirection.Vertical) {
-    nodes.value = nodes.value.map(node => {
-      return {
-        ...node,
-      }
-    })
-  } else if (direction === LayoutDirection.Horizontal) {
-    nodes.value = nodes.value.map(node => {
-      return {
-        ...node,
-      }
-    })
-  }
+  // if (direction === LayoutDirection.Vertical) {
+  //   nodes.value = nodes.value.map(node => {
+  //     return {
+  //       ...node,
+  //     }
+  //   })
+  // } else if (direction === LayoutDirection.Horizontal) {
+  //   nodes.value = nodes.value.map(node => {
+  //     return {
+  //       ...node,
+  //     }
+  //   })
+  // }
 
   nodes.value = layout(nodes.value, edges.value, direction)
 
@@ -162,13 +133,8 @@ const handleAddWarrant = async () => {
   // await handleLayoutGraph()
 }
 
-interface AddBackPayload {
-  nodeId: string
-  inputValue: string
-}
-
 const handleAddBacking = (payload: AddBackPayload) => {
-  const { nodeId, inputValue } = payload
+  const { nodeId } = payload
   const newBackingNode = {
     id: 'backing' + nodes.value.length,
     type: 'backing',
