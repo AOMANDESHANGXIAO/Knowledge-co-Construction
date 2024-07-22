@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useCssVar } from '@vueuse/core'
+import { useCssVar, useElementHover } from '@vueuse/core'
 import { Handle, Position } from '@vue-flow/core'
 import type { FormInstance, FormRules } from 'element-plus'
 import tips from '../toolTips/index.vue'
@@ -30,10 +30,17 @@ const rules = reactive<FormRules<typeof form>>({
   ],
 })
 
+const el = ref<HTMLElement | null>(null)
+
+const isHovered = useElementHover(el)
 </script>
 
 <template>
-  <div class="data-component-container" @dblclick="dialogVisible = true">
+  <div
+    class="data-component-container"
+    @dblclick="dialogVisible = true"
+    ref="el"
+  >
     <div class="title">前提</div>
     <div class="text">
       {{ form.input || '此处添加论证的前提条件,双击以编辑' }}
@@ -49,7 +56,11 @@ const rules = reactive<FormRules<typeof form>>({
       :connectable="false"
     ></Handle>
 
-    <tips :value="form.input" defaultValue="还未添加前提"></tips>
+    <tips
+      :value="form.input"
+      defaultValue="还未添加前提"
+      v-show="isHovered"
+    ></tips>
   </div>
 
   <el-dialog
@@ -120,15 +131,17 @@ const rules = reactive<FormRules<typeof form>>({
   }
   .text {
     flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    // display: flex;
+    // justify-content: center;
+    // align-items: center;
     height: 100%;
     font-size: 10px;
-    padding: 10px;
+    padding: 5px;
+    word-break: break-all;
     overflow: hidden;
-    text-overflow: ellipsis;
+    display: -webkit-box;
     -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
     // text-align: center;
     // line-height: 50px;
   }
@@ -143,5 +156,4 @@ const rules = reactive<FormRules<typeof form>>({
   display: block;
   text-indent: 2em;
 }
-
 </style>

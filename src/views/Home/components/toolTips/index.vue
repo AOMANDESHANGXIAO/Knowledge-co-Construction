@@ -18,12 +18,24 @@ watch(height, () => {
 </script>
 
 <template>
-  <section class="tooltips" ref="el" :style="`top:-${topOffset + 30}px`">
-    {{ props.value || props.defaultValue || 'There is no default value' }}
-  </section>
+  <transition name="fade">
+    <section class="tooltips" ref="el" :style="`top:-${topOffset + 30}px`">
+      {{ props.value || props.defaultValue || 'There is no default value' }}
+    </section>
+  </transition>
 </template>
 
 <style lang="scss" scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
 .tooltips {
   position: absolute;
   // top: -60px;
