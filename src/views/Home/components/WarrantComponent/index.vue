@@ -5,6 +5,7 @@ import { Plus } from '@element-plus/icons-vue'
 import type { Props } from './type.ts'
 import tips from '../toolTips/index.vue'
 import type { FormInstance, FormRules } from 'element-plus'
+import lightText from '@/components/common/highlight/index.vue'
 
 defineOptions({
   name: 'WarrantComponent',
@@ -112,8 +113,12 @@ const handleInsertTemplate = () => {
     <el-collapse v-model="active">
       <el-collapse-item title="理据是什么?" name="1">
         <el-text>
-          理据是指论据和论题之间的逻辑连接或推理，是为什么论据可以支持论题的理由。例如一个论证的前提是“锻炼有助于保持健康，减少患病的风险。”,
-          结论是“人要定期锻炼身体”。那么为了说明前提和结论的关系,我们需要加入理据。在这个论证中,理据可以是:“因为身体健康状况与定期锻炼有直接关系。”
+          <lightText :keywords="[
+            '论据和论题之间的逻辑连接或推理', '为什么论据可以支持论题的理由'
+          ]">
+            理据是指论据和论题之间的逻辑连接或推理，是为什么论据可以支持论题的理由。例如一个论证的前提是“锻炼有助于保持健康，减少患病的风险。”,
+            结论是“人要定期锻炼身体”。那么为了说明前提和结论的关系,我们需要加入理据。在这个论证中,理据可以是:“因为身体健康状况与定期锻炼有直接关系。”
+          </lightText>
         </el-text>
       </el-collapse-item>
     </el-collapse>
