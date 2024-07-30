@@ -15,9 +15,6 @@ import type { NodeType, EdgeType, AddBackPayload } from './type.ts'
 import { LayoutDirection } from './type.ts'
 import '@vue-flow/controls/dist/style.css'
 
-// these components are only shown as examples of how to use a custom node or edge
-// you can find many examples of how to create these custom components in the examples page of the docs
-// these are our nodes
 const nodes = ref<NodeType[]>([
   // an input node, specified by using `type: 'input'`
   {
@@ -31,7 +28,7 @@ const nodes = ref<NodeType[]>([
 
   // // default node, you can omit `type: 'default'` as it's the fallback type
   // {
-  //   id: 'connection-warrant', // 理据的连接点
+  //   id: 'connection-warrant', // 辩护的连接点
   //   position: { x: 0, y: 0 },
   //   data: { label: 'Node 2' },
   //   type: 'conncetion',
@@ -65,6 +62,8 @@ const edges = ref<EdgeType[]>([
     _type: 'data',
   },
 ])
+
+// 将来做成异步的请求Nodes和Edges
 
 const { layout } = useLayout()
 
@@ -106,7 +105,7 @@ const handleLayoutGraph = () => {
 
 const handleAddWarrant = async () => {
   /**
-   * 向连接点添加一个理据
+   * 向连接点添加一个辩护
    */
   const newWarrantNode = {
     id: 'warrant' + nodes.value.length,
@@ -190,7 +189,7 @@ const handleAddQualifier = () => {
     _type: 'qualifier',
   }
 
-  // 遍历edges，如果有理据就将理据指向限定词
+  // 遍历edges，如果有辩护就将辩护指向限定词
   edges.value = edges.value.map(edge => {
     if (edge?._type === 'warrant' || edge?._type === 'data') {
       return {
@@ -264,6 +263,19 @@ const handleAddRebuttal = () => {
     handleLayoutGraph()
   })
 }
+
+const getArgumentNodes = () => {
+  return nodes.value
+}
+
+const getArgumentEdges = () => {
+  return edges.value
+}
+
+defineExpose({
+  getArgumentNodes,
+  getArgumentEdges
+})
 </script>
 
 <template>
@@ -322,7 +334,7 @@ const handleAddRebuttal = () => {
         style="margin-left: 0"
         color="#88D66C"
         @click="handleAddWarrant"
-        >加入理据</el-button
+        >加入辩护</el-button
       >
 
       <el-button

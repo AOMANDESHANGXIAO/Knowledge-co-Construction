@@ -23,7 +23,7 @@ const rules = reactive<FormRules<typeof form>>({
   input: [
     {
       required: true,
-      message: '论证的理据不能为空!',
+      message: '论证的辩护不能为空!',
       trigger: 'blur',
     },
   ],
@@ -79,9 +79,9 @@ const handleInsertTemplate = () => {
 
 <template>
   <div class="data-component-container" ref="el">
-    <div class="title">理据</div>
+    <div class="title">辩护</div>
     <div class="text" @dblclick="dialogVisible = true">
-      {{ form.input || '此处添加论证的理据,双击以编辑' }}
+      {{ form.input || '此处添加论证的辩护,双击以编辑' }}
     </div>
     <div class="add" @click="handleEmitAddWarrant">
       <el-icon><Plus /></el-icon>
@@ -100,24 +100,24 @@ const handleInsertTemplate = () => {
     <tips
       v-show="isHovered"
       :value="form.input"
-      defaultValue="还未添加理据"
+      defaultValue="还未添加辩护"
     ></tips>
   </div>
   <el-dialog
-    title="输入论证的理据"
+    title="输入论证的辩护"
     v-if="dialogVisible"
     v-model="dialogVisible"
     width="500"
     append-to-body
   >
     <el-collapse v-model="active">
-      <el-collapse-item title="理据是什么?" name="1">
+      <el-collapse-item title="辩护是什么?" name="1">
         <el-text>
           <lightText :keywords="[
             '论据和论题之间的逻辑连接或推理', '为什么论据可以支持论题的理由'
           ]">
-            理据是指论据和论题之间的逻辑连接或推理，是为什么论据可以支持论题的理由。例如一个论证的前提是“锻炼有助于保持健康，减少患病的风险。”,
-            结论是“人要定期锻炼身体”。那么为了说明前提和结论的关系,我们需要加入理据。在这个论证中,理据可以是:“因为身体健康状况与定期锻炼有直接关系。”
+            辩护是指论据和论题之间的逻辑连接或推理，是为什么论据可以支持论题的理由。例如一个论证的前提是“锻炼有助于保持健康，减少患病的风险。”,
+            结论是“人要定期锻炼身体”。那么为了说明前提和结论的关系,我们需要加入辩护。在这个论证中,辩护可以是:“因为身体健康状况与定期锻炼有直接关系。”
           </lightText>
         </el-text>
       </el-collapse-item>
@@ -127,7 +127,7 @@ const handleInsertTemplate = () => {
       <el-form-item prop="input">
         <el-input
           v-model="form.input"
-          placeholder="论证的理据是什么?"
+          placeholder="论证的辩护是什么?"
           type="textarea"
           :autosize="{ minRows: 6, maxRows: 8 }"
           maxlength="150"
@@ -136,12 +136,12 @@ const handleInsertTemplate = () => {
       </el-form-item>
     </el-form>
 
-    <el-divider>理据模板</el-divider>
+    <el-divider>辩护模板</el-divider>
 
     <div class="template-container">
       <el-select
         v-model="template"
-        placeholder="需要理据模板吗?"
+        placeholder="需要辩护模板吗?"
         style="width: 250px"
       >
         <el-option
