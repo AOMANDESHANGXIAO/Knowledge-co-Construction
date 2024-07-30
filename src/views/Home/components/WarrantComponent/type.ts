@@ -6,6 +6,7 @@
  */
 interface Props {
   nodeId: string
+  modelValue: string
 }
 
 export type {

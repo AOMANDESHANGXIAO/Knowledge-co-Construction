@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+/**
+ * @deprecated 该组件已弃用
+ */
 import { Handle, Position } from '@vue-flow/core'
 defineOptions({
   name: 'ConnectionComponent',

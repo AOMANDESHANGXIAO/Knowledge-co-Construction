@@ -571,6 +571,18 @@ const settingFlowView = () => {}
 const testGroundVisible = ref(true)
 
 const defaultThemeColor = useCssVar('--default-theme-color')
+
+// ====== 获取论点
+const argumentFlowRef = ref<InstanceType<typeof argumentFlowComponent> | null>(
+  null
+)
+
+const getArguments = () => {
+  const nodes = argumentFlowRef.value?.getArgumentNodes()
+  const edges = argumentFlowRef.value?.getArgumentEdges()
+  console.log('nodes is ', nodes)
+  console.log('edges is ', edges)
+}
 </script>
 
 <template>
@@ -735,11 +747,13 @@ const defaultThemeColor = useCssVar('--default-theme-color')
     <!-- TODO: 根据图尔敏的论证模型编写一个组件，用来让学生构建论证 -->
     <el-dialog v-model="testGroundVisible" width="1200" :append-to-body="true">
       <div class="argument-flow-container">
-        <argumentFlowComponent></argumentFlowComponent>
+        <argumentFlowComponent ref="argumentFlowRef"></argumentFlowComponent>
       </div>
       <div class="button-footer-container">
         <el-button plain :color="defaultThemeColor">取消</el-button>
-        <el-button :color="defaultThemeColor">确定</el-button>
+        <el-button :color="defaultThemeColor" @click="getArguments"
+          >确定</el-button
+        >
       </div>
     </el-dialog>
   </section>

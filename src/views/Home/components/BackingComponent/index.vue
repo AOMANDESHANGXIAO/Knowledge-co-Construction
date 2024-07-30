@@ -1,11 +1,28 @@
 <script lang="ts" setup>
 import { useCssVar, useElementHover } from '@vueuse/core'
 import { Handle, Position } from '@vue-flow/core'
-import type { FormInstance, FormRules } from 'element-plus'
 import tips from '../toolTips/index.vue'
+import { useForm } from '@/hooks/form'
 
 defineOptions({
   name: 'BackingComponent',
+})
+
+interface Props {
+  modelValue: string
+  tags: Tag[]
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: () => '',
+  tags: () => [],
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+const { form, formRef, rules, updateModelValue } = useForm({
+  message: '理据的支撑条件不能为空!',
+  emit,
 })
 
 const dialogVisible = ref(false)
@@ -15,22 +32,6 @@ const defaultColor = useCssVar('--default-theme-color')
 const el = ref<HTMLElement | null>(null)
 
 const isHovered = useElementHover(el)
-
-const form = ref({
-  input: '',
-})
-
-const formRef = ref<FormInstance>()
-
-const rules = reactive<FormRules<typeof form>>({
-  input: [
-    {
-      required: true,
-      message: '理据的支撑条件不能为空!',
-      trigger: 'blur',
-    },
-  ],
-})
 
 const tag = ref('')
 
@@ -62,13 +63,13 @@ interface Tag {
   type: string
 }
 
-const tags = ref<Tag[]>([])
+const tags = ref<Tag[]>(props.tags)
 
 const handleInsertTag = () => {
   const types = ['primary', 'success', 'warning', 'danger', 'info']
 
   // 不能重复添加
-  if (tags.value.some((item) => item.name === tag.value)) {
+  if (tags.value.some(item => item.name === tag.value)) {
     ElMessage.error('不能添加相同标签!')
     return
   }
@@ -81,7 +82,7 @@ const handleInsertTag = () => {
 }
 
 const handleRemoveTag = (tag: Tag) => {
-  tags.value = tags.value.filter((item) => item !== tag)
+  tags.value = tags.value.filter(item => item !== tag)
 }
 </script>
 
@@ -92,7 +93,7 @@ const handleRemoveTag = (tag: Tag) => {
     ref="el"
   >
     <div class="title">支撑</div>
-    <div class="text">{{ form.input || '此处添加理据的支撑' }}</div>
+    <div class="text">{{ form.inputValue || '此处添加理据的支撑' }}</div>
     <Handle
       type="target"
       :position="Position.Top"
@@ -106,7 +107,7 @@ const handleRemoveTag = (tag: Tag) => {
 
     <tips
       v-show="isHovered"
-      :value="form.input"
+      :value="form.inputValue"
       defaultValue="还未添加支撑"
     ></tips>
   </div>
@@ -121,9 +122,10 @@ const handleRemoveTag = (tag: Tag) => {
     <el-form :rules="rules" ref="formRef" :model="form">
       <el-form-item prop="input">
         <el-input
-          v-model="form.input"
+          v-model="form.inputValue"
           placeholder="论证的支撑是什么?"
           type="textarea"
+          @change="updateModelValue"
           :autosize="{ minRows: 4, maxRows: 8 }"
         ></el-input>
       </el-form-item>

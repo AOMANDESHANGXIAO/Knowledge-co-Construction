@@ -9,9 +9,11 @@ import type { FormInstance, FormRules } from 'element-plus'
 
 interface Props {
   message?: string
+  emit: any
 }
 
 export function useForm(props: Props) {
+  const { message, emit } = props
   const form = ref({
     inputValue: '',
   })
@@ -20,7 +22,7 @@ export function useForm(props: Props) {
     inputValue: [
       {
         required: true,
-        message: props.message || '请输入内容',
+        message: message || '请输入内容',
         trigger: 'blur',
       },
     ],
@@ -28,5 +30,9 @@ export function useForm(props: Props) {
 
   const formRef = ref<FormInstance>()
 
-  return { form, formRef, rules }
+  const updateModelValue = () => {
+    emit('update:modelValue', form.value.inputValue)
+  }
+
+  return { form, formRef, rules, updateModelValue }
 }

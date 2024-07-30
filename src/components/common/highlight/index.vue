@@ -11,8 +11,8 @@ interface Style {
 
 const props = withDefaults(
   defineProps<{
-    style: Style
-    keywords: string[]
+    style?: Style
+    keywords?: string[]
   }>(),
   {
     style: () => {

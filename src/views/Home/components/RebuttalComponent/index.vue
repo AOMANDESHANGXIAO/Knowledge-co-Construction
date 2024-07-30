@@ -2,8 +2,8 @@
 import { useCssVar, useElementHover } from '@vueuse/core'
 import { Handle, Position } from '@vue-flow/core'
 import tips from '../toolTips/index.vue'
-import type { FormInstance, FormRules } from 'element-plus'
 import lightText from '@/components/common/highlight/index.vue'
+import { useForm } from '@/hooks/form'
 
 defineOptions({
   name: 'RebuttalComponent',
@@ -17,21 +17,19 @@ const el = ref<HTMLElement | null>(null)
 
 const isHovered = useElementHover(el)
 
-const form = ref({
-  inputValue: '',
+defineProps({
+  modelValue: {
+    type: String,
+    default: '',
+  },
 })
 
-const rules = reactive<FormRules<typeof form>>({
-  inputValue: [
-    {
-      required: true,
-      message: '论证的反驳情况不能为空!',
-      trigger: 'blur',
-    },
-  ],
-})
+const emit = defineEmits(['update:modelValue'])
 
-const formRef = ref<FormInstance>()
+const { form, formRef, rules, updateModelValue } = useForm({
+  message: '论证的反驳情况不能为空!',
+  emit
+})
 
 const active = ref('0')
 
@@ -42,7 +40,11 @@ const keywords = [
 </script>
 
 <template>
-  <div class="data-component-container" @dblclick="dialogVisible = true" ref="el">
+  <div
+    class="data-component-container"
+    @dblclick="dialogVisible = true"
+    ref="el"
+  >
     <div class="title">反驳</div>
     <div class="text">
       {{ form.inputValue || '此处添加论证的反驳情况,双击以编辑' }}
@@ -93,6 +95,7 @@ const keywords = [
         <el-input
           v-model="form.inputValue"
           placeholder="输入你的反驳..."
+          @input="updateModelValue"
           type="textarea"
           :autosize="{ minRows: 4, maxRows: 8 }"
           :maxlength="200"

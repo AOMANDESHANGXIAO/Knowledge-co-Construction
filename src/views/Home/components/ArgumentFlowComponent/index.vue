@@ -16,37 +16,20 @@ import { LayoutDirection } from './type.ts'
 import '@vue-flow/controls/dist/style.css'
 
 const nodes = ref<NodeType[]>([
-  // an input node, specified by using `type: 'input'`
   {
     id: 'data',
     type: 'data',
     position: { x: 0, y: 0 },
-    // all nodes can have a data object containing any data you want to pass to the node
-    // a label can property can be used for default nodes
-    data: { label: 'Node 1' },
+    data: {
+      inputValue: '',
+    },
   },
-
-  // // default node, you can omit `type: 'default'` as it's the fallback type
-  // {
-  //   id: 'connection-warrant', // 辩护的连接点
-  //   position: { x: 0, y: 0 },
-  //   data: { label: 'Node 2' },
-  //   type: 'conncetion',
-  // },
-  // {
-  //   id: 'connection-qualifier', // 反驳的连接点
-  //   position: { x: 0, y: 0 },
-  //   data: { label: 'Node 2' },
-  //   type: 'conncetion',
-  // },
-  // An output node, specified by using `type: 'output'`
   {
     id: 'claim',
-    type: 'claim', // <-- this is the custom node type name
+    type: 'claim',
     position: { x: 0, y: 0 },
     data: {
-      label: 'Node 4',
-      hello: 'world',
+      inputValue: '',
     },
   },
 ])
@@ -67,7 +50,7 @@ const edges = ref<EdgeType[]>([
 
 const { layout } = useLayout()
 
-const { fitView } = useVueFlow()
+const { fitView, findNode } = useVueFlow()
 
 async function layoutGraph(direction: LayoutDirection) {
   // 如果是上下排列的话要将nodes中的position属性做一个变换，将出去位置改为下
@@ -113,6 +96,7 @@ const handleAddWarrant = async () => {
     position: { x: 0, y: 0 },
     data: {
       nodeId: 'warrant' + nodes.value.length,
+      modelValue:'',
     },
   }
 
@@ -138,6 +122,9 @@ const handleAddBacking = (payload: AddBackPayload) => {
     id: 'backing' + nodes.value.length,
     type: 'backing',
     position: { x: 0, y: 0 },
+    data: {
+      modelValue:''
+    }
   }
   const newEdge = {
     id: 'backing-connect' + nodes.value.length,
@@ -179,6 +166,9 @@ const handleAddQualifier = () => {
     id: qualifierId.value,
     type: 'qualifier',
     position: { x: 0, y: 0 },
+    data: {
+      modelValue: ''
+    }
   }
   qualifierEdgeId.value = 'qualifier-connect' + nodes.value.length
   // 限定词指向Calaim结论
@@ -239,6 +229,9 @@ const handleAddRebuttal = () => {
     id: 'rebuttal' + nodes.value.length,
     type: 'rebuttal',
     position: { x: 0, y: 0 },
+    data: {
+      modelValue: ''
+    }
   }
 
   // 将限定词的id指向反驳
@@ -264,7 +257,17 @@ const handleAddRebuttal = () => {
   })
 }
 
+const argumentVueFlowRef = ref<InstanceType<typeof VueFlow> | null>()
+
+const getAllNodes = () => {
+  nodes.value.forEach(node => {
+    const n = findNode(node.id)
+    console.log(n)
+  })
+}
+
 const getArgumentNodes = () => {
+  getAllNodes()
   return nodes.value
 }
 
@@ -274,41 +277,44 @@ const getArgumentEdges = () => {
 
 defineExpose({
   getArgumentNodes,
-  getArgumentEdges
+  getArgumentEdges,
 })
 </script>
 
 <template>
-  <VueFlow :nodes="nodes" :edges="edges">
-    <template #node-data>
-      <data-component></data-component>
+  <VueFlow :nodes="nodes" :edges="edges" ref="argumentVueFlowRef">
+    <template #node-data="props">
+      <data-component v-model="props.data.inputValue"></data-component>
     </template>
 
-    <template #node-conncetion>
-      <conncetionComponent></conncetionComponent>
+    <template #node-conncetion="props">
+      <conncetionComponent
+        v-model="props.data.inputValue"
+      ></conncetionComponent>
     </template>
 
     <template #node-warrant="props">
       <WarrantComponent
         :nodeId="props.data.nodeId"
+        v-model="props.data.inputValue"
         @addBacking="handleAddBacking"
       ></WarrantComponent>
     </template>
 
-    <template #node-backing>
-      <BackingComponent></BackingComponent>
+    <template #node-backing="props">
+      <BackingComponent v-model="props.data.inputValue"></BackingComponent>
     </template>
 
-    <template #node-claim>
-      <ClaimComponent></ClaimComponent>
+    <template #node-claim="props">
+      <ClaimComponent v-model="props.data.inputValue"></ClaimComponent>
     </template>
 
-    <template #node-qualifier>
-      <QualifierComponent></QualifierComponent>
+    <template #node-qualifier="props">
+      <QualifierComponent v-model="props.data.inputValue"></QualifierComponent>
     </template>
 
-    <template #node-rebuttal>
-      <RebuttalComponent></RebuttalComponent>
+    <template #node-rebuttal="props">
+      <RebuttalComponent v-model="props.data.inputValue"></RebuttalComponent>
     </template>
 
     <Background

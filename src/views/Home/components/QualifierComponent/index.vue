@@ -13,8 +13,18 @@ const dialogVisible = ref(false)
 
 const defaultColor = useCssVar('--default-theme-color')
 
+defineProps({
+  modelValue: {
+    type: String,
+    default: '',
+  },
+})
+
+const emit = defineEmits(['update:modelValue'])
+
 const { form, rules, formRef } = useForm({
   message: '限定词不能为空!',
+  emit
 })
 
 const el = ref<HTMLElement | null>(null)

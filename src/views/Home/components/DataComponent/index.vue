@@ -1,11 +1,18 @@
 <script lang="ts" setup>
 import { useCssVar, useElementHover } from '@vueuse/core'
 import { Handle, Position } from '@vue-flow/core'
-import type { FormInstance, FormRules } from 'element-plus'
 import tips from '../toolTips/index.vue'
+import { useForm } from '@/hooks/form'
 
 defineOptions({
   name: 'DataComponent',
+})
+
+defineProps({
+  modelValue: {
+    type: String,
+    default: '',
+  },
 })
 
 const dialogVisible = ref(false)
@@ -14,20 +21,11 @@ const defaultColor = useCssVar('--default-theme-color')
 
 const active = ref('0')
 
-const form = ref({
-  input: '',
-})
+const emit = defineEmits(['update:modelValue'])
 
-const formRef = ref<FormInstance>()
-
-const rules = reactive<FormRules<typeof form>>({
-  input: [
-    {
-      required: true,
-      message: '论证的前提条件不能为空!',
-      trigger: 'blur',
-    },
-  ],
+const { form, formRef, rules, updateModelValue } = useForm({
+  message: '论证的前提条件不能为空!',
+  emit,
 })
 
 const el = ref<HTMLElement | null>(null)
@@ -44,7 +42,7 @@ const isHovered = useElementHover(el)
     <div class="title">前提</div>
     <div class="text-container">
       <div class="text">
-        {{ form.input || '此处添加前提,双击以编辑' }}
+        {{ form.inputValue || '此处添加前提,双击以编辑' }}
       </div>
     </div>
     <Handle
@@ -59,7 +57,7 @@ const isHovered = useElementHover(el)
     ></Handle>
 
     <tips
-      :value="form.input"
+      :value="form.inputValue"
       defaultValue="还未添加前提"
       v-show="isHovered"
     ></tips>
@@ -86,7 +84,8 @@ const isHovered = useElementHover(el)
     <el-form ref="formRef" :rules="rules" :model="form">
       <el-form-item prop="input">
         <el-input
-          v-model="form.input"
+          v-model="form.inputValue"
+          @input="updateModelValue"
           placeholder="论证的前提条件是什么?"
           type="textarea"
           :autosize="{ minRows: 6, maxRows: 8 }"
