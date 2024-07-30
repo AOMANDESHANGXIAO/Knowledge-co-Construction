@@ -588,6 +588,7 @@ const submit = () => {
   for (let i = 0; i < nodes!.length; i++) {
     console.log(nodes![i].data.inputValue)
     if (nodes![i].data.inputValue === '') {
+      console.log('校验不通过')
       ElMessage({
         type: 'warning',
         message: '请先填写论点内容',

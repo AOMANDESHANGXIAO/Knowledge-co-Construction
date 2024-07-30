@@ -84,6 +84,8 @@ const submit = () => {
  * Warrant逻辑
  */
 // ===================================
+const warrant = ref()
+
 function useWarrant() {
   const handleEmitAddBacking = () => {
     const payload = {
@@ -126,14 +128,21 @@ function useWarrant() {
   }
 }
 
-const { handleEmitAddBacking, template, tOptions, handleInsertTemplate } =
-  useWarrant()
+// const { warrant?.handleEmitAddBacking, template, tOptions, handleInsertTemplate } =
+//   useWarrant()
 
+if (props._type === ElementType.Warrant) {
+  warrant.value = useWarrant()
+} else {
+  warrant.value = null
+}
 // ===================================
 
 /**
  * Backing逻辑
  */
+const backing = ref()
+
 function useBacking() {
   const tagsOpt = ref([
     {
@@ -175,7 +184,7 @@ function useBacking() {
       name: tag.value,
       type: types[Math.floor(Math.random() * types.length)],
     }
-    tags.value.push(newTag)
+    tags.value.push((newTag as Tag))
   }
 
   const handleRemoveTag = (tag: Tag) => {
@@ -191,7 +200,12 @@ function useBacking() {
   }
 }
 
-const { tag, tagsOpt, tags, handleInsertTag, handleRemoveTag } = useBacking()
+// const { tag, tagsOpt, tags, handleInsertTag, handleRemoveTag } = useBacking()
+if (props._type === ElementType.Backing) {
+  backing.value = useBacking()
+} else {
+  backing.value = null
+}
 </script>
 
 <template>
@@ -217,7 +231,7 @@ const { tag, tagsOpt, tags, handleInsertTag, handleRemoveTag } = useBacking()
     <!-- Warrant特有 -->
     <div
       class="add"
-      @click="handleEmitAddBacking"
+      @click="warrant.handleEmitAddBacking"
       v-if="props._type === ElementType.Warrant"
     >
       <el-icon><Plus /></el-icon>
@@ -391,18 +405,18 @@ const { tag, tagsOpt, tags, handleInsertTag, handleRemoveTag } = useBacking()
     <!-- 辩护模板 -->
     <div class="template-container" v-if="props._type === ElementType.Warrant">
       <el-select
-        v-model="template"
+        v-model="warrant.template"
         placeholder="需要辩护模板吗?"
         style="width: 250px"
       >
         <el-option
-          v-for="item in tOptions"
+          v-for="item in warrant.tOptions"
           :key="item.value"
           :label="item.label"
           :value="item.value"
         ></el-option>
       </el-select>
-      <el-button :color="defaultColor" @click="handleInsertTemplate"
+      <el-button :color="defaultColor" @click="warrant.handleInsertTemplate"
         >插 入</el-button
       >
     </div>
@@ -410,12 +424,12 @@ const { tag, tagsOpt, tags, handleInsertTag, handleRemoveTag } = useBacking()
     <!-- 支撑的Tags -->
     <div class="tags-list" v-if="props._type === ElementType.Backing">
       <el-tag
-        v-for="(tag, index) in tags"
+        v-for="(tag, index) in backing.tags"
         :key="index"
         closable
         :type="tag.type"
         effect="dark"
-        @close="handleRemoveTag(tag)"
+        @close="backing.handleRemoveTag(tag)"
       >
         {{ tag.name }}
       </el-tag>
@@ -424,18 +438,18 @@ const { tag, tagsOpt, tags, handleInsertTag, handleRemoveTag } = useBacking()
     <el-divider v-if="props._type === ElementType.Backing">支撑标签</el-divider>
     <div class="tags-container" v-if="props._type === ElementType.Backing">
       <el-select
-        v-model="tag"
+        v-model="backing.tag"
         placeholder="你使用了何种证据来支撑?"
         style="width: 250px"
       >
         <el-option
-          v-for="item in tagsOpt"
+          v-for="item in backing.tagsOpt"
           :key="item.value"
           :label="item.label"
           :value="item.value"
         ></el-option>
       </el-select>
-      <el-button :color="defaultColor" @click="handleInsertTag"
+      <el-button :color="defaultColor" @click="backing.handleInsertTag"
         >插 入</el-button
       >
     </div>

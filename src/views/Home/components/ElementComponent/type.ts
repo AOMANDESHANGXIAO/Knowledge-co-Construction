@@ -9,7 +9,7 @@ export enum ElementType {
 
 export interface Tag {
   name: string
-  type: string
+  type: ElementType
 }
 
 export interface Props {

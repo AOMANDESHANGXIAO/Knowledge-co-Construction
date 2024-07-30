@@ -93,7 +93,7 @@ const handleAddWarrant = async () => {
     position: { x: 0, y: 0 },
     data: {
       nodeId: 'warrant' + nodes.value.length,
-      modelValue: '',
+      inputValue: '',
       _type: ElementType.Warrant,
     },
   }
@@ -121,7 +121,7 @@ const handleAddBacking = (payload: AddBackPayload) => {
     type: 'element',
     position: { x: 0, y: 0 },
     data: {
-      modelValue: '',
+      inputValue: '',
       _type: ElementType.Backing,
     },
   }
@@ -168,7 +168,7 @@ const handleAddQualifier = () => {
     type: 'element',
     position: { x: 0, y: 0 },
     data: {
-      modelValue: '',
+      inputValue: '',
       _type: ElementType.Qualifier,
     },
   }
@@ -234,7 +234,7 @@ const handleAddRebuttal = () => {
     type: 'element',
     position: { x: 0, y: 0 },
     data: {
-      modelValue: '',
+      inputValue: '',
       _type: ElementType.Rebuttal,
     },
   }
