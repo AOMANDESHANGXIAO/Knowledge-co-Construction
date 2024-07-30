@@ -568,7 +568,11 @@ const setting = ref<Setting>({
 
 const settingFlowView = () => {}
 
-const testGroundVisible = ref(true)
+const argumentDialogVisible = ref(true)
+
+const setArgumentDialogVisible = (visible: boolean) => {
+  argumentDialogVisible.value = visible
+}
 
 const defaultThemeColor = useCssVar('--default-theme-color')
 
@@ -775,13 +779,21 @@ const submit = () => {
       </el-card>
     </el-dialog>
 
-    <!-- TODO: 根据图尔敏的论证模型编写一个组件，用来让学生构建论证 -->
-    <el-dialog v-model="testGroundVisible" width="1200" :append-to-body="true">
+    <el-dialog
+      v-model="argumentDialogVisible"
+      width="1200"
+      :append-to-body="true"
+    >
       <div class="argument-flow-container">
         <argumentFlowComponent ref="argumentFlowRef"></argumentFlowComponent>
       </div>
       <div class="button-footer-container">
-        <el-button plain :color="defaultThemeColor">取消</el-button>
+        <el-button
+          plain
+          :color="defaultThemeColor"
+          @click="setArgumentDialogVisible(false)"
+          >取消</el-button
+        >
         <el-button :color="defaultThemeColor" @click="submit">确定</el-button>
       </div>
     </el-dialog>

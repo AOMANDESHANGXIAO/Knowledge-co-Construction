@@ -3,33 +3,30 @@ import { ref } from 'vue'
 import { VueFlow, Panel, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
-import dataComponent from '../DataComponent/index.vue'
-import conncetionComponent from '../ConnectionComponent/index.vue'
-import WarrantComponent from '../WarrantComponent/index.vue'
-import BackingComponent from '../BackingComponent/index.vue'
-import ClaimComponent from '../ClaimComponent/index.vue'
-import QualifierComponent from '../QualifierComponent/index.vue'
-import RebuttalComponent from '../RebuttalComponent/index.vue'
 import { useLayout } from '@/hooks/VueFlow/useLayout'
 import type { NodeType, EdgeType, AddBackPayload } from './type.ts'
 import { LayoutDirection } from './type.ts'
 import '@vue-flow/controls/dist/style.css'
+import { ElementType } from '../ElementComponent/type'
+import ElementComponent from '../ElementComponent/index.vue'
 
 const nodes = ref<NodeType[]>([
   {
     id: 'data',
-    type: 'data',
+    type: 'element',
     position: { x: 0, y: 0 },
     data: {
       inputValue: '',
+      _type: ElementType.Data,
     },
   },
   {
     id: 'claim',
-    type: 'claim',
+    type: 'element',
     position: { x: 0, y: 0 },
     data: {
       inputValue: '',
+      _type: ElementType.Claim,
     },
   },
 ])
@@ -92,11 +89,12 @@ const handleAddWarrant = async () => {
    */
   const newWarrantNode = {
     id: 'warrant' + nodes.value.length,
-    type: 'warrant',
+    type: 'element',
     position: { x: 0, y: 0 },
     data: {
       nodeId: 'warrant' + nodes.value.length,
-      modelValue:'',
+      modelValue: '',
+      _type: ElementType.Warrant,
     },
   }
 
@@ -120,11 +118,12 @@ const handleAddBacking = (payload: AddBackPayload) => {
   const { nodeId } = payload
   const newBackingNode = {
     id: 'backing' + nodes.value.length,
-    type: 'backing',
+    type: 'element',
     position: { x: 0, y: 0 },
     data: {
-      modelValue:''
-    }
+      modelValue: '',
+      _type: ElementType.Backing,
+    },
   }
   const newEdge = {
     id: 'backing-connect' + nodes.value.length,
@@ -161,15 +160,19 @@ const handleAddQualifier = () => {
     })
     return
   }
+
   qualifierId.value = 'qualifier' + nodes.value.length
+
   const newQualifierNode = {
     id: qualifierId.value,
-    type: 'qualifier',
+    type: 'element',
     position: { x: 0, y: 0 },
     data: {
-      modelValue: ''
-    }
+      modelValue: '',
+      _type: ElementType.Qualifier,
+    },
   }
+
   qualifierEdgeId.value = 'qualifier-connect' + nodes.value.length
   // 限定词指向Calaim结论
   const newEdge = {
@@ -214,6 +217,7 @@ const handleAddRebuttal = () => {
     })
     return
   }
+
   if (!hasRebuttal.value) {
     hasRebuttal.value = true
   } else {
@@ -227,11 +231,12 @@ const handleAddRebuttal = () => {
 
   const newRebuttalNode = {
     id: 'rebuttal' + nodes.value.length,
-    type: 'rebuttal',
+    type: 'element',
     position: { x: 0, y: 0 },
     data: {
-      modelValue: ''
-    }
+      modelValue: '',
+      _type: ElementType.Rebuttal,
+    },
   }
 
   // 将限定词的id指向反驳
@@ -259,7 +264,6 @@ const handleAddRebuttal = () => {
 
 const argumentVueFlowRef = ref<InstanceType<typeof VueFlow> | null>()
 
-
 const getArgumentNodes = () => {
   return nodes.value
 }
@@ -276,38 +280,14 @@ defineExpose({
 
 <template>
   <VueFlow :nodes="nodes" :edges="edges" ref="argumentVueFlowRef">
-    <template #node-data="props">
-      <data-component v-model="props.data.inputValue"></data-component>
-    </template>
-
-    <template #node-conncetion="props">
-      <conncetionComponent
-        v-model="props.data.inputValue"
-      ></conncetionComponent>
-    </template>
-
-    <template #node-warrant="props">
-      <WarrantComponent
+    <template #node-element="props">
+      <ElementComponent
         :nodeId="props.data.nodeId"
+        :_type="props.data._type"
+        :tags="props.data.tags || []"
         v-model="props.data.inputValue"
         @addBacking="handleAddBacking"
-      ></WarrantComponent>
-    </template>
-
-    <template #node-backing="props">
-      <BackingComponent v-model="props.data.inputValue"></BackingComponent>
-    </template>
-
-    <template #node-claim="props">
-      <ClaimComponent v-model="props.data.inputValue"></ClaimComponent>
-    </template>
-
-    <template #node-qualifier="props">
-      <QualifierComponent v-model="props.data.inputValue"></QualifierComponent>
-    </template>
-
-    <template #node-rebuttal="props">
-      <RebuttalComponent v-model="props.data.inputValue"></RebuttalComponent>
+      ></ElementComponent>
     </template>
 
     <Background
