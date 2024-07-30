@@ -50,7 +50,7 @@ const edges = ref<EdgeType[]>([
 
 const { layout } = useLayout()
 
-const { fitView, findNode } = useVueFlow()
+const { fitView } = useVueFlow()
 
 async function layoutGraph(direction: LayoutDirection) {
   // 如果是上下排列的话要将nodes中的position属性做一个变换，将出去位置改为下
@@ -259,15 +259,8 @@ const handleAddRebuttal = () => {
 
 const argumentVueFlowRef = ref<InstanceType<typeof VueFlow> | null>()
 
-const getAllNodes = () => {
-  nodes.value.forEach(node => {
-    const n = findNode(node.id)
-    console.log(n)
-  })
-}
 
 const getArgumentNodes = () => {
-  getAllNodes()
   return nodes.value
 }
 

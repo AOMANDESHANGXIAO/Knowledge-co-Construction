@@ -84,6 +84,16 @@ const handleInsertTag = () => {
 const handleRemoveTag = (tag: Tag) => {
   tags.value = tags.value.filter(item => item !== tag)
 }
+
+const sumbit = () => {
+  formRef.value?.validate((valid: boolean) => {
+    if (valid) {
+      dialogVisible.value = false
+    } else {
+      ElMessage.error('理据的支撑条件不能为空!')
+    }
+  })
+}
 </script>
 
 <template>
@@ -120,7 +130,7 @@ const handleRemoveTag = (tag: Tag) => {
     append-to-body
   >
     <el-form :rules="rules" ref="formRef" :model="form">
-      <el-form-item prop="input">
+      <el-form-item prop="inputValue">
         <el-input
           v-model="form.inputValue"
           placeholder="论证的支撑是什么?"
@@ -169,7 +179,7 @@ const handleRemoveTag = (tag: Tag) => {
         >
         <el-button
           type="primary"
-          @click="dialogVisible = false"
+          @click="sumbit"
           :color="defaultColor"
           >确 定</el-button
         >

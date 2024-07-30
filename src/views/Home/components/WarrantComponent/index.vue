@@ -64,6 +64,16 @@ const handleInsertTemplate = () => {
   if (!template.value) return
   form.value.inputValue += template.value
 }
+
+const sumbit = () => {
+  formRef.value?.validate((valid: boolean) => {
+    if (valid) {
+      dialogVisible.value = false
+    } else {
+      ElMessage.error('论证的辩护不能为空!')
+    }
+  })
+}
 </script>
 
 <template>
@@ -158,7 +168,7 @@ const handleInsertTemplate = () => {
         >
         <el-button
           type="primary"
-          @click="dialogVisible = false"
+          @click="sumbit"
           :color="defaultColor"
           >确 定</el-button
         >

@@ -37,6 +37,16 @@ const keywords = [
   '可能的反对意见或批评进行预先处理',
   '它展示了论证者对不同观点的考虑和应对能力',
 ]
+
+const sumbit = () => {
+  formRef.value?.validate((valid: boolean) => {
+    if (valid) {
+      dialogVisible.value = false
+    } else {
+      ElMessage.error('论证的反驳情况不能为空!')
+    }
+  })
+}
 </script>
 
 <template>
@@ -110,7 +120,7 @@ const keywords = [
         >
         <el-button
           type="primary"
-          @click="dialogVisible = false"
+          @click="sumbit"
           :color="defaultColor"
           >确 定</el-button
         >

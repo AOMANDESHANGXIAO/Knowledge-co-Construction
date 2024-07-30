@@ -577,11 +577,42 @@ const argumentFlowRef = ref<InstanceType<typeof argumentFlowComponent> | null>(
   null
 )
 
-const getArguments = () => {
+const submit = () => {
   const nodes = argumentFlowRef.value?.getArgumentNodes()
   const edges = argumentFlowRef.value?.getArgumentEdges()
-  console.log('nodes is ', nodes)
-  console.log('edges is ', edges)
+  // 做一个校验，如何nodes中有data的modelValue为空，则不提交
+  for (let i = 0; i < nodes!.length; i++) {
+    console.log(nodes![i].data.inputValue)
+    if (nodes![i].data.inputValue === '') {
+      ElMessage({
+        type: 'warning',
+        message: '请先填写论点内容',
+        duration: 1000,
+      })
+      return
+    }
+  }
+
+  // 提交给后端的数据
+  const data = {
+    nodes: nodes?.map(item => {
+      return {
+        id: item.id,
+        data: item.data,
+        type: item.type,
+      }
+    }),
+    edges: edges?.map(item => {
+      return {
+        id: item.id,
+        source: item.source,
+        target: item.target,
+        _type: item._type,
+      }
+    }),
+  }
+
+  console.log(data)
 }
 </script>
 
@@ -751,9 +782,7 @@ const getArguments = () => {
       </div>
       <div class="button-footer-container">
         <el-button plain :color="defaultThemeColor">取消</el-button>
-        <el-button :color="defaultThemeColor" @click="getArguments"
-          >确定</el-button
-        >
+        <el-button :color="defaultThemeColor" @click="submit">确定</el-button>
       </div>
     </el-dialog>
   </section>

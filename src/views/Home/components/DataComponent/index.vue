@@ -31,6 +31,16 @@ const { form, formRef, rules, updateModelValue } = useForm({
 const el = ref<HTMLElement | null>(null)
 
 const isHovered = useElementHover(el)
+
+const sumbit = () => {
+  formRef.value?.validate((valid: boolean) => {
+    if (valid) {
+      dialogVisible.value = false
+    } else {
+      ElMessage.error('论证的前提条件不能为空!')
+    }
+  })
+}
 </script>
 
 <template>
@@ -101,7 +111,7 @@ const isHovered = useElementHover(el)
         >
         <el-button
           type="primary"
-          @click="dialogVisible = false"
+          @click="sumbit"
           :color="defaultColor"
           >确 定</el-button
         >
