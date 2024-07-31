@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { h, ref } from 'vue'
 import { VueFlow, Panel, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
@@ -9,39 +9,63 @@ import { LayoutDirection } from './type.ts'
 import '@vue-flow/controls/dist/style.css'
 import { ElementType } from '../ElementComponent/type'
 import ElementComponent from '../ElementComponent/index.vue'
+import { useDialog } from './hooks/dialog/index'
+import Dialog from './components/dialog/index.vue'
 
-const nodes = ref<NodeType[]>([
-  {
-    id: 'data',
-    type: 'element',
-    position: { x: 0, y: 0 },
-    data: {
-      inputValue: '',
-      _type: ElementType.Data,
-    },
-  },
-  {
-    id: 'claim',
-    type: 'element',
-    position: { x: 0, y: 0 },
-    data: {
-      inputValue: '',
-      _type: ElementType.Claim,
-    },
-  },
-])
+enum Status {
+  Propose,
+  Approve,
+  Reject,
+}
 
-// these are our edges
-const edges = ref<EdgeType[]>([
-  // default bezier edge
-  // consists of an edge id, source node id and target node id
+const props = withDefaults(
+  defineProps<{
+    status: Status
+  }>(),
   {
-    id: 'init-data-claim',
-    source: 'data',
-    target: 'claim',
-    _type: 'data',
-  },
-])
+    status: Status.Propose,
+  }
+)
+
+const initData = {
+  nodes: [
+    {
+      id: 'data',
+      type: 'element',
+      position: { x: 0, y: 0 },
+      data: {
+        inputValue: '',
+        _type: ElementType.Data,
+      },
+    },
+    {
+      id: 'claim',
+      type: 'element',
+      position: { x: 0, y: 0 },
+      data: {
+        inputValue: '',
+        _type: ElementType.Claim,
+      },
+    },
+  ],
+  edges: [
+    {
+      id: 'init-data-claim',
+      source: 'data',
+      target: 'claim',
+      _type: 'data',
+    },
+  ],
+}
+
+const nodes = ref<NodeType[]>()
+
+const edges = ref<EdgeType[]>()
+
+if (props.status === Status.Propose) {
+  nodes.value = initData.nodes
+  edges.value = initData.edges
+}
 
 // 将来做成异步的请求Nodes和Edges
 
@@ -262,6 +286,79 @@ const handleAddRebuttal = () => {
   })
 }
 
+/**
+ * 删除节点逻辑
+ */
+const {
+  onConnect,
+  addEdges,
+  onNodesChange,
+  onEdgesChange,
+  applyNodeChanges,
+  applyEdgeChanges,
+} = useVueFlow()
+
+const dialog = useDialog()
+
+function dialogMsg(id: string) {
+  return h(
+    'span',
+    {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '8px',
+      },
+    },
+    [`你确定要删除此节点?`, h('br'), h('span', `[ELEMENT_ID: ${id}]`)]
+  )
+}
+
+onConnect(addEdges)
+
+onNodesChange(async changes => {
+  const nextChanges = []
+
+  for (const change of changes) {
+    if (change.type === 'remove') {
+      const isConfirmed = await dialog.confirm(dialogMsg(change.id))
+
+      if (isConfirmed) {
+        nextChanges.push(change)
+      }
+    } else {
+      nextChanges.push(change)
+    }
+  }
+
+  applyNodeChanges(nextChanges)
+})
+
+onEdgesChange(async changes => {
+  const nextChanges = []
+
+  for (const change of changes) {
+    if (change.type === 'remove') {
+      ElNotification({
+        title: 'Error',
+        message: '不允许删除边',
+        type: 'error',
+        position: 'bottom-right',
+      })
+      // const isConfirmed = await dialog.confirm(dialogMsg(change.id))
+
+      // if (isConfirmed) {
+      //   nextChanges.push(change)
+      // }
+    } else {
+      nextChanges.push(change)
+    }
+  }
+
+  applyEdgeChanges(nextChanges)
+})
+
 const argumentVueFlowRef = ref<InstanceType<typeof VueFlow> | null>()
 
 const getArgumentNodes = () => {
@@ -279,7 +376,12 @@ defineExpose({
 </script>
 
 <template>
-  <VueFlow :nodes="nodes" :edges="edges" ref="argumentVueFlowRef">
+  <VueFlow
+    :nodes="nodes"
+    :edges="edges"
+    ref="argumentVueFlowRef"
+    :apply-default="false"
+  >
     <template #node-element="props">
       <ElementComponent
         :nodeId="props.data.nodeId"
@@ -296,6 +398,8 @@ defineExpose({
       patternColor="#1a192b"
       :gap="180"
     />
+
+    <Dialog />
 
     <Controls />
 
@@ -332,6 +436,8 @@ defineExpose({
         >增加反驳</el-button
       >
     </Panel>
+
+    <Panel position="top-left" class="feedback-tips"></Panel>
   </VueFlow>
 </template>
 
@@ -349,5 +455,11 @@ defineExpose({
   box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.08);
   padding: 10px;
   background-color: #fff;
+}
+.feedback-tips {
+  box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.08);
+  padding: 10px;
+  width: 200px;
+  height: 200px;
 }
 </style>

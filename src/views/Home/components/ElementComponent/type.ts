@@ -9,12 +9,12 @@ export enum ElementType {
 
 export interface Tag {
   name: string
-  type: ElementType
+  type: string
 }
 
 export interface Props {
   nodeId?: string
   modelValue: string
-  _type: string
+  _type: ElementType
   tags?: Tag[]
 }

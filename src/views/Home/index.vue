@@ -455,7 +455,7 @@ const handleSummaryIdea = (payload: { content: string } = { content: '' }) => {
     ideaContent.value = payload.content
   } else {
     // 查找nodes表
-    const { nodes } = vueFlowRef.value?.getNodesAndEdges()
+    const { nodes } = vueFlowRef.value!.getNodesAndEdges()
 
     let content = ''
 
