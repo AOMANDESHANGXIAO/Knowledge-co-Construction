@@ -27,8 +27,17 @@ interface AddBackPayload {
   inputValue: string
 }
 
+interface FeedBack {
+  title:string
+  type: 'success' | 'warning' | 'error' | 'info'
+  description: string
+  [propName: string]: any
+}
+
+
 export type {
   NodeType,
   EdgeType,
   AddBackPayload,
+  FeedBack
 }

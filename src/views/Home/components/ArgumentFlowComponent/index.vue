@@ -4,7 +4,7 @@ import { VueFlow, Panel, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
 import { useLayout } from '@/hooks/VueFlow/useLayout'
-import type { NodeType, EdgeType, AddBackPayload } from './type.ts'
+import type { NodeType, EdgeType, AddBackPayload, FeedBack } from './type.ts'
 import { LayoutDirection } from './type.ts'
 import '@vue-flow/controls/dist/style.css'
 import { ElementType } from '../ElementComponent/type'
@@ -107,6 +107,123 @@ const handleLayoutGraph = () => {
   layoutGraph(LayoutDirection.Vertical)
 }
 
+/**
+ * 定义反馈逻辑
+ */
+const feedbackList = ref<FeedBack[]>([])
+
+interface FBOpt {
+  [key: string]: {
+    title: string
+    description: string
+    type: 'success' | 'warning' | 'error' | 'info'
+  }
+}
+
+const feedbackOptions: FBOpt = {
+  warrant: {
+    title: '缺少辩护',
+    description: '需要一个辩护来解释前提和结论的关系',
+    type: 'warning',
+  },
+  qualifier: {
+    title: '缺少限定词',
+    description: '需要一个限定词来限制当前论点的范围',
+    type: 'warning',
+  },
+  rebuttal: {
+    title: '缺少反驳',
+    description: '需要一个反驳来委婉化当前论点',
+    type: 'warning',
+  },
+  backing: {
+    title: '缺少支撑',
+    description: '有一个辩护没有支撑!',
+    type: 'warning',
+  },
+  perfect: {
+    title: '论点完美',
+    description: '这是一个结构完整的论证!',
+    type: 'success',
+  },
+}
+
+const feedbackCallback = () => {
+  const flagMap = {
+    warrant: false, // 辩护
+    rebuttal: false, // 反驳
+    qualifier: false, // 限定词
+  }
+
+  const warrantsList: NodeType[] = []
+
+  nodes?.value?.forEach(item => {
+    if (item.data._type === ElementType.Warrant) {
+      flagMap.warrant = true
+      warrantsList.push(item)
+    } else if (item.data._type === ElementType.Qualifier) {
+      flagMap.qualifier = true
+    } else if (item.data._type === ElementType.Rebuttal) {
+      flagMap.rebuttal = true
+    }
+  })
+
+  const noBackingWarrants: NodeType[] = []
+
+  edges?.value?.forEach(item => {
+    if (item._type === 'backing') {
+      const targetWarrant = item.target
+      // 遍历warrantsList, 查找哪一个辩护没有支撑
+      // warrantsList.forEach(warrant => {
+      //   if (targetWarrant === warrant.id) {
+
+      //   }
+      // })
+      let i: number
+      for (i = 0; i < warrantsList.length; i++) {
+        if (targetWarrant === warrantsList[i].id) {
+          break
+        }
+      }
+
+      if (i === warrantsList.length) {
+        noBackingWarrants.push(warrantsList[i])
+      }
+    }
+  })
+
+  // 根据flagMap，判断是否生成反馈
+  let feedbacks = []
+  Object.keys(flagMap).forEach(key => {
+    if (!flagMap[key as keyof typeof flagMap]) {
+      feedbacks.push({
+        title: feedbackOptions[key as keyof typeof flagMap].title,
+        description: feedbackOptions[key as keyof typeof flagMap].description,
+        type: feedbackOptions[key as keyof typeof flagMap].type,
+      })
+    }
+  })
+  if (noBackingWarrants.length > 0) {
+    feedbacks.push({
+      title: feedbackOptions.backing.title,
+      description: feedbackOptions.backing.description,
+      type: feedbackOptions.backing.type,
+    })
+  }
+
+  if (feedbacks.length === 0) {
+    feedbacks.push({
+      title: feedbackOptions.perfect.title,
+      description: feedbackOptions.perfect.description,
+      type: feedbackOptions.perfect.type,
+    })
+  }
+
+  feedbackList.value = [...feedbacks]
+}
+
+feedbackCallback()
+
 const handleAddWarrant = async () => {
   /**
    * 向连接点添加一个辩护
@@ -135,6 +252,8 @@ const handleAddWarrant = async () => {
   layoutGraph(LayoutDirection.Vertical).then(() => {
     handleLayoutGraph()
   })
+
+  feedbackCallback()
   // await handleLayoutGraph()
 }
 
@@ -162,6 +281,8 @@ const handleAddBacking = (payload: AddBackPayload) => {
   layoutGraph(LayoutDirection.Vertical).then(() => {
     handleLayoutGraph()
   })
+
+  feedbackCallback()
 }
 
 const hasQualifier = ref(false)
@@ -224,6 +345,8 @@ const handleAddQualifier = () => {
   layoutGraph(LayoutDirection.Vertical).then(() => {
     handleLayoutGraph()
   })
+
+  feedbackCallback()
 }
 
 const hasRebuttal = ref(false)
@@ -284,6 +407,8 @@ const handleAddRebuttal = () => {
   layoutGraph(LayoutDirection.Vertical).then(() => {
     handleLayoutGraph()
   })
+
+  feedbackCallback()
 }
 
 /**
@@ -358,6 +483,8 @@ onEdgesChange(async changes => {
 
   applyEdgeChanges(nextChanges)
 })
+
+// =========================
 
 const argumentVueFlowRef = ref<InstanceType<typeof VueFlow> | null>()
 
@@ -437,7 +564,16 @@ defineExpose({
       >
     </Panel>
 
-    <Panel position="top-left" class="feedback-tips"></Panel>
+    <Panel position="top-left" class="feedback-tips">
+      <el-alert
+        v-for="(item, index) in feedbackList"
+        :key="index"
+        :title="item.title"
+        :type="item.type"
+        :description="item.description"
+        show-icon
+      ></el-alert>
+    </Panel>
   </VueFlow>
 </template>
 
@@ -457,9 +593,13 @@ defineExpose({
   background-color: #fff;
 }
 .feedback-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.08);
   padding: 10px;
   width: 200px;
-  height: 200px;
+  /* min-height: 200px; */
+  background-color: #fff;
 }
 </style>

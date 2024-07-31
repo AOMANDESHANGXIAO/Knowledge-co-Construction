@@ -10,6 +10,7 @@ declare module 'vue' {
     AnalysisItem: typeof import('./../components/common/analysisItem/index.vue')['default']
     AnalysisItemIcon: typeof import('./../components/Icons/analysisItemIcon/index.vue')['default']
     ColorPicker: typeof import('./../components/common/colorPicker/index.vue')['default']
+    ElAlert: typeof import('element-plus/es')['ElAlert']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCard: typeof import('element-plus/es')['ElCard']
     ElCol: typeof import('element-plus/es')['ElCol']
