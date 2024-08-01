@@ -34,10 +34,19 @@ interface FeedBack {
   [propName: string]: any
 }
 
+export enum ArgumentType {
+  Backing = 'backing',
+  Warrant = 'warrant',
+  Claim = 'claim',
+  Qualifier = 'qualifier',
+  Rebuttal = 'rebuttal',
+  Data = 'data'
+}
+
 
 export type {
   NodeType,
   EdgeType,
   AddBackPayload,
-  FeedBack
+  FeedBack,
 }

@@ -5,12 +5,17 @@ import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
 import { useLayout } from '@/hooks/VueFlow/useLayout'
 import type { NodeType, EdgeType, AddBackPayload, FeedBack } from './type.ts'
+import { ArgumentType } from './type.ts'
 import { LayoutDirection } from './type.ts'
 import '@vue-flow/controls/dist/style.css'
 import { ElementType } from '../ElementComponent/type'
 import ElementComponent from '../ElementComponent/index.vue'
 import { useDialog } from './hooks/dialog/index'
 import Dialog from './components/dialog/index.vue'
+/**
+ * FIXME: 重构节点的添加和删除，这里太屎了，非常难写
+ */
+
 
 enum Status {
   Propose,
@@ -20,7 +25,7 @@ enum Status {
 
 const props = withDefaults(
   defineProps<{
-    status: Status
+    status?: Status
   }>(),
   {
     status: Status.Propose,
@@ -58,9 +63,9 @@ const initData = {
   ],
 }
 
-const nodes = ref<NodeType[]>()
+const nodes = ref<NodeType[]>([])
 
-const edges = ref<EdgeType[]>()
+const edges = ref<EdgeType[]>([])
 
 if (props.status === Status.Propose) {
   nodes.value = initData.nodes
@@ -241,7 +246,7 @@ const handleAddWarrant = async () => {
 
   const newEdge = {
     id: 'warrant-connect' + nodes.value.length,
-    _type: 'warrant',
+    _type: ArgumentType.Warrant,
     source: 'warrant' + nodes.value.length,
     target: hasQualifier.value ? qualifierId.value : 'claim',
   }
@@ -272,7 +277,7 @@ const handleAddBacking = (payload: AddBackPayload) => {
     id: 'backing-connect' + nodes.value.length,
     source: 'backing' + nodes.value.length,
     target: nodeId,
-    _type: 'backing',
+    _type: ArgumentType.Backing,
   }
 
   nodes.value = [...nodes.value, newBackingNode]
@@ -324,12 +329,17 @@ const handleAddQualifier = () => {
     id: qualifierEdgeId.value,
     source: qualifierId.value,
     target: 'claim',
-    _type: 'qualifier',
+    _type: ArgumentType.Qualifier,
   }
 
-  // 遍历edges，如果有辩护就将辩护指向限定词
+  console.log('添加限定词前的edges', edges.value)
+  // 遍历edges，将辩护和前提指向限定词
+
+  const regData = /^data/
+  const regWarrant = /^warrant/
+
   edges.value = edges.value.map(edge => {
-    if (edge?._type === 'warrant' || edge?._type === 'data') {
+    if (regData.test(edge?.source) || regWarrant.test(edge?.source)) {
       return {
         ...edge,
         target: qualifierId.value,
@@ -338,9 +348,12 @@ const handleAddQualifier = () => {
     return edge
   })
 
+
   nodes.value = [...nodes.value, newQualifierNode]
 
   edges.value = [...edges.value, newEdge]
+
+  console.log('添加限定词后的edges', edges.value)
 
   layoutGraph(LayoutDirection.Vertical).then(() => {
     handleLayoutGraph()
@@ -398,7 +411,7 @@ const handleAddRebuttal = () => {
     id: 'rebuttal-connect' + nodes.value.length,
     source: 'rebuttal' + nodes.value.length,
     target: 'claim',
-    _type: 'rebuttal',
+    _type: ArgumentType.Rebuttal,
   }
 
   nodes.value = [...nodes.value, newRebuttalNode]
@@ -442,21 +455,140 @@ function dialogMsg(id: string) {
 
 onConnect(addEdges)
 
+const callBacks = ref<Function[]>([])
+
+const handleDeleteNode = (id: string): boolean => {
+  // 不允许删除前提 和 结论节点
+
+  for (let i = 0; i < nodes.value?.length; i++) {
+    if (nodes.value[i].id === id) {
+      // 规则1： 不允许删除前提和结论
+      if (
+        nodes.value[i].data._type === ElementType.Data ||
+        nodes.value[i].data._type === ElementType.Claim
+      ) {
+        ElNotification({
+          title: 'Error',
+          message: '不允许删除前提和结论节点',
+          type: 'error',
+          position: 'bottom-right',
+        })
+        return false
+      }
+      // 规则2：不允许删除具有反驳的限定词节点
+      if (
+        nodes.value[i].data._type === ElementType.Qualifier &&
+        hasRebuttal.value
+      ) {
+        ElNotification({
+          title: 'Error',
+          message: '不允许删除添加了反驳的限定词节点',
+          type: 'error',
+          position: 'bottom-right',
+        })
+        return false
+      } else {
+        hasQualifier.value = false
+        // 否则更改数组
+        const cb = () => {
+          // console.log('删除节点：' + nodes.value[i].id)
+          nodes.value.splice(i, 1)
+
+          let ids = []
+
+          for (let j = 0; j < nodes.value.length; j++) {
+            if (
+              nodes.value[j].data._type === ElementType.Data ||
+              nodes.value[j].data._type === ElementType.Warrant
+            ) {
+              // console.log(nodes.value[j])
+              ids.push(nodes.value[j].id)
+            }
+          }
+
+          for (const id of ids) {
+            // 生成edge
+            const edge = {
+              id: id,
+              source: id,
+              target: 'claim',
+              _type: ArgumentType.Claim,
+            }
+            edges.value.push(edge)
+          }
+
+          let delIds = []
+          for (let j = 0; j < edges.value.length; j++) {
+            if (
+              edges.value[j].target === qualifierId.value ||
+              edges.value[j].source === qualifierId.value
+            ) {
+              delIds.push(edges.value[j].id)
+            }
+          }
+
+          for (const id of delIds) {
+            edges.value = edges.value.filter((item) => item.id !== id)
+          }
+          console.log('delete ====> edges', edges.value)
+        }
+        callBacks.value.push(cb)
+        // console.log(callBacks.value, 'callBacks')
+      }
+      // 规则3: 不允许删除具有支撑的辩护节点
+      if (nodes.value[i].data._type === ElementType.Warrant) {
+        for (let j = 0; j < edges?.value?.length; j++) {
+          if (
+            edges?.value[j]._type === 'backing' &&
+            edges?.value[j].target === nodes.value[i].id
+          ) {
+            ElNotification({
+              title: 'Error',
+              message: '不允许删除具有支撑的辩护节点',
+              type: 'error',
+              position: 'bottom-right',
+            })
+            return false
+          }
+        }
+      }
+      // 如果删除的是反驳，则将hasRebuttal设置为false
+      if (nodes.value[i].data._type === ElementType.Rebuttal) {
+        hasRebuttal.value = false
+        break
+      }
+    }
+  }
+
+  return true
+}
+
 onNodesChange(async changes => {
   const nextChanges = []
 
   for (const change of changes) {
     if (change.type === 'remove') {
+      callBacks.value = []
+
+      if (!handleDeleteNode(change.id)) {
+        return
+      }
+
+      // console.log('2-callbacks', callBacks.value)
+
       const isConfirmed = await dialog.confirm(dialogMsg(change.id))
 
       if (isConfirmed) {
+        for (const cb of callBacks.value) {
+          // console.log('cb was called')
+          cb()
+        }
         nextChanges.push(change)
       }
     } else {
       nextChanges.push(change)
     }
   }
-
   applyNodeChanges(nextChanges)
 })
 
@@ -465,17 +597,12 @@ onEdgesChange(async changes => {
 
   for (const change of changes) {
     if (change.type === 'remove') {
-      ElNotification({
-        title: 'Error',
-        message: '不允许删除边',
-        type: 'error',
-        position: 'bottom-right',
-      })
-      // const isConfirmed = await dialog.confirm(dialogMsg(change.id))
-
-      // if (isConfirmed) {
-      //   nextChanges.push(change)
-      // }
+      // ElNotification({
+      //   title: 'Error',
+      //   message: '不允许删除边',
+      //   type: 'error',
+      //   position: 'bottom-right',
+      // })
     } else {
       nextChanges.push(change)
     }
@@ -572,6 +699,7 @@ defineExpose({
         :type="item.type"
         :description="item.description"
         show-icon
+        :closable="false"
       ></el-alert>
     </Panel>
   </VueFlow>

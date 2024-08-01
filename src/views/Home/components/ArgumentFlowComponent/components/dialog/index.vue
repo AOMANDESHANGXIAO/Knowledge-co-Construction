@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { useDialogState } from '../../hooks/dialog/index'
 
 const { isVisible, message, resolve } = useDialogState()
