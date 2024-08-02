@@ -1,3 +1,9 @@
+import { ArgumentType } from "../ArgumentFlowComponent/type"
+
+
+/**
+ * @deprecated
+ */
 export enum ElementType {
   Backing = 'Backing',
   Warrant = 'Warrant',
@@ -15,6 +21,6 @@ export interface Tag {
 export interface Props {
   nodeId?: string
   modelValue: string
-  _type: ElementType
+  _type: ArgumentType
   tags?: Tag[]
 }

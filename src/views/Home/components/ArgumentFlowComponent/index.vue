@@ -12,10 +12,15 @@ import { ElementType } from '../ElementComponent/type'
 import ElementComponent from '../ElementComponent/index.vue'
 import { useDialog } from './hooks/dialog/index'
 import Dialog from './components/dialog/index.vue'
+import {
+  createNode,
+  createEdge,
+  getDataNodeId,
+  getClaimNodeId,
+} from '@/utils/nodeEdgeHandler/index.ts'
 /**
  * FIXME: 重构节点的添加和删除，这里太屎了，非常难写
  */
-
 
 enum Status {
   Propose,
@@ -35,21 +40,23 @@ const props = withDefaults(
 const initData = {
   nodes: [
     {
-      id: 'data',
+      id: 'data', // 初始化时前提和结论的id是定死的
       type: 'element',
       position: { x: 0, y: 0 },
+      _type: ArgumentType.Data,
       data: {
         inputValue: '',
-        _type: ElementType.Data,
+        _type: ArgumentType.Data,
       },
     },
     {
       id: 'claim',
       type: 'element',
       position: { x: 0, y: 0 },
+      _type: ArgumentType.Claim,
       data: {
         inputValue: '',
-        _type: ElementType.Claim,
+        _type: ArgumentType.Claim,
       },
     },
   ],
@@ -58,7 +65,7 @@ const initData = {
       id: 'init-data-claim',
       source: 'data',
       target: 'claim',
-      _type: 'data',
+      _type: 'data_claim',
     },
   ],
 }
@@ -71,6 +78,11 @@ if (props.status === Status.Propose) {
   nodes.value = initData.nodes
   edges.value = initData.edges
 }
+
+const dataClaimIds = ref({
+  dataId: getDataNodeId(nodes.value),
+  claimId: getClaimNodeId(nodes.value),
+})
 
 // 将来做成异步的请求Nodes和Edges
 
@@ -112,6 +124,7 @@ const handleLayoutGraph = () => {
   layoutGraph(LayoutDirection.Vertical)
 }
 
+// ==================================
 /**
  * 定义反馈逻辑
  */
@@ -163,27 +176,25 @@ const feedbackCallback = () => {
   const warrantsList: NodeType[] = []
 
   nodes?.value?.forEach(item => {
-    if (item.data._type === ElementType.Warrant) {
+    if (item.data._type === ArgumentType.Warrant) {
       flagMap.warrant = true
       warrantsList.push(item)
-    } else if (item.data._type === ElementType.Qualifier) {
+    } else if (item.data._type === ArgumentType.Qualifier) {
       flagMap.qualifier = true
-    } else if (item.data._type === ElementType.Rebuttal) {
+    } else if (item.data._type === ArgumentType.Rebuttal) {
       flagMap.rebuttal = true
     }
   })
 
   const noBackingWarrants: NodeType[] = []
 
+  /**
+   * 查找哪一个辩护没有支撑
+   */
   edges?.value?.forEach(item => {
-    if (item._type === 'backing') {
+    if (item._type === `${ArgumentType.Backing}_${ArgumentType.Warrant}`) {
       const targetWarrant = item.target
-      // 遍历warrantsList, 查找哪一个辩护没有支撑
-      // warrantsList.forEach(warrant => {
-      //   if (targetWarrant === warrant.id) {
 
-      //   }
-      // })
       let i: number
       for (i = 0; i < warrantsList.length; i++) {
         if (targetWarrant === warrantsList[i].id) {
@@ -229,29 +240,29 @@ const feedbackCallback = () => {
 
 feedbackCallback()
 
+// =========================================
+
+/**
+ * 添加辩护
+ */
 const handleAddWarrant = async () => {
   /**
    * 向连接点添加一个辩护
    */
-  const newWarrantNode = {
-    id: 'warrant' + nodes.value.length,
-    type: 'element',
-    position: { x: 0, y: 0 },
-    data: {
-      nodeId: 'warrant' + nodes.value.length,
-      inputValue: '',
-      _type: ElementType.Warrant,
-    },
+  const { id, newNode } = createNode(ArgumentType.Warrant)
+
+  const params = {
+    source: id,
+    target:
+      (hasQualifier.value ? qualifierId.value : dataClaimIds.value.claimId) ||
+      '',
+    sourceType: ArgumentType.Warrant,
+    targetType: hasQualifier.value ? ArgumentType.Qualifier : ArgumentType.Claim,
   }
 
-  const newEdge = {
-    id: 'warrant-connect' + nodes.value.length,
-    _type: ArgumentType.Warrant,
-    source: 'warrant' + nodes.value.length,
-    target: hasQualifier.value ? qualifierId.value : 'claim',
-  }
+  const { newEdge } = createEdge(params)
 
-  nodes.value = [...nodes.value, newWarrantNode]
+  nodes.value = [...nodes.value, newNode]
   edges.value = [...edges.value, newEdge]
 
   layoutGraph(LayoutDirection.Vertical).then(() => {
@@ -259,28 +270,28 @@ const handleAddWarrant = async () => {
   })
 
   feedbackCallback()
-  // await handleLayoutGraph()
 }
 
+/**
+ *
+ * @param payload {nodeId: string}
+ * 为辩护添加支撑
+ */
 const handleAddBacking = (payload: AddBackPayload) => {
   const { nodeId } = payload
-  const newBackingNode = {
-    id: 'backing' + nodes.value.length,
-    type: 'element',
-    position: { x: 0, y: 0 },
-    data: {
-      inputValue: '',
-      _type: ElementType.Backing,
-    },
-  }
-  const newEdge = {
-    id: 'backing-connect' + nodes.value.length,
-    source: 'backing' + nodes.value.length,
+
+  const { id, newNode } = createNode(ArgumentType.Backing)
+
+  const params = {
+    source: id,
     target: nodeId,
-    _type: ArgumentType.Backing,
+    sourceType: ArgumentType.Backing,
+    targetType: ArgumentType.Warrant,
   }
 
-  nodes.value = [...nodes.value, newBackingNode]
+  const { newEdge } = createEdge(params)
+
+  nodes.value = [...nodes.value, newNode]
   edges.value = [...edges.value, newEdge]
 
   layoutGraph(LayoutDirection.Vertical).then(() => {
@@ -290,6 +301,12 @@ const handleAddBacking = (payload: AddBackPayload) => {
   feedbackCallback()
 }
 
+
+
+// ========================
+/**
+ * 下面的逻辑是添加限定词
+ */
 const hasQualifier = ref(false)
 
 const qualifierId = ref('')
@@ -311,45 +328,40 @@ const handleAddQualifier = () => {
     return
   }
 
-  qualifierId.value = 'qualifier' + nodes.value.length
+  const { id, newNode } = createNode(ArgumentType.Qualifier)
 
-  const newQualifierNode = {
-    id: qualifierId.value,
-    type: 'element',
-    position: { x: 0, y: 0 },
-    data: {
-      inputValue: '',
-      _type: ElementType.Qualifier,
-    },
-  }
+  qualifierId.value = id
 
-  qualifierEdgeId.value = 'qualifier-connect' + nodes.value.length
-  // 限定词指向Calaim结论
-  const newEdge = {
-    id: qualifierEdgeId.value,
+  const params = {
     source: qualifierId.value,
-    target: 'claim',
-    _type: ArgumentType.Qualifier,
+    target: dataClaimIds.value.claimId || '',
+    sourceType: ArgumentType.Qualifier,
+    targetType: ArgumentType.Claim,
   }
+
+  const { id: edgeId, newEdge } = createEdge(params)
+
+  qualifierEdgeId.value = edgeId
 
   console.log('添加限定词前的edges', edges.value)
   // 遍历edges，将辩护和前提指向限定词
 
-  const regData = /^data/
-  const regWarrant = /^warrant/
+  //原先的data和warrant node都指向了结论，添加限定词后要将它们指向限定词
+  const dataToClaim = `${ArgumentType.Data}_${ArgumentType.Claim}`
+  const warrantToClaim = `${ArgumentType.Warrant}_${ArgumentType.Claim}`
 
   edges.value = edges.value.map(edge => {
-    if (regData.test(edge?.source) || regWarrant.test(edge?.source)) {
+    if (edge._type === dataToClaim || edge._type === warrantToClaim) {
       return {
         ...edge,
+        _type: edge._type === dataToClaim ? dataToClaim : warrantToClaim,
         target: qualifierId.value,
       }
     }
     return edge
   })
 
-
-  nodes.value = [...nodes.value, newQualifierNode]
+  nodes.value = [...nodes.value, newNode]
 
   edges.value = [...edges.value, newEdge]
 
@@ -362,12 +374,13 @@ const handleAddQualifier = () => {
   feedbackCallback()
 }
 
+// ===========================
+/**
+ * 下面的逻辑是添加反驳
+ */
 const hasRebuttal = ref(false)
 
 const handleAddRebuttal = () => {
-  /**
-   * 添加反驳
-   */
   // 必须要先添加限定词才可以添加反驳
   if (!hasQualifier.value) {
     ElMessage({
@@ -389,32 +402,30 @@ const handleAddRebuttal = () => {
     return
   }
 
-  const newRebuttalNode = {
-    id: 'rebuttal' + nodes.value.length,
-    type: 'element',
-    position: { x: 0, y: 0 },
-    data: {
-      inputValue: '',
-      _type: ElementType.Rebuttal,
-    },
-  }
+  const { id, newNode } = createNode(ArgumentType.Rebuttal)
 
-  // 将限定词的id指向反驳
+  // 将限定词节点指向反驳节点
+  // 原先限定词是指向Claim节点的
   for (let i = 0; i < edges.value.length; i++) {
-    if (edges.value[i]._type === 'qualifier') {
-      edges.value[i].target = 'rebuttal' + nodes.value.length
+    if (
+      edges.value[i]._type === `${ArgumentType.Qualifier}_${ArgumentType.Claim}`
+    ) {
+      edges.value[i].target = id
       break
     }
   }
 
-  const newEdge = {
-    id: 'rebuttal-connect' + nodes.value.length,
-    source: 'rebuttal' + nodes.value.length,
-    target: 'claim',
-    _type: ArgumentType.Rebuttal,
+  // 添加一条反驳指向claim的边
+  const params = {
+    source: id,
+    target: dataClaimIds.value.claimId || '',
+    sourceType: ArgumentType.Rebuttal,
+    targetType: ArgumentType.Claim,
   }
 
-  nodes.value = [...nodes.value, newRebuttalNode]
+  const { newEdge } = createEdge(params)
+
+  nodes.value = [...nodes.value, newNode]
   edges.value = [...edges.value, newEdge]
 
   layoutGraph(LayoutDirection.Vertical).then(() => {
@@ -424,6 +435,9 @@ const handleAddRebuttal = () => {
   feedbackCallback()
 }
 
+// ===========================
+
+// ===========================
 /**
  * 删除节点逻辑
  */
@@ -528,7 +542,7 @@ const handleDeleteNode = (id: string): boolean => {
           }
 
           for (const id of delIds) {
-            edges.value = edges.value.filter((item) => item.id !== id)
+            edges.value = edges.value.filter(item => item.id !== id)
           }
           console.log('delete ====> edges', edges.value)
         }
@@ -596,14 +610,7 @@ onEdgesChange(async changes => {
   const nextChanges = []
 
   for (const change of changes) {
-    if (change.type === 'remove') {
-      // ElNotification({
-      //   title: 'Error',
-      //   message: '不允许删除边',
-      //   type: 'error',
-      //   position: 'bottom-right',
-      // })
-    } else {
+    if (change.type !== 'remove') {
       nextChanges.push(change)
     }
   }

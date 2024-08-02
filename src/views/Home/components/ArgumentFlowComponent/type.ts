@@ -7,6 +7,7 @@ interface NodeType {
   id: string
   type: string
   data?: any
+  _type: ArgumentType
   position: {
     x: number
     y: number

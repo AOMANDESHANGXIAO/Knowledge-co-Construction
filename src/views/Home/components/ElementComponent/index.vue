@@ -1,8 +1,6 @@
 <script lang="ts" setup>
-/**
- * TODO: 将所有论证元素组件合并成一个组件
- */
-import { ElementType, Props, Tag } from './type'
+import { Props, Tag } from './type'
+import { ArgumentType } from '../ArgumentFlowComponent/type'
 import { useCssVar, useElementHover } from '@vueuse/core'
 import { Plus } from '@element-plus/icons-vue'
 import { Handle, Position } from '@vue-flow/core'
@@ -15,32 +13,32 @@ defineOptions({
 })
 
 const elementMap = {
-  [ElementType.Backing]: {
+  [ArgumentType.Backing]: {
     msg: '论证的支撑不能为空!',
     color: '#ef5a6f',
     title: '支撑',
   },
-  [ElementType.Warrant]: {
+  [ArgumentType.Warrant]: {
     msg: '论证的辩护不能为空!',
     color: '#88d66c',
     title: '辩护',
   },
-  [ElementType.Claim]: {
+  [ArgumentType.Claim]: {
     msg: '论证的结论不能为空!',
     color: '#615efc',
     title: '结论',
   },
-  [ElementType.Qualifier]: {
+  [ArgumentType.Qualifier]: {
     msg: '论证的限定词不能为空!',
     color: '#ffc94a',
-    title: '限定词',
+    title: '限定',
   },
-  [ElementType.Rebuttal]: {
+  [ArgumentType.Rebuttal]: {
     msg: '论证的反驳不能为空!',
     color: '#6dc5d1',
     title: '反驳',
   },
-  [ElementType.Data]: {
+  [ArgumentType.Data]: {
     msg: '论证的前提不能为空!',
     color: '#ff8225',
     title: '前提',
@@ -131,7 +129,7 @@ function useWarrant() {
 // const { warrant?.handleEmitAddBacking, template, tOptions, handleInsertTemplate } =
 //   useWarrant()
 
-if (props._type === ElementType.Warrant) {
+if (props._type === ArgumentType.Warrant) {
   warrant.value = useWarrant()
 } else {
   warrant.value = null
@@ -184,7 +182,7 @@ function useBacking() {
       name: tag.value,
       type: types[Math.floor(Math.random() * types.length)],
     }
-    tags.value.push((newTag as Tag))
+    tags.value.push(newTag as Tag)
   }
 
   const handleRemoveTag = (tag: Tag) => {
@@ -201,7 +199,7 @@ function useBacking() {
 }
 
 // const { tag, tagsOpt, tags, handleInsertTag, handleRemoveTag } = useBacking()
-if (props._type === ElementType.Backing) {
+if (props._type === ArgumentType.Backing) {
   backing.value = useBacking()
 } else {
   backing.value = null
@@ -232,7 +230,7 @@ if (props._type === ElementType.Backing) {
     <div
       class="add"
       @click="warrant.handleEmitAddBacking"
-      v-if="props._type === ElementType.Warrant"
+      v-if="props._type === ArgumentType.Warrant"
     >
       <el-icon><Plus /></el-icon>
     </div>
@@ -267,7 +265,7 @@ if (props._type === ElementType.Backing) {
         :title="`${elementMap[props._type].title}是什么?`"
         name="1"
       >
-        <div v-if="props._type === ElementType.Warrant">
+        <div v-if="props._type === ArgumentType.Warrant">
           <el-text>
             <lightText
               :keywords="[
@@ -281,7 +279,7 @@ if (props._type === ElementType.Backing) {
           </el-text>
         </div>
 
-        <div v-else-if="props._type === ElementType.Data">
+        <div v-else-if="props._type === ArgumentType.Data">
           <el-text>
             前提条件(Data)是支持论题(Claim)的证据或事实，是你用来证明论题的基础。例如你要证明"人们应该每天锻炼",那么你论证的前提可能是"锻炼有助于保持健康，减少患病的风险。"
           </el-text>
@@ -291,7 +289,7 @@ if (props._type === ElementType.Backing) {
           >
         </div>
 
-        <div v-else-if="props._type === ElementType.Backing">
+        <div v-else-if="props._type === ArgumentType.Backing">
           <el-text>
             <lightText
               :keywords="[
@@ -304,7 +302,7 @@ if (props._type === ElementType.Backing) {
           </el-text>
         </div>
 
-        <div v-else-if="props._type === ElementType.Rebuttal">
+        <div v-else-if="props._type === ArgumentType.Rebuttal">
           <el-text>
             <lightText
               :keywords="[
@@ -329,7 +327,7 @@ if (props._type === ElementType.Backing) {
           </el-text>
         </div>
 
-        <div v-else-if="props._type === ElementType.Qualifier">
+        <div v-else-if="props._type === ArgumentType.Qualifier">
           <el-text>
             限定词（Qualifier）是用来表明论题的适用范围或强度的词语或短语。在图尔敏的论证模型中，限定词帮助论证者对自己的论题进行一定程度的限制或调节，以便更加准确和现实地表达自己的观点。通过使用限定词，论证者可以避免过于绝对的主张，从而使论证更加合理和有说服力。
           </el-text>
@@ -356,7 +354,7 @@ if (props._type === ElementType.Backing) {
           >
         </div>
 
-        <div v-else-if="props._type === ElementType.Claim">
+        <div v-else-if="props._type === ArgumentType.Claim">
           <el-text>
             <lightText :keywords="['你希望证明的主要观点或立场']">
               在论证过程中，结论（Claim）是你希望证明的主要观点或立场。它是整个论证的核心，是你通过提供证据和推理想要让听众或读者接受的陈述。结论通常是一个明确的、可辩论的命题，表示你对某个问题或主题的看法。
@@ -400,10 +398,12 @@ if (props._type === ElementType.Backing) {
       </el-form-item>
     </el-form>
 
-    <el-divider v-if="props._type === ElementType.Warrant">辩护模板</el-divider>
+    <el-divider v-if="props._type === ArgumentType.Warrant"
+      >辩护模板</el-divider
+    >
 
     <!-- 辩护模板 -->
-    <div class="template-container" v-if="props._type === ElementType.Warrant">
+    <div class="template-container" v-if="props._type === ArgumentType.Warrant">
       <el-select
         v-model="warrant.template"
         placeholder="需要辩护模板吗?"
@@ -422,7 +422,7 @@ if (props._type === ElementType.Backing) {
     </div>
 
     <!-- 支撑的Tags -->
-    <div class="tags-list" v-if="props._type === ElementType.Backing">
+    <div class="tags-list" v-if="props._type === ArgumentType.Backing">
       <el-tag
         v-for="(tag, index) in backing.tags"
         :key="index"
@@ -435,8 +435,10 @@ if (props._type === ElementType.Backing) {
       </el-tag>
     </div>
 
-    <el-divider v-if="props._type === ElementType.Backing">支撑标签</el-divider>
-    <div class="tags-container" v-if="props._type === ElementType.Backing">
+    <el-divider v-if="props._type === ArgumentType.Backing"
+      >支撑标签</el-divider
+    >
+    <div class="tags-container" v-if="props._type === ArgumentType.Backing">
       <el-select
         v-model="backing.tag"
         placeholder="你使用了何种证据来支撑?"
