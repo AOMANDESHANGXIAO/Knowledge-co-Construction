@@ -8,7 +8,6 @@ import type { NodeType, EdgeType, AddBackPayload, FeedBack } from './type.ts'
 import { ArgumentType } from './type.ts'
 import { LayoutDirection } from './type.ts'
 import '@vue-flow/controls/dist/style.css'
-import { ElementType } from '../ElementComponent/type'
 import ElementComponent from '../ElementComponent/index.vue'
 import { useDialog } from './hooks/dialog/index'
 import Dialog from './components/dialog/index.vue'
@@ -24,9 +23,11 @@ const {
   getClaimNodeId,
   getNodeById,
   removeNodeById,
-  removeEdgeByType,
+  removeEdgeByRelatedId,
   removeEdgeByTargetType,
   getNodeIdsByType,
+  findIsEdgesExistBySourceId,
+  clearNotRealatedEdges,
 } = useNodeEdgeHandler()
 
 enum Status {
@@ -81,9 +82,29 @@ const nodes = ref<NodeType[]>([])
 
 const edges = ref<EdgeType[]>([])
 
-if (props.status === Status.Propose) {
+const setNodeEdgeValue = () => {
+  if (props.status === Status.Propose) {
+    nodes.value = initData.nodes
+    edges.value = initData.edges
+  }
+}
+
+setNodeEdgeValue()
+
+const reset = () => {
+  if (props.status !== Status.Propose) {
+    ElNotification({
+      title: '警告',
+      message: '你不能重置已经完成的论证!',
+      type: 'warning',
+    })
+    return
+  }
+  // console.log('重置')
+
   nodes.value = initData.nodes
   edges.value = initData.edges
+  handleLayoutGraph()
 }
 
 const dataClaimIds = ref({
@@ -274,7 +295,30 @@ const handleAddWarrant = () => {
   feedbackCallback()
 }
 
-const handleRemoveWarrant = () => {}
+const handleRemoveWarrant = (id: string): boolean => {
+  // 移除辩护
+  // 如果有支撑则不能移除
+  const flag = findIsEdgesExistBySourceId(edges.value, id, (item: EdgeType) => {
+    return item._type === `${ArgumentType.Backing}_${ArgumentType.Warrant}`
+  })
+  if (flag) {
+    ElNotification({
+      title: '提示',
+      message: '不能移除带有支撑的辩护!',
+      type: 'warning',
+    })
+    return false
+  }
+
+  const cb = () => {
+    removeNodeById(nodes.value, id)
+    edges.value = removeEdgeByRelatedId(edges.value, id)
+  }
+
+  callBacks.value.push(cb)
+
+  return true
+}
 
 // ========================================
 
@@ -307,7 +351,17 @@ const handleAddBacking = (payload: AddBackPayload) => {
   feedbackCallback()
 }
 
-const handleRemoveBacking = () => {}
+const handleRemoveBacking = (id: string): boolean => {
+  // 移除支撑
+  const cb = () => {
+    console.log('删除支撑')
+    removeNodeById(nodes.value, id)
+  }
+
+  callBacks.value.push(cb)
+
+  return true
+}
 
 // ========================
 /**
@@ -391,7 +445,7 @@ const handleRemoveQualifier = (): boolean => {
   const cb = () => {
     removeNodeById(nodes.value, qualifierId.value)
     // 移除任何指向限定词的edge
-    removeEdgeByTargetType(edges.value, ArgumentType.Qualifier)
+    edges.value = removeEdgeByTargetType(edges.value, ArgumentType.Qualifier)
     // 更改指向, 将类型为Data、Warrant的节点指向结论
     const idAndTypes = getNodeIdsByType(nodes.value, [
       ArgumentType.Data,
@@ -484,7 +538,32 @@ const handleAddRebuttal = () => {
   feedbackCallback()
 }
 
-const handleRemoveRebuttal = () => {}
+const handleRemoveRebuttal = (id: string): boolean => {
+  const cb = () => {
+    hasRebuttal.value = false
+
+    // 1. 删除node节点
+    removeNodeById(nodes.value, id)
+    // 2. 要将和反驳相关的edge全部删除
+    edges.value = removeEdgeByRelatedId(edges.value, id)
+
+    // 3. 将限定词节点指向结论
+    const params = {
+      source: qualifierId.value,
+      target: dataClaimIds.value.claimId || '',
+      sourceType: ArgumentType.Qualifier,
+      targetType: ArgumentType.Claim,
+    }
+
+    const { newEdge } = createEdge(params)
+
+    edges.value = [...edges.value, newEdge]
+  }
+
+  callBacks.value.push(cb)
+
+  return true
+}
 
 // ===========================
 
@@ -544,127 +623,23 @@ const handleDeleteNode = (id: string): boolean => {
       flag = false
       break
     case ArgumentType.Qualifier:
-      // TODO: 处理删除限定词节点
-      handleRemoveQualifier()
+      flag = handleRemoveQualifier()
       break
     case ArgumentType.Rebuttal:
-      // TODO: 处理删除反驳节点
-      handleRemoveRebuttal()
+      flag = handleRemoveRebuttal(id)
       break
     case ArgumentType.Warrant:
-      // TODO: 处理删除辩护节点
-      handleRemoveWarrant()
+      flag = handleRemoveWarrant(id)
       break
     case ArgumentType.Backing:
-      // TODO: 处理删除支撑节点
-      handleRemoveBacking()
+      flag = handleRemoveBacking(id)
       break
     default:
       console.log('Something went wrong, the _type = ', _type)
       break
   }
 
-  for (let i = 0; i < nodes.value?.length; i++) {
-    if (nodes.value[i].id === id) {
-      // 规则1： 不允许删除前提和结论
-      if (
-        nodes.value[i].data._type === ElementType.Data ||
-        nodes.value[i].data._type === ElementType.Claim
-      ) {
-        ElNotification({
-          title: 'Error',
-          message: '不允许删除前提和结论节点',
-          type: 'error',
-          position: 'bottom-right',
-        })
-        return false
-      }
-      // 规则2：不允许删除具有反驳的限定词节点
-      if (
-        nodes.value[i].data._type === ElementType.Qualifier &&
-        hasRebuttal.value
-      ) {
-        ElNotification({
-          title: 'Error',
-          message: '不允许删除添加了反驳的限定词节点',
-          type: 'error',
-          position: 'bottom-right',
-        })
-        return false
-      } else {
-        hasQualifier.value = false
-        // 否则更改数组
-        const cb = () => {
-          // console.log('删除节点：' + nodes.value[i].id)
-          nodes.value.splice(i, 1)
-
-          let ids = []
-
-          for (let j = 0; j < nodes.value.length; j++) {
-            if (
-              nodes.value[j].data._type === ElementType.Data ||
-              nodes.value[j].data._type === ElementType.Warrant
-            ) {
-              // console.log(nodes.value[j])
-              ids.push(nodes.value[j].id)
-            }
-          }
-
-          for (const id of ids) {
-            // 生成edge
-            const edge = {
-              id: id,
-              source: id,
-              target: 'claim',
-              _type: ArgumentType.Claim,
-            }
-            edges.value.push(edge)
-          }
-
-          let delIds = []
-          for (let j = 0; j < edges.value.length; j++) {
-            if (
-              edges.value[j].target === qualifierId.value ||
-              edges.value[j].source === qualifierId.value
-            ) {
-              delIds.push(edges.value[j].id)
-            }
-          }
-
-          for (const id of delIds) {
-            edges.value = edges.value.filter(item => item.id !== id)
-          }
-          console.log('delete ====> edges', edges.value)
-        }
-        callBacks.value.push(cb)
-        // console.log(callBacks.value, 'callBacks')
-      }
-      // 规则3: 不允许删除具有支撑的辩护节点
-      if (nodes.value[i].data._type === ElementType.Warrant) {
-        for (let j = 0; j < edges?.value?.length; j++) {
-          if (
-            edges?.value[j]._type === 'backing' &&
-            edges?.value[j].target === nodes.value[i].id
-          ) {
-            ElNotification({
-              title: 'Error',
-              message: '不允许删除具有支撑的辩护节点',
-              type: 'error',
-              position: 'bottom-right',
-            })
-            return false
-          }
-        }
-      }
-      // 如果删除的是反驳，则将hasRebuttal设置为false
-      if (nodes.value[i].data._type === ElementType.Rebuttal) {
-        hasRebuttal.value = false
-        break
-      }
-    }
-  }
-
-  return true
+  return flag
 }
 
 onNodesChange(async changes => {
@@ -684,6 +659,8 @@ onNodesChange(async changes => {
         for (const cb of callBacks.value) {
           cb()
         }
+        // 移除所有不相干的边
+        edges.value = clearNotRealatedEdges(nodes.value, edges.value)
         nextChanges.push(change)
       }
     } else {
@@ -752,6 +729,14 @@ defineExpose({
     <Controls />
 
     <Panel position="top-right" class="button-group-container">
+      <el-popconfirm title="你确定要重置论证?" @confirm="reset">
+        <template #reference>
+          <el-button plain style="margin-left: 0" color="#03346E">
+            重置论证
+          </el-button>
+        </template>
+      </el-popconfirm>
+
       <el-button
         plain
         style="margin-left: 0"
