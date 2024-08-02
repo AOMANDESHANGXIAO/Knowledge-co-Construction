@@ -28,6 +28,7 @@ const {
   getNodeIdsByType,
   findIsEdgesExistBySourceId,
   clearNotRealatedEdges,
+  findIsEdgeExistByFilterFunction,
 } = useNodeEdgeHandler()
 
 enum Status {
@@ -206,27 +207,44 @@ const feedbackCallback = () => {
     }
   })
 
-  const noBackingWarrants: NodeType[] = []
+  // 查找有没有支撑
+  let hasBacking = false
 
-  /**
-   * 查找哪一个辩护没有支撑
-   */
-  edges?.value?.forEach(item => {
-    if (item._type === `${ArgumentType.Backing}_${ArgumentType.Warrant}`) {
-      const targetWarrant = item.target
+  for (let j = 0; j < warrantsList.length; j++) {
+    const item = warrantsList[j]
+    hasBacking = findIsEdgeExistByFilterFunction(edges.value, edge => {
+      return (
+        edge._type === `${ArgumentType.Backing}_${ArgumentType.Warrant}` &&
+        edge.target === item.id
+      )
+    })
+    // 没有支撑
+    if (!hasBacking) break
+  }
 
-      let i: number
-      for (i = 0; i < warrantsList.length; i++) {
-        if (targetWarrant === warrantsList[i].id) {
-          break
-        }
-      }
+  // const noBackingWarrants: NodeType[] = []
 
-      if (i === warrantsList.length) {
-        noBackingWarrants.push(warrantsList[i])
-      }
-    }
-  })
+  // /**
+  //  * 查找哪一个辩护没有支撑
+  //  */
+  // edges?.value?.forEach(item => {
+  //   console.log('debugger item ===>', item)
+  //   if (item._type === `${ArgumentType.Backing}_${ArgumentType.Warrant}`) {
+
+  //     const targetWarrant = item.target
+
+  //     let i: number
+  //     for (i = 0; i < warrantsList.length; i++) {
+  //       if (targetWarrant === warrantsList[i].id) {
+  //         break
+  //       }
+  //     }
+
+  //     if (i === warrantsList.length) {
+  //       noBackingWarrants.push(warrantsList[i])
+  //     }
+  //   }
+  // })
 
   // 根据flagMap，判断是否生成反馈
   let feedbacks = []
@@ -239,7 +257,9 @@ const feedbackCallback = () => {
       })
     }
   })
-  if (noBackingWarrants.length > 0) {
+
+  // 没有辩护时不会出现提示需要支撑
+  if (warrantsList.length && !hasBacking) {
     feedbacks.push({
       title: feedbackOptions.backing.title,
       description: feedbackOptions.backing.description,

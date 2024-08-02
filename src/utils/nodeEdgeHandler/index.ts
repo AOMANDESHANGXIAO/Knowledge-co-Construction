@@ -150,13 +150,12 @@ function useNodeEdgeHandler() {
   }
 
   /**
-   * 
-   * @param nodes 
-   * @param edges 
-   * @description 移除所有没有source和target中指向的node不存在的edge 
+   *
+   * @param nodes
+   * @param edges
+   * @description 移除所有没有source和target中指向的node不存在的edge
    */
   function clearNotRealatedEdges(nodes: NodeType[], edges: EdgeType[]) {
-
     const nodeIdsMap = new Map<string, boolean>()
 
     nodes.forEach(node => {
@@ -167,8 +166,6 @@ function useNodeEdgeHandler() {
       return nodeIdsMap.get(edge.source) && nodeIdsMap.get(edge.target)
     })
   }
-
-
 
   function findIsEdgesExistBySourceId(
     edges: EdgeType[],
@@ -187,6 +184,18 @@ function useNodeEdgeHandler() {
     return false
   }
 
+  function findIsEdgeExistByFilterFunction(
+    edges: EdgeType[],
+    cb: FilterFunction
+  ) {
+    for (let i = 0; i < edges.length; i++) {
+      if (cb(edges[i])) {
+        return true
+      }
+    }
+    return false
+  }
+
   return {
     createNode,
     createEdge,
@@ -200,7 +209,8 @@ function useNodeEdgeHandler() {
     removeEdgeBySourceType,
     removeEdgeByRelatedId,
     findIsEdgesExistBySourceId,
-    clearNotRealatedEdges
+    clearNotRealatedEdges,
+    findIsEdgeExistByFilterFunction
   }
 }
 
