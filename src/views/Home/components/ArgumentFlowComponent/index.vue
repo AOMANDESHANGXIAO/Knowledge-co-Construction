@@ -12,15 +12,22 @@ import { ElementType } from '../ElementComponent/type'
 import ElementComponent from '../ElementComponent/index.vue'
 import { useDialog } from './hooks/dialog/index'
 import Dialog from './components/dialog/index.vue'
-import {
+import { useNodeEdgeHandler } from '@/utils/nodeEdgeHandler/index.ts'
+/**
+ * FIXME: 重构节点的添加和删除，这里太屎了，非常难写
+ */
+
+const {
   createNode,
   createEdge,
   getDataNodeId,
   getClaimNodeId,
-} from '@/utils/nodeEdgeHandler/index.ts'
-/**
- * FIXME: 重构节点的添加和删除，这里太屎了，非常难写
- */
+  getNodeById,
+  removeNodeById,
+  removeEdgeByType,
+  removeEdgeByTargetType,
+  getNodeIdsByType,
+} = useNodeEdgeHandler()
 
 enum Status {
   Propose,
@@ -65,7 +72,7 @@ const initData = {
       id: 'init-data-claim',
       source: 'data',
       target: 'claim',
-      _type: 'data_claim',
+      _type: `${ArgumentType.Data}_${ArgumentType.Claim}`,
     },
   ],
 }
@@ -91,22 +98,6 @@ const { layout } = useLayout()
 const { fitView } = useVueFlow()
 
 async function layoutGraph(direction: LayoutDirection) {
-  // 如果是上下排列的话要将nodes中的position属性做一个变换，将出去位置改为下
-  // 将别人进来的位置改为上
-  // if (direction === LayoutDirection.Vertical) {
-  //   nodes.value = nodes.value.map(node => {
-  //     return {
-  //       ...node,
-  //     }
-  //   })
-  // } else if (direction === LayoutDirection.Horizontal) {
-  //   nodes.value = nodes.value.map(node => {
-  //     return {
-  //       ...node,
-  //     }
-  //   })
-  // }
-
   nodes.value = layout(nodes.value, edges.value, direction)
 
   await nextTick(() => {
@@ -176,13 +167,21 @@ const feedbackCallback = () => {
   const warrantsList: NodeType[] = []
 
   nodes?.value?.forEach(item => {
-    if (item.data._type === ArgumentType.Warrant) {
-      flagMap.warrant = true
-      warrantsList.push(item)
-    } else if (item.data._type === ArgumentType.Qualifier) {
-      flagMap.qualifier = true
-    } else if (item.data._type === ArgumentType.Rebuttal) {
-      flagMap.rebuttal = true
+    const _type = item.data._type
+
+    switch (_type) {
+      case ArgumentType.Warrant:
+        flagMap.warrant = true
+        warrantsList.push(item)
+        break
+      case ArgumentType.Qualifier:
+        flagMap.qualifier = true
+        break
+      case ArgumentType.Rebuttal:
+        flagMap.rebuttal = true
+        break
+      default:
+        break
     }
   })
 
@@ -242,10 +241,11 @@ feedbackCallback()
 
 // =========================================
 
+// ========================================
 /**
- * 添加辩护
+ * 辩护
  */
-const handleAddWarrant = async () => {
+const handleAddWarrant = () => {
   /**
    * 向连接点添加一个辩护
    */
@@ -257,7 +257,9 @@ const handleAddWarrant = async () => {
       (hasQualifier.value ? qualifierId.value : dataClaimIds.value.claimId) ||
       '',
     sourceType: ArgumentType.Warrant,
-    targetType: hasQualifier.value ? ArgumentType.Qualifier : ArgumentType.Claim,
+    targetType: hasQualifier.value
+      ? ArgumentType.Qualifier
+      : ArgumentType.Claim,
   }
 
   const { newEdge } = createEdge(params)
@@ -271,6 +273,10 @@ const handleAddWarrant = async () => {
 
   feedbackCallback()
 }
+
+const handleRemoveWarrant = () => {}
+
+// ========================================
 
 /**
  *
@@ -301,7 +307,7 @@ const handleAddBacking = (payload: AddBackPayload) => {
   feedbackCallback()
 }
 
-
+const handleRemoveBacking = () => {}
 
 // ========================
 /**
@@ -343,9 +349,6 @@ const handleAddQualifier = () => {
 
   qualifierEdgeId.value = edgeId
 
-  console.log('添加限定词前的edges', edges.value)
-  // 遍历edges，将辩护和前提指向限定词
-
   //原先的data和warrant node都指向了结论，添加限定词后要将它们指向限定词
   const dataToClaim = `${ArgumentType.Data}_${ArgumentType.Claim}`
   const warrantToClaim = `${ArgumentType.Warrant}_${ArgumentType.Claim}`
@@ -365,13 +368,59 @@ const handleAddQualifier = () => {
 
   edges.value = [...edges.value, newEdge]
 
-  console.log('添加限定词后的edges', edges.value)
-
   layoutGraph(LayoutDirection.Vertical).then(() => {
     handleLayoutGraph()
   })
 
   feedbackCallback()
+}
+
+const handleRemoveQualifier = (): boolean => {
+  // 不允许删除具有反驳的限定词节点
+  if (hasRebuttal.value) {
+    ElMessage({
+      type: 'warning',
+      message: '不允许删除具有反驳的限定词节点',
+      duration: 1000,
+    })
+    return false
+  }
+
+  hasQualifier.value = false
+
+  const cb = () => {
+    removeNodeById(nodes.value, qualifierId.value)
+    // 移除任何指向限定词的edge
+    removeEdgeByTargetType(edges.value, ArgumentType.Qualifier)
+    // 更改指向, 将类型为Data、Warrant的节点指向结论
+    const idAndTypes = getNodeIdsByType(nodes.value, [
+      ArgumentType.Data,
+      ArgumentType.Warrant,
+    ])
+
+    // 构造新的边
+    const newEdges: EdgeType[] = []
+
+    idAndTypes.forEach(item => {
+      if (!item) return
+      const params = {
+        source: item.id,
+        target: dataClaimIds.value.claimId || '',
+        sourceType: item._type,
+        targetType: ArgumentType.Claim,
+      }
+
+      const { newEdge } = createEdge(params)
+
+      newEdges.push(newEdge)
+    })
+
+    edges.value = [...edges.value, ...newEdges]
+  }
+
+  callBacks.value.push(cb)
+
+  return true
 }
 
 // ===========================
@@ -435,6 +484,8 @@ const handleAddRebuttal = () => {
   feedbackCallback()
 }
 
+const handleRemoveRebuttal = () => {}
+
 // ===========================
 
 // ===========================
@@ -473,6 +524,45 @@ const callBacks = ref<Function[]>([])
 
 const handleDeleteNode = (id: string): boolean => {
   // 不允许删除前提 和 结论节点
+  // 1. 查找id对应的节点
+  const node = getNodeById(nodes.value, id)
+  if (!node) return false
+
+  const _type = node._type
+
+  let flag = true
+
+  switch (_type) {
+    case ArgumentType.Claim:
+    case ArgumentType.Data:
+      ElNotification({
+        title: 'Error',
+        message: '不允许删除前提和结论节点',
+        type: 'error',
+        position: 'bottom-right',
+      })
+      flag = false
+      break
+    case ArgumentType.Qualifier:
+      // TODO: 处理删除限定词节点
+      handleRemoveQualifier()
+      break
+    case ArgumentType.Rebuttal:
+      // TODO: 处理删除反驳节点
+      handleRemoveRebuttal()
+      break
+    case ArgumentType.Warrant:
+      // TODO: 处理删除辩护节点
+      handleRemoveWarrant()
+      break
+    case ArgumentType.Backing:
+      // TODO: 处理删除支撑节点
+      handleRemoveBacking()
+      break
+    default:
+      console.log('Something went wrong, the _type = ', _type)
+      break
+  }
 
   for (let i = 0; i < nodes.value?.length; i++) {
     if (nodes.value[i].id === id) {
@@ -588,13 +678,10 @@ onNodesChange(async changes => {
         return
       }
 
-      // console.log('2-callbacks', callBacks.value)
-
       const isConfirmed = await dialog.confirm(dialogMsg(change.id))
 
       if (isConfirmed) {
         for (const cb of callBacks.value) {
-          // console.log('cb was called')
           cb()
         }
         nextChanges.push(change)
