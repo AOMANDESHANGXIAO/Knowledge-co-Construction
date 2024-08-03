@@ -5,6 +5,7 @@ import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
 import { useLayout } from '@/hooks/VueFlow/useLayout'
 import type { NodeType, EdgeType, AddBackPayload, FeedBack } from './type.ts'
+import { Status } from './type'
 import { ArgumentType } from './type.ts'
 import { LayoutDirection } from './type.ts'
 import '@vue-flow/controls/dist/style.css'
@@ -12,9 +13,6 @@ import ElementComponent from '../ElementComponent/index.vue'
 import { useDialog } from './hooks/dialog/index'
 import Dialog from './components/dialog/index.vue'
 import { useNodeEdgeHandler } from '@/utils/nodeEdgeHandler/index.ts'
-/**
- * FIXME: 重构节点的添加和删除，这里太屎了，非常难写
- */
 
 const {
   createNode,
@@ -31,15 +29,11 @@ const {
   findIsEdgeExistByFilterFunction,
 } = useNodeEdgeHandler()
 
-enum Status {
-  Propose,
-  Approve,
-  Reject,
-}
-
 const props = withDefaults(
   defineProps<{
     status?: Status
+    nodes?: NodeType[]
+    edges?: EdgeType[]
   }>(),
   {
     status: Status.Propose,
@@ -88,6 +82,11 @@ const setNodeEdgeValue = () => {
     nodes.value = initData.nodes
     edges.value = initData.edges
   }
+  // } else if (props.status === Status.Check) {
+  //   // 观测状态
+  //   nodes.value = props.nodes!
+  //   edges.value = props.edges!
+  // }
 }
 
 setNodeEdgeValue()
@@ -682,6 +681,7 @@ onNodesChange(async changes => {
         // 移除所有不相干的边
         edges.value = clearNotRealatedEdges(nodes.value, edges.value)
         nextChanges.push(change)
+        handleLayoutGraph()
       }
     } else {
       nextChanges.push(change)
@@ -701,6 +701,16 @@ onEdgesChange(async changes => {
 
   applyEdgeChanges(nextChanges)
 })
+// ===========================
+
+const editVisible = computed(()=> {
+  return props.status !== Status.Check
+})
+
+
+// ==========================
+
+
 
 // =========================
 
@@ -714,9 +724,20 @@ const getArgumentEdges = () => {
   return edges.value
 }
 
+const setNodes = (value: NodeType[]) => {
+  nodes.value = value
+}
+
+const setEdges = (value: EdgeType[]) => {
+  edges.value = value
+}
+
 defineExpose({
   getArgumentNodes,
   getArgumentEdges,
+  setNodes,
+  setEdges,
+  handleLayoutGraph
 })
 </script>
 
@@ -732,6 +753,7 @@ defineExpose({
         :nodeId="props.data.nodeId"
         :_type="props.data._type"
         :tags="props.data.tags || []"
+        :visible="editVisible"
         v-model="props.data.inputValue"
         @addBacking="handleAddBacking"
       ></ElementComponent>
@@ -748,7 +770,11 @@ defineExpose({
 
     <Controls />
 
-    <Panel position="top-right" class="button-group-container">
+    <Panel
+      position="top-right"
+      class="button-group-container"
+      v-if="props.status !== Status.Check"
+    >
       <el-popconfirm title="你确定要重置论证?" @confirm="reset">
         <template #reference>
           <el-button plain style="margin-left: 0" color="#03346E">
@@ -790,7 +816,11 @@ defineExpose({
       >
     </Panel>
 
-    <Panel position="top-left" class="feedback-tips">
+    <Panel
+      position="top-left"
+      class="feedback-tips"
+      v-if="props.status !== Status.Check"
+    >
       <el-alert
         v-for="(item, index) in feedbackList"
         :key="index"

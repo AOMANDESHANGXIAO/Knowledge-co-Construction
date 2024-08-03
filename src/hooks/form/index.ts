@@ -30,9 +30,13 @@ export function useForm(props: Props) {
 
   const formRef = ref<FormInstance>()
 
+  const setInputValue = (value: string) => {
+    form.value.inputValue = value
+  }
+
   const updateModelValue = () => {
     emit('update:modelValue', form.value.inputValue)
   }
-  
-  return { form, formRef, rules, updateModelValue,  }
+
+  return { form, formRef, rules, updateModelValue, setInputValue }
 }

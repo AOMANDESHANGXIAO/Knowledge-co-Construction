@@ -269,6 +269,7 @@ const emits = defineEmits([
   'reply-oppose',
   'revise',
   'revise-self',
+  'check'
 ])
 
 const handleReplyApprove = (id: string) => {
@@ -284,6 +285,10 @@ const handleEmitRevise = (payload: { content: string }) => {
 const handleReviseSelf = (payload: { id: string; content: string }) => {
   emits('revise-self', payload)
 }
+const handleCheck = (id: string) => {
+  emits('check', id)
+}
+
 </script>
 
 <template>
@@ -302,6 +307,7 @@ const handleReviseSelf = (payload: { id: string; content: string }) => {
           @revise-self="handleReviseSelf"
           @reply-approve="handleReplyApprove"
           @reply-oppose="handleReplyOppose"
+          @check="handleCheck"
         />
       </template>
 

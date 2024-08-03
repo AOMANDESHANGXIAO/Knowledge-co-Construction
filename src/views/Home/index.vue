@@ -12,6 +12,7 @@ import {
   replyIdeaApi,
   reviseGroupConclusionApi,
   reviseSelfIdeaApi,
+  queryNodeContentApi,
 } from '@/apis/flow/index.ts'
 import type {
   ProposeIdeaParams,
@@ -32,6 +33,8 @@ import {
 import type { FormRules, FormInstance } from 'element-plus'
 import { useCssVar } from '@vueuse/core'
 import argumentFlowComponent from './components/ArgumentFlowComponent/index.vue'
+import { Status } from './components/ArgumentFlowComponent/type.ts'
+import { useLoading } from '@/hooks/loading/index.ts'
 
 const colorStore = useColorStore()
 
@@ -62,53 +65,6 @@ const handleViewIdeaDialog = () => {
 
 // ====提出观点逻辑=====
 const proposeIdeaFormRef = ref<FormInstance | null>(null)
-
-const proposeIdeaModel = ref<ProposeIdeaModelType>({
-  option: '',
-  basedOption: '',
-  limitation: '',
-})
-
-const proposeIdeaFormList = ref<FormListItem[]>([
-  {
-    title: '🤔你的观点是',
-    placeholder: '请输入你的观点',
-    model: 'option',
-  },
-  {
-    title: '😲你的依据是',
-    placeholder: '请输入你的依据',
-    model: 'basedOption',
-  },
-  {
-    title: '😛你的观点的局限在于(选填)',
-    placeholder: '请输入你的观点的局限',
-    model: 'limitation',
-  },
-])
-
-const proposeIdeaFormRules: FormRules = reactive({
-  option: [
-    {
-      required: true,
-      message: '观点不能为空!',
-      trigger: 'blur',
-    },
-  ],
-  basedOption: [
-    {
-      required: true,
-      message: '依据不能为空!',
-      trigger: 'blur',
-    },
-  ],
-})
-
-const handleProposeIdea = () => {
-  action.value = Action.proposal
-  title.value = '提出你的观点!'
-  handleViewIdeaDialog()
-}
 
 const _router = useRouter()
 
@@ -167,48 +123,6 @@ const approveIdeaModel = ref<ApproveIdeaModelType>({
   agreeOption: '',
   limitation: '',
   basedOption: '',
-})
-
-const approveIdeamFormList = ref<FormListItem[]>([
-  {
-    title: '🤔我同意你观点中的...',
-    placeholder: '同意的点',
-    model: 'agreeOption',
-  },
-  {
-    title: '😛但是这一观点可能存在以下局限性...',
-    placeholder: '输入看法...',
-    model: 'limitation',
-  },
-  {
-    title: '😲我的依据是...',
-    placeholder: '依据...',
-    model: 'basedOption',
-  },
-])
-
-const approveIdeaFormRules: FormRules = reactive({
-  agreeOption: [
-    {
-      required: true,
-      message: '同意的观点不能为空!',
-      trigger: 'blur',
-    },
-  ],
-  limitation: [
-    {
-      required: true,
-      message: '观点局限不能为空!',
-      trigger: 'blur',
-    },
-  ],
-  basedOption: [
-    {
-      required: true,
-      message: '依据不能为空!',
-      trigger: 'blur',
-    },
-  ],
 })
 
 const handleApproveIdea = (payload: { id: string; content: string }) => {
@@ -272,48 +186,6 @@ const opposeIdeaModel = ref<OpposeIdeaModelType>({
   basedOption: '',
 })
 
-const opposeIdeaFormList = ref<FormListItem[]>([
-  {
-    title: '🤔我不认同你观点中的...',
-    placeholder: '不赞同的点',
-    model: 'disagreeOption',
-  },
-  {
-    title: '😛我对这一观点的看法是...',
-    placeholder: '输入看法...',
-    model: 'myOption',
-  },
-  {
-    title: '😲我的依据是...',
-    placeholder: '依据...',
-    model: 'basedOption',
-  },
-])
-
-const opposeIdeaFormRules: FormRules = reactive({
-  disagreeOption: [
-    {
-      required: true,
-      message: '不同意的观点不能为空!',
-      trigger: 'blur',
-    },
-  ],
-  myOption: [
-    {
-      required: true,
-      message: '观点看法不能为空!',
-      trigger: 'blur',
-    },
-  ],
-  basedOption: [
-    {
-      required: true,
-      message: '依据不能为空!',
-      trigger: 'blur',
-    },
-  ],
-})
-
 const handleOpposeIdea = (payload: { id: string; content: string }) => {
   console.log(payload.content)
   action.value = Action.oppose
@@ -344,48 +216,6 @@ const reviseSelfFormModel = ref<ReviseSelfFormModelType>({
   limitation: '',
   basedOption: '',
   newOption: '',
-})
-
-const reviseIdeaFormList = ref<FormListItem[]>([
-  {
-    title: '🤔原先观点的局限性',
-    placeholder: '请输入你的观点中的局限性',
-    model: 'limitation',
-  },
-  {
-    title: '😲你的依据是',
-    placeholder: '请输入你的依据',
-    model: 'basedOption',
-  },
-  {
-    title: '😛修正后的观点',
-    placeholder: '请输入修正后的观点',
-    model: 'newOption',
-  },
-])
-
-const reviseFormRules: FormRules = reactive({
-  limitation: [
-    {
-      required: true,
-      message: '局限性不能为空!',
-      trigger: 'blur',
-    },
-  ],
-  basedOption: [
-    {
-      required: true,
-      message: '依据不能为空!',
-      trigger: 'blur',
-    },
-  ],
-  newOption: [
-    {
-      required: true,
-      message: '观点不能为空!',
-      trigger: 'blur',
-    },
-  ],
 })
 
 const handleReviseSelfIead = (payload: { id: string; content: string }) => {
@@ -428,24 +258,6 @@ const summaryIdeaFormRef = ref<FormInstance | null>(null)
 
 const summaryIdeaModel = ref<SummaryIdeaModelType>({
   summary: '',
-})
-
-const summaryFormList = ref<FormListItem[]>([
-  {
-    title: '总结观点',
-    placeholder: '总结本组的观点',
-    model: 'summary',
-  },
-])
-
-const summaryFormRules: FormRules = reactive({
-  summary: [
-    {
-      required: true,
-      message: '总结不能为空!',
-      trigger: 'blur',
-    },
-  ],
 })
 
 const handleSummaryIdea = (payload: { content: string } = { content: '' }) => {
@@ -540,7 +352,7 @@ const handleSwitchCallback = () => {
   if (formRefs[action.value]) {
     formRefs[action.value]!.value!.validate(valid => {
       if (valid) {
-        callBackObj[action.value]!.call()
+        callBackObj[action.value]()
       }
     })
   }
@@ -568,7 +380,7 @@ const setting = ref<Setting>({
 
 const settingFlowView = () => {}
 
-const argumentDialogVisible = ref(true)
+const argumentDialogVisible = ref(false)
 
 const setArgumentDialogVisible = (visible: boolean) => {
   argumentDialogVisible.value = visible
@@ -581,14 +393,64 @@ const argumentFlowRef = ref<InstanceType<typeof argumentFlowComponent> | null>(
   null
 )
 
-const submit = () => {
+/**
+ * 控制编辑论点的状态
+ */
+const status = ref<Status>()
+
+const setStatus = (value: Status) => {
+  status.value = value
+}
+
+const handleProposeArgument = () => {
+  setStatus(Status.Propose)
+  setArgumentDialogVisible(true)
+}
+
+// =============================
+/**
+ * 处理查看别人的论点
+ * @param id 论点的id
+ */
+const handleCheck = (id: string) => {
+  setStatus(Status.Check)
+  setArgumentDialogVisible(true)
+
+  // 查询
+  queryNodeContentApi(+id)
+    .then(res => {
+      if (res.success) {
+        const { nodes, edges } = res.data
+        console.log('nodes, edges', nodes, edges)
+        argumentFlowRef.value?.setNodes(nodes)
+        argumentFlowRef.value?.setEdges(edges)
+        argumentFlowRef.value?.handleLayoutGraph()
+      }
+    })
+    .catch(err => {
+      console.log(err)
+    })
+}
+
+const handleCheckCallBack = () => {
+  setArgumentDialogVisible(false)
+}
+
+// =============================
+
+const { loading: sumbitLoading, setLoading } = useLoading()
+
+const handleProposeCallBack = () => {
   const nodes = argumentFlowRef.value?.getArgumentNodes()
   const edges = argumentFlowRef.value?.getArgumentEdges()
-  // 做一个校验，如何nodes中有data的modelValue为空，则不提交
+
+  if (nodes === null || edges === null) {
+    return
+  }
+  // 做一个校验，如何nodes中有data的inputValue为空，则不提交
   for (let i = 0; i < nodes!.length; i++) {
-    console.log(nodes![i].data.inputValue)
+    // console.log(nodes![i].data.inputValue)
     if (nodes![i].data.inputValue === '') {
-      console.log('校验不通过')
       ElMessage({
         type: 'warning',
         message: '请先填写论点内容',
@@ -598,16 +460,20 @@ const submit = () => {
     }
   }
 
-  // 提交给后端的数据
-  const data = {
-    nodes: nodes?.map(item => {
+  const params: ProposeIdeaParams = {
+    topic_id: _router.currentRoute.value.query?.topic_id as unknown as number,
+    student_id: userStore.userInfo.id,
+    content: ideaContent.value,
+    nodes: nodes!.map(item => {
       return {
         id: item.id,
-        data: item.data,
-        type: item.type,
+        data: {
+          inputValue: item.data.inputValue,
+          _type: item.data._type,
+        },
       }
     }),
-    edges: edges?.map(item => {
+    edges: edges!.map(item => {
       return {
         id: item.id,
         source: item.source,
@@ -617,7 +483,55 @@ const submit = () => {
     }),
   }
 
-  console.log(data)
+  setLoading(true)
+
+  proposeIdeaApi(params)
+    .then(res => {
+      console.log('发布观点的结果: ===> ', res)
+      if (res.success) {
+        ElNotification({
+          title: 'Success',
+          message: '论点成功发布',
+          type: 'success',
+          position: 'bottom-right',
+        })
+        setArgumentDialogVisible(false)
+      } else {
+        ElNotification({
+          title: 'Error',
+          message: '请尝试重新发送论点',
+          type: 'error',
+          position: 'bottom-right',
+        })
+      }
+    })
+    .catch(err => {
+      ElNotification({
+        title: 'Error',
+        message: '请尝试重新发送论点',
+        type: 'error',
+        position: 'bottom-right',
+      })
+      console.log(err)
+    })
+    .finally(() => {
+      setLoading(false)
+    })
+}
+
+const submitCallbackMap = {
+  [Status.Propose]: handleProposeCallBack,
+  [Status.Check]: handleCheckCallBack,
+  [Status.Approve]: () => {},
+  [Status.Reject]: () => {},
+}
+
+const submit = () => {
+  const callback = submitCallbackMap[status.value!]
+
+  if (callback) {
+    callback()
+  }
 }
 </script>
 
@@ -628,140 +542,6 @@ const submit = () => {
         <template #header>
           <h1>{{ title }}</h1>
         </template>
-
-        <el-form
-          :model="proposeIdeaModel"
-          :rules="proposeIdeaFormRules"
-          ref="proposeIdeaFormRef"
-          style="max-width: 700px"
-          v-if="action === Action.proposal"
-        >
-          <el-form-item
-            v-for="(item, index) in proposeIdeaFormList"
-            :prop="item.model"
-          >
-            <h3>{{ item.title }}</h3>
-            <el-input
-              :key="index"
-              v-model="proposeIdeaModel[item.model]"
-              :placeholder="item.placeholder"
-              type="textarea"
-              rows="4"
-              show-word-limit
-              maxlength="200"
-            ></el-input>
-          </el-form-item>
-        </el-form>
-
-        <el-form
-          :model="approveIdeaModel"
-          :rules="approveIdeaFormRules"
-          ref="approveIdeaFormRef"
-          style="max-width: 700px"
-          v-else-if="action === Action.approve"
-        >
-          <el-text
-            ><strong>当前正在回应的观点是: </strong>{{ ideaContent }}</el-text
-          >
-          <el-divider></el-divider>
-          <el-form-item
-            v-for="(item, index) in approveIdeamFormList"
-            :prop="item.model"
-          >
-            <h3>{{ item.title }}</h3>
-            <el-input
-              :key="index"
-              v-model="approveIdeaModel[item.model]"
-              :placeholder="item.placeholder"
-              type="textarea"
-              rows="4"
-              show-word-limit
-              maxlength="200"
-            ></el-input>
-          </el-form-item>
-        </el-form>
-
-        <el-form
-          :model="opposeIdeaModel"
-          style="max-width: 700px"
-          ref="opposeIdeaFormRef"
-          :rules="opposeIdeaFormRules"
-          v-else-if="action === Action.oppose"
-        >
-          <el-text
-            ><strong>当前正在回应的观点是: </strong>{{ ideaContent }}</el-text
-          >
-          <el-divider></el-divider>
-          <el-form-item
-            v-for="(item, index) in opposeIdeaFormList"
-            :prop="item.model"
-          >
-            <h3>{{ item.title }}</h3>
-            <el-input
-              :key="index"
-              v-model="opposeIdeaModel[item.model]"
-              :placeholder="item.placeholder"
-              type="textarea"
-              rows="4"
-              show-word-limit
-              maxlength="200"
-            ></el-input>
-          </el-form-item>
-        </el-form>
-
-        <el-form
-          :model="summaryIdeaModel"
-          style="max-width: 700px"
-          ref="summaryIdeaFormRef"
-          :rules="summaryFormRules"
-          v-else-if="action === Action.summary"
-        >
-          <el-text
-            ><strong>本小组之前的观点为: </strong>{{ ideaContent }}</el-text
-          >
-          <el-divider></el-divider>
-          <el-form-item
-            v-for="(item, index) in summaryFormList"
-            :prop="item.model"
-          >
-            <h3>{{ item.title }}</h3>
-            <el-input
-              :key="index"
-              v-model="summaryIdeaModel[item.model]"
-              :placeholder="item.placeholder"
-              type="textarea"
-              rows="4"
-              show-word-limit
-              maxlength="500"
-            ></el-input>
-          </el-form-item>
-        </el-form>
-
-        <el-form
-          :model="reviseSelfFormModel"
-          :rules="reviseFormRules"
-          ref="reviseIdeaFormRef"
-          style="max-width: 700px"
-          v-else-if="action === Action.revise"
-        >
-          <el-text><strong>原先的观点是: </strong>{{ ideaContent }}</el-text>
-          <el-divider></el-divider>
-          <el-form-item
-            v-for="(item, index) in reviseIdeaFormList"
-            :prop="item.model"
-          >
-            <h3>{{ item.title }}</h3>
-            <el-input
-              :key="index"
-              v-model="reviseSelfFormModel[item.model]"
-              :placeholder="item.placeholder"
-              type="textarea"
-              rows="4"
-              show-word-limit
-              maxlength="200"
-            ></el-input>
-          </el-form-item>
-        </el-form>
 
         <template #footer>
           <div style="display: flex; justify-content: flex-end; width: 100%">
@@ -786,7 +566,10 @@ const submit = () => {
       :append-to-body="true"
     >
       <div class="argument-flow-container">
-        <argumentFlowComponent ref="argumentFlowRef"></argumentFlowComponent>
+        <argumentFlowComponent
+          ref="argumentFlowRef"
+          :status="status"
+        ></argumentFlowComponent>
       </div>
       <div class="button-footer-container">
         <el-button
@@ -795,7 +578,12 @@ const submit = () => {
           @click="setArgumentDialogVisible(false)"
           >取消</el-button
         >
-        <el-button :color="defaultThemeColor" @click="submit">确定</el-button>
+        <el-button
+          :color="defaultThemeColor"
+          @click="submit"
+          :loading="sumbitLoading"
+          >确定</el-button
+        >
       </div>
     </el-dialog>
   </section>
@@ -803,13 +591,13 @@ const submit = () => {
   <div class="vue-flow-container">
     <flow-component
       ref="vueFlowRef"
-      @reply-oppose="handleOpposeIdea"
-      @reply-approve="handleApproveIdea"
+      @oppose="handleOpposeIdea"
+      @approve="handleApproveIdea"
       @revise="handleSummaryIdea"
-      @revise-self="handleReviseSelfIead"
+      @check="handleCheck"
     >
       <div class="layout-panel">
-        <button title="发表观点" @click="handleProposeIdea">
+        <button title="发表观点" @click="handleProposeArgument">
           <Icon :name="IconName.Idea" />
         </button>
         <button title="总结观点" @click="handleSummaryIdea({ content: '' })">

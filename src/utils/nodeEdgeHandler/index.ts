@@ -10,11 +10,13 @@ import {
   NodeType,
 } from '@/views/Home/components/ArgumentFlowComponent/type'
 
+
 interface FilterFunction {
   (edge: EdgeType): boolean
 }
 
 function useNodeEdgeHandler() {
+
   let cnt = 0
 
   function createId() {
@@ -210,7 +212,7 @@ function useNodeEdgeHandler() {
     removeEdgeByRelatedId,
     findIsEdgesExistBySourceId,
     clearNotRealatedEdges,
-    findIsEdgeExistByFilterFunction
+    findIsEdgeExistByFilterFunction,
   }
 }
 

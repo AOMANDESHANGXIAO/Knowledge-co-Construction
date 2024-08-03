@@ -47,10 +47,21 @@ const elementMap = {
 
 const props = defineProps<Props>()
 
+console.log('debugger props ===> ', props)
+
 const dialogVisible = ref(false)
 
 const openDialog = () => {
-  dialogVisible.value = true
+  if (!props.visible) {
+    ElNotification({
+      title: '提示',
+      message: '该论证仅供查看!',
+      type: 'warning',
+    })
+    dialogVisible.value = false
+  } else {
+    dialogVisible.value = true
+  }
 }
 
 const defaultColor = useCssVar('--default-theme-color')
@@ -63,10 +74,12 @@ const active = ref('0')
 
 const emit = defineEmits(['addBacking', 'update:modelValue'])
 
-const { form, formRef, rules, updateModelValue } = useForm({
+const { form, formRef, rules, updateModelValue, setInputValue } = useForm({
   message: elementMap[props._type].msg,
   emit,
 })
+
+setInputValue(props.modelValue)
 
 const submit = () => {
   formRef.value?.validate((valid: boolean) => {

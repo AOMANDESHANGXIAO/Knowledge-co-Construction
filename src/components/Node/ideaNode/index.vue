@@ -8,9 +8,11 @@ import { useCssVar } from '@vueuse/core'
 import NodePopover from '@/components/NodePopover/index.vue'
 import { useUserStore } from '@/store/modules/user'
 import icon from './components/icon/index.vue'
+import {
+  ArgumentNode,
+  EdgeType,
+} from '@/views/Home/components/ArgumentFlowComponent/type.ts'
 
-// 控制按钮的主题颜色
-const themeColor = useCssVar('--theme-color')
 
 interface Props {
   data: IdeaNodeProps
@@ -32,29 +34,24 @@ const props = withDefaults(defineProps<Props>(), {
 const loading = ref<boolean>(true)
 
 const optionText = ref<string>('')
+const nodes = ref<ArgumentNode[]>([])
+const edges = ref<EdgeType[]>([])
 
-const isShow = ref<boolean>(false)
 const isSuccess = ref<boolean>(false) // 判定是否成功加载
-
-const handleIsShow = () => {
-  isShow.value = !isShow.value
-  if (!isSuccess.value && isShow.value) {
-    loading.value = true
-    queryNodeContent()
-  }
-}
 
 const queryNodeContent = () => {
   const node_id = Number(props.data.id)
 
   queryNodeContentApi(node_id)
     .then(res => {
-      const data: any = res
+      const data = res
       if (data.success) {
         isSuccess.value = true
-        optionText.value = data.data.content
+        nodes.value = data.data.nodes
+        edges.value = data.data.edges
+        // optionText.value = data.data.content
       } else {
-        optionText.value = data.message
+        // optionText.value = data.message
         console.log(data.message)
       }
     })
@@ -68,34 +65,21 @@ const queryNodeContent = () => {
 }
 
 // 向父组件传递事件，同意或者反对
-const emits = defineEmits(['reply-oppose', 'reply-approve', 'revise-self'])
+const emits = defineEmits<{
+  (e:'check', id: string): void
+  (e:'oppose', id: string): void
+  (e:'approve', id: string): void
+  (e:'revise', id: string): void
+}>()
 
-const sendReply = (
-  emitEvent: 'reply-oppose' | 'reply-approve' | 'revise-self'
-) => {
-  const payload = {
-    id: props.data.id,
-    content: optionText.value,
-  }
-  emits(emitEvent, payload)
-}
 
-const userStore = useUserStore()
 
-const isStudentSelf = computed(() => {
-  return props.data.student_id === Number(userStore.userInfo.id)
-})
+// const emits = defineEmits(['reply-oppose', 'reply-approve', 'revise-self', 'check'])
 
-const handleReviseSelfIead = (emitEvent: 'revise-self') => {
-  const payload = {
-    id: props.data.id,
-    content: optionText.value,
-  }
-  isShow.value = false
-  isSuccess.value = false
-  console.log(payload)
-
-  emits(emitEvent, payload)
+const handleCheckIdea = () => {
+  // 返回id
+  console.log('check', props.data.id)
+  emits('check', props.data.id)
 }
 </script>
 
@@ -104,42 +88,14 @@ const handleReviseSelfIead = (emitEvent: 'revise-self') => {
     class="idea-node"
     ref="myHoverableElement"
     :style="{ backgroundColor: props.data.bgc }"
+    @click="handleCheckIdea"
   >
     <Handle :position="props.data.targetPosition" type="target" />
     <Handle :position="props.data.sourcePosition" type="source" />
-    <span @click="handleIsShow">
+    <span>
       {{ props.data.name }}
     </span>
-
     <icon class="icon" v-if="props.data?.highlight"></icon>
-
-    <NodePopover :is-show="isShow" :offset-width="50" :offset-height="50">
-      <div class="idea-container">
-        <lottie v-if="loading" :animation-data="LoadingAnimation" />
-        <div v-else-if="!loading && !isStudentSelf" style="width: 100%">
-          <el-text>{{ optionText }}</el-text>
-          <el-divider content-position="center">🤔回应</el-divider>
-          <div class="button-group">
-            <el-button type="danger" @click="sendReply('reply-oppose')"
-              >比较反对</el-button
-            >
-            <el-button :color="themeColor" @click="sendReply('reply-approve')"
-              >比较赞同</el-button
-            >
-          </div>
-        </div>
-        <div v-else-if="!loading && isStudentSelf" style="width: 100%">
-          <el-text>{{ optionText }}</el-text>
-          <el-divider content-position="center">🤔修改</el-divider>
-          <el-button
-            :color="themeColor"
-            @click="handleReviseSelfIead('revise-self')"
-            style="width: 100%; color: #fff"
-            >修改</el-button
-          >
-        </div>
-      </div>
-    </NodePopover>
   </div>
 </template>
 
@@ -160,7 +116,7 @@ $node-width: 50px;
   .icon {
     position: absolute;
     top: 0;
-    left:-5px;
+    left: -5px;
   }
 
   span {
@@ -176,6 +132,8 @@ $node-width: 50px;
   .idea-container {
     width: 100%;
     height: 100%;
+    min-width: 400px;
+    max-width: 400px;
     text-align: left;
     line-height: 1;
 

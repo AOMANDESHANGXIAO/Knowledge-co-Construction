@@ -1,7 +1,11 @@
+import { ArgumentType } from "@/views/Home/components/ArgumentFlowComponent/type"
+
 interface ProposeIdeaParams {
   topic_id: number
   student_id: number
-  content: string
+  nodes: ArgumentNode[]
+  edges: ArgumentEdge[]
+  [property: string]: any
 }
 
 interface ReplyIdeaParams {
@@ -55,8 +59,31 @@ interface NodeData {
   [property: string]: any;
 }
 
+interface ArgumentNode {
+  id: string
+  data: {
+    inputValue: string
+    _type: ArgumentType
+  }
+  _type: ArgumentType
+  position: {
+    x: number
+    y: number
+  }
+  type: 'element'
+  [property: string]: any
+}
+
+interface ArgumentEdge {
+  id: string
+  source: string
+  target: string
+  _type: string
+}
+
 interface QueryNodeContentData {
-  content: string
+  nodes: ArgumentNode[]
+  edges: ArgumentEdge[]
   [property: string]: any
 }
 

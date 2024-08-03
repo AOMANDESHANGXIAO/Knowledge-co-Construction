@@ -6,13 +6,31 @@ export enum LayoutDirection {
 interface NodeType {
   id: string
   type: string
-  data?: any
+  data: {
+    inputValue: string
+    _type: ArgumentType
+    [key: string]: any
+  }
   _type: ArgumentType
   position: {
     x: number
     y: number
   }
   [propName: string]: any
+}
+
+interface ArgumentNode {
+  id: string
+  data: {
+    inputValue: string
+    _type: ArgumentType
+  }
+  _type: ArgumentType
+  position: {
+    x: number
+    y: number
+  }
+  type: 'element'
 }
 
 interface EdgeType {
@@ -29,7 +47,7 @@ interface AddBackPayload {
 }
 
 interface FeedBack {
-  title:string
+  title: string
   type: 'success' | 'warning' | 'error' | 'info'
   description: string
   [propName: string]: any
@@ -41,13 +59,14 @@ export enum ArgumentType {
   Claim = 'claim',
   Qualifier = 'qualifier',
   Rebuttal = 'rebuttal',
-  Data = 'data'
+  Data = 'data',
 }
 
-
-export type {
-  NodeType,
-  EdgeType,
-  AddBackPayload,
-  FeedBack,
+export enum Status {
+  Propose,
+  Approve,
+  Reject,
+  Check,
 }
+
+export type { NodeType, EdgeType, AddBackPayload, FeedBack, ArgumentNode }

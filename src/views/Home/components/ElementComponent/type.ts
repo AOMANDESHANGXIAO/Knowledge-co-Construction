@@ -21,6 +21,7 @@ export interface Tag {
 export interface Props {
   nodeId?: string
   modelValue: string
+  visible: boolean
   _type: ArgumentType
   tags?: Tag[]
 }
