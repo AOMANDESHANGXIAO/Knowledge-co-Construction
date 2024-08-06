@@ -21,7 +21,27 @@ defineOptions({
   option: 'flow-component',
 })
 
-const { onPaneReady } = useVueFlow()
+const {
+  onPaneReady,
+  onNodesChange,
+  onEdgesChange,
+  applyNodeChanges,
+  applyEdgeChanges,
+} = useVueFlow()
+
+// 禁止删除节点
+onNodesChange(async changes => {
+  const nextChanges = changes.filter(change => change.type !== 'remove')
+
+  applyNodeChanges(nextChanges)
+})
+
+// 禁止删除边
+onEdgesChange(async changes => {
+  const nextChanges = changes.filter(change => change.type !== 'remove')
+
+  applyEdgeChanges(nextChanges)
+})
 
 const lineNormalColor = useCssVar('--normal-line-color')
 const lineApproveColor = useCssVar('--approve-line-color')
@@ -269,7 +289,7 @@ const emits = defineEmits([
   'reply-oppose',
   'revise',
   'revise-self',
-  'check'
+  'check',
 ])
 
 const handleReplyApprove = (id: string) => {
@@ -288,7 +308,6 @@ const handleReviseSelf = (payload: { id: string; content: string }) => {
 const handleCheck = (id: string) => {
   emits('check', id)
 }
-
 </script>
 
 <template>
