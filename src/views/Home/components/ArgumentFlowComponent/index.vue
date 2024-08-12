@@ -82,11 +82,6 @@ const setNodeEdgeValue = () => {
     nodes.value = initData.nodes
     edges.value = initData.edges
   }
-  // } else if (props.status === Status.Check) {
-  //   // 观测状态
-  //   nodes.value = props.nodes!
-  //   edges.value = props.edges!
-  // }
 }
 
 setNodeEdgeValue()
@@ -100,10 +95,10 @@ const reset = () => {
     })
     return
   }
-  // console.log('重置')
 
   nodes.value = initData.nodes
   edges.value = initData.edges
+  feedbackCallback()
   handleLayoutGraph()
 }
 
@@ -119,9 +114,11 @@ const { layout } = useLayout()
 const { fitView } = useVueFlow()
 
 async function layoutGraph(direction: LayoutDirection) {
+
   nodes.value = layout(nodes.value, edges.value, direction)
 
   await nextTick(() => {
+    console.log('fit view')
     fitView()
   })
 }
@@ -129,7 +126,7 @@ async function layoutGraph(direction: LayoutDirection) {
 const { onPaneReady } = useVueFlow()
 
 onPaneReady(() => {
-  layoutGraph(LayoutDirection.Vertical)
+  handleLayoutGraph()
 })
 
 const handleLayoutGraph = () => {
@@ -220,30 +217,6 @@ const feedbackCallback = () => {
     // 没有支撑
     if (!hasBacking) break
   }
-
-  // const noBackingWarrants: NodeType[] = []
-
-  // /**
-  //  * 查找哪一个辩护没有支撑
-  //  */
-  // edges?.value?.forEach(item => {
-  //   console.log('debugger item ===>', item)
-  //   if (item._type === `${ArgumentType.Backing}_${ArgumentType.Warrant}`) {
-
-  //     const targetWarrant = item.target
-
-  //     let i: number
-  //     for (i = 0; i < warrantsList.length; i++) {
-  //       if (targetWarrant === warrantsList[i].id) {
-  //         break
-  //       }
-  //     }
-
-  //     if (i === warrantsList.length) {
-  //       noBackingWarrants.push(warrantsList[i])
-  //     }
-  //   }
-  // })
 
   // 根据flagMap，判断是否生成反馈
   let feedbacks = []
@@ -691,29 +664,19 @@ onNodesChange(async changes => {
 })
 
 onEdgesChange(async changes => {
-  const nextChanges = []
-
-  for (const change of changes) {
-    if (change.type !== 'remove') {
-      nextChanges.push(change)
-    }
-  }
+  const nextChanges = changes.filter(change => change.type !== 'remove')
 
   applyEdgeChanges(nextChanges)
 })
 // ===========================
 
-const editVisible = computed(()=> {
+const editVisible = computed(() => {
   return props.status !== Status.Check
 })
 
-
 // ==========================
 
-
-
 // =========================
-
 const argumentVueFlowRef = ref<InstanceType<typeof VueFlow> | null>()
 
 const getArgumentNodes = () => {
@@ -732,12 +695,19 @@ const setEdges = (value: EdgeType[]) => {
   edges.value = value
 }
 
+const setFitView = () => {
+  setTimeout(() => {
+    handleLayoutGraph()
+  }, 100);
+}
+
 defineExpose({
   getArgumentNodes,
   getArgumentEdges,
   setNodes,
   setEdges,
-  handleLayoutGraph
+  setFitView,
+  handleLayoutGraph,
 })
 </script>
 

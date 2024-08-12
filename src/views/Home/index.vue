@@ -23,14 +23,12 @@ import type {
 import { IconName } from '@/components/Icons/HomePageIcon/type.ts'
 import {
   Action,
-  FormListItem,
-  ProposeIdeaModelType,
   ApproveIdeaModelType,
   OpposeIdeaModelType,
   SummaryIdeaModelType,
   ReviseSelfFormModelType,
 } from './type.ts'
-import type { FormRules, FormInstance } from 'element-plus'
+import type { FormInstance } from 'element-plus'
 import { useCssVar } from '@vueuse/core'
 import argumentFlowComponent from './components/ArgumentFlowComponent/index.vue'
 import { Status } from './components/ArgumentFlowComponent/type.ts'
@@ -424,7 +422,8 @@ const handleCheck = (id: string) => {
         console.log('nodes, edges', nodes, edges)
         argumentFlowRef.value?.setNodes(nodes)
         argumentFlowRef.value?.setEdges(edges)
-        argumentFlowRef.value?.handleLayoutGraph()
+        argumentFlowRef.value?.setFitView()
+        // argumentFlowRef.value?.handleLayoutGraph()
       }
     })
     .catch(err => {
@@ -562,6 +561,7 @@ const submit = () => {
 
     <el-dialog
       v-model="argumentDialogVisible"
+      v-if="argumentDialogVisible"
       width="1200"
       :append-to-body="true"
     >

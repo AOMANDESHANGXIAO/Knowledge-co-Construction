@@ -1,17 +1,7 @@
 <script lang="ts" setup>
 import { Handle, Position } from '@vue-flow/core'
-import lottie from '@/components/common/lottie/index.vue'
-import LoadingAnimation from '@/assets/animation/loading.json'
 import { IdeaNodeProps } from './type.ts'
-import { queryNodeContentApi } from '@/apis/flow/index.ts'
-import { useCssVar } from '@vueuse/core'
-import NodePopover from '@/components/NodePopover/index.vue'
-import { useUserStore } from '@/store/modules/user'
 import icon from './components/icon/index.vue'
-import {
-  ArgumentNode,
-  EdgeType,
-} from '@/views/Home/components/ArgumentFlowComponent/type.ts'
 
 
 interface Props {
@@ -30,40 +20,6 @@ const props = withDefaults(defineProps<Props>(), {
   }),
 })
 
-// 控制学生内容信息的加载
-const loading = ref<boolean>(true)
-
-const optionText = ref<string>('')
-const nodes = ref<ArgumentNode[]>([])
-const edges = ref<EdgeType[]>([])
-
-const isSuccess = ref<boolean>(false) // 判定是否成功加载
-
-const queryNodeContent = () => {
-  const node_id = Number(props.data.id)
-
-  queryNodeContentApi(node_id)
-    .then(res => {
-      const data = res
-      if (data.success) {
-        isSuccess.value = true
-        nodes.value = data.data.nodes
-        edges.value = data.data.edges
-        // optionText.value = data.data.content
-      } else {
-        // optionText.value = data.message
-        console.log(data.message)
-      }
-    })
-    .catch(err => {
-      optionText.value = '加载失败'
-      console.log(err)
-    })
-    .finally(() => {
-      loading.value = false
-    })
-}
-
 // 向父组件传递事件，同意或者反对
 const emits = defineEmits<{
   (e:'check', id: string): void
@@ -72,9 +28,6 @@ const emits = defineEmits<{
   (e:'revise', id: string): void
 }>()
 
-
-
-// const emits = defineEmits(['reply-oppose', 'reply-approve', 'revise-self', 'check'])
 
 const handleCheckIdea = () => {
   // 返回id
