@@ -216,14 +216,6 @@ const reviseSelfFormModel = ref<ReviseSelfFormModelType>({
   newOption: '',
 })
 
-const handleReviseSelfIead = (payload: { id: string; content: string }) => {
-  action.value = Action.revise
-  title.value = '修改观点'
-  ideaContent.value = payload.content
-  replyToId.value = payload.id
-  handleViewIdeaDialog()
-}
-
 const reviseIdeaCallBack = () => {
   const content = `新的观点是:${reviseSelfFormModel.value.newOption}\n依据是:${reviseSelfFormModel.value.basedOption}\n原先观点的局限在于:${reviseSelfFormModel.value.limitation}`
 

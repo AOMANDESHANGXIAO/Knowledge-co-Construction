@@ -13,6 +13,8 @@ import ElementComponent from '../ElementComponent/index.vue'
 import { useDialog } from './hooks/dialog/index'
 import Dialog from './components/dialog/index.vue'
 import { useNodeEdgeHandler } from '@/utils/nodeEdgeHandler/index.ts'
+import list from './data.ts'
+import useState from '@/hooks/State/useState.ts'
 
 const {
   createNode,
@@ -40,51 +42,21 @@ const props = withDefaults(
   }
 )
 
-const initData = {
-  nodes: [
-    {
-      id: 'data', // 初始化时前提和结论的id是定死的
-      type: 'element',
-      position: { x: 0, y: 0 },
-      _type: ArgumentType.Data,
-      data: {
-        inputValue: '',
-        _type: ArgumentType.Data,
-      },
-    },
-    {
-      id: 'claim',
-      type: 'element',
-      position: { x: 0, y: 0 },
-      _type: ArgumentType.Claim,
-      data: {
-        inputValue: '',
-        _type: ArgumentType.Claim,
-      },
-    },
-  ],
-  edges: [
-    {
-      id: 'init-data-claim',
-      source: 'data',
-      target: 'claim',
-      _type: `${ArgumentType.Data}_${ArgumentType.Claim}`,
-    },
-  ],
-}
+const initData = list
 
-const nodes = ref<NodeType[]>([])
 
-const edges = ref<EdgeType[]>([])
+const [nodes, setNodesValue] = useState<NodeType[]>([])
 
-const setNodeEdgeValue = () => {
+const [edges, setEdgesValue] = useState<EdgeType[]>([])
+
+const initState = () => {
   if (props.status === Status.Propose) {
-    nodes.value = initData.nodes
-    edges.value = initData.edges
+    setNodesValue(initData.nodes)
+    setEdgesValue(initData.edges)
   }
 }
 
-setNodeEdgeValue()
+initState()
 
 const reset = () => {
   if (props.status !== Status.Propose) {
@@ -95,9 +67,7 @@ const reset = () => {
     })
     return
   }
-
-  nodes.value = initData.nodes
-  edges.value = initData.edges
+  initState()
   feedbackCallback()
   handleLayoutGraph()
 }
@@ -107,7 +77,6 @@ const dataClaimIds = ref({
   claimId: getClaimNodeId(nodes.value),
 })
 
-// 将来做成异步的请求Nodes和Edges
 
 const { layout } = useLayout()
 
@@ -115,10 +84,9 @@ const { fitView } = useVueFlow()
 
 async function layoutGraph(direction: LayoutDirection) {
 
-  nodes.value = layout(nodes.value, edges.value, direction)
+  setNodesValue(layout(nodes.value, edges.value, direction))
 
   await nextTick(() => {
-    console.log('fit view')
     fitView()
   })
 }
@@ -277,8 +245,8 @@ const handleAddWarrant = () => {
 
   const { newEdge } = createEdge(params)
 
-  nodes.value = [...nodes.value, newNode]
-  edges.value = [...edges.value, newEdge]
+  setNodesValue([...nodes.value, newNode])
+  setEdgesValue([...edges.value, newEdge])
 
   layoutGraph(LayoutDirection.Vertical).then(() => {
     handleLayoutGraph()
@@ -293,6 +261,7 @@ const handleRemoveWarrant = (id: string): boolean => {
   const flag = findIsEdgesExistBySourceId(edges.value, id, (item: EdgeType) => {
     return item._type === `${ArgumentType.Backing}_${ArgumentType.Warrant}`
   })
+
   if (flag) {
     ElNotification({
       title: '提示',
@@ -333,8 +302,8 @@ const handleAddBacking = (payload: AddBackPayload) => {
 
   const { newEdge } = createEdge(params)
 
-  nodes.value = [...nodes.value, newNode]
-  edges.value = [...edges.value, newEdge]
+  setNodesValue([...nodes.value, newNode])
+  setEdgesValue([...edges.value, newEdge])
 
   layoutGraph(LayoutDirection.Vertical).then(() => {
     handleLayoutGraph()
@@ -410,9 +379,9 @@ const handleAddQualifier = () => {
     return edge
   })
 
-  nodes.value = [...nodes.value, newNode]
+  setNodesValue([...nodes.value, newNode])
 
-  edges.value = [...edges.value, newEdge]
+  setEdgesValue([...edges.value, newEdge])
 
   layoutGraph(LayoutDirection.Vertical).then(() => {
     handleLayoutGraph()
@@ -461,7 +430,7 @@ const handleRemoveQualifier = (): boolean => {
       newEdges.push(newEdge)
     })
 
-    edges.value = [...edges.value, ...newEdges]
+    setEdgesValue([...edges.value, ...newEdges])
   }
 
   callBacks.value.push(cb)
@@ -520,8 +489,8 @@ const handleAddRebuttal = () => {
 
   const { newEdge } = createEdge(params)
 
-  nodes.value = [...nodes.value, newNode]
-  edges.value = [...edges.value, newEdge]
+  setNodesValue([...nodes.value, newNode])
+  setEdgesValue([...edges.value, newEdge])
 
   layoutGraph(LayoutDirection.Vertical).then(() => {
     handleLayoutGraph()
@@ -549,7 +518,7 @@ const handleRemoveRebuttal = (id: string): boolean => {
 
     const { newEdge } = createEdge(params)
 
-    edges.value = [...edges.value, newEdge]
+    setEdgesValue([...edges.value, newEdge])
   }
 
   callBacks.value.push(cb)
@@ -652,7 +621,7 @@ onNodesChange(async changes => {
           cb()
         }
         // 移除所有不相干的边
-        edges.value = clearNotRealatedEdges(nodes.value, edges.value)
+        setEdgesValue(clearNotRealatedEdges(nodes.value, edges.value))
         nextChanges.push(change)
         handleLayoutGraph()
       }
@@ -688,11 +657,11 @@ const getArgumentEdges = () => {
 }
 
 const setNodes = (value: NodeType[]) => {
-  nodes.value = value
+  setNodesValue(value)
 }
 
 const setEdges = (value: EdgeType[]) => {
-  edges.value = value
+  setEdgesValue(value)
 }
 
 const setFitView = () => {
