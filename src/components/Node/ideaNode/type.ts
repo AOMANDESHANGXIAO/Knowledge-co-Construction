@@ -4,4 +4,6 @@ export type IdeaNodeProps = {
   bgc: string // 背景颜色
   student_id: string | number
   highlight?: boolean
+  targetPosition: string
+  sourcePosition: string
 }

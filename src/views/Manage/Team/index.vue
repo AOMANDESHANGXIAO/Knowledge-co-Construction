@@ -72,7 +72,7 @@ const waveColor = computed(() => {
   if (groupForm.value.color !== '') {
     return groupForm.value.color
   } else {
-    return themeColor.value
+    return themeColor
   }
 })
 
@@ -194,6 +194,8 @@ const groupAnalysisList = ref<CollaborationListItem[]>([])
 const queryCollaborationDataApi = () => {
   const group_id = userStore.userInfo.group_id as unknown as number
 
+  if (!group_id) return
+
   queryCollaborationData(group_id)
     .then((res: any) => {
       if (res.success) {
@@ -218,6 +220,8 @@ const chartDataList_ = ref({
 const queryMemberDataApi = () => {
   const group_id = userStore.userInfo.group_id as unknown as number
 
+  if (!group_id) return
+
   queryMemberData(group_id).then((res: any) => {
     if (res.success) {
       chartDataList_.value = res.data
@@ -232,6 +236,8 @@ const groupStudentList = ref<QueryGroupMemberItem[]>([])
 
 const queryGroupStudents = () => {
   const id = userStore.userInfo.group_id as unknown as number
+
+  if (!id) return
 
   queryGroupStudentsApi(id).then(res => {
     if (res.success) {

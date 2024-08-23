@@ -1,7 +1,7 @@
 import Service from '@/apis/index.ts'
 import { Response } from '../libcommon/index.ts'
 import type {
-  ProposeIdeaParams,
+  CreateNewIdeaArgs,
   ReplyIdeaParams,
   ReviseGroupConclusionParams,
   ReviseSelfIdeaParams,
@@ -21,7 +21,7 @@ const queryNodeContentApi = (
   return Service.get(`/flow/query_content?node_id=${node_id}`)
 }
 
-const proposeIdeaApi = (params: ProposeIdeaParams): Promise<Response> => {
+const proposeIdeaApi = (params: CreateNewIdeaArgs): Promise<Response> => {
   return Service.post('/flow/propose_idea', params)
 }
 

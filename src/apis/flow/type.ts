@@ -1,5 +1,25 @@
-import { ArgumentType } from "@/views/Home/components/ArgumentFlowComponent/type"
-
+import { ArgumentType } from '@/views/Home/components/ArgumentFlowComponent/type'
+interface CreateNewIdeaArgs {
+  topic_id: number
+  student_id: number
+  nodes: Array<{
+    id: string
+    data: {
+      inputValue: string
+      _type: string
+    }
+    type: 'element'
+  }>
+  edges: Array<{
+    id: string
+    source: string
+    target: string
+    _type: string
+  }>
+}
+/**
+ * @deprecated
+ */
 interface ProposeIdeaParams {
   topic_id: number
   student_id: number
@@ -30,33 +50,33 @@ interface ReviseSelfIdeaParams {
 }
 
 interface QueryFlowData {
-  edges: Edge[];
-  nodes: Node[];
-  [property: string]: any;
+  edges: Edge[]
+  nodes: Node[]
+  [property: string]: any
 }
 
 interface Edge {
-  id: number;
-  source: number;
-  target: number;
-  type: string;
-  [property: string]: any;
+  id: number
+  source: number
+  target: number
+  type: string
+  [property: string]: any
 }
 
 interface Node {
-  data: NodeData;
-  id: number;
-  type: string;
-  [property: string]: any;
+  data: NodeData
+  id: number
+  type: string
+  [property: string]: any
 }
 
 interface NodeData {
-  groupConclusion?: string;
-  groupName?: string;
-  id: number;
-  name: string;
-  text?: string;
-  [property: string]: any;
+  groupConclusion?: string
+  groupName?: string
+  id: number
+  name: string
+  text?: string
+  [property: string]: any
 }
 
 interface ArgumentNode {
@@ -82,7 +102,7 @@ interface ArgumentEdge {
 }
 
 interface QueryNodeContentData {
-  nodes: ArgumentNode[]
+  nodes: Pick<ArgumentNode, 'id' | 'data' | 'type' | 'position'>[]
   edges: ArgumentEdge[]
   [property: string]: any
 }
@@ -93,5 +113,6 @@ export type {
   ReviseGroupConclusionParams,
   ReviseSelfIdeaParams,
   QueryFlowData,
-  QueryNodeContentData
+  QueryNodeContentData,
+  CreateNewIdeaArgs
 }

@@ -31,7 +31,7 @@ const emits = defineEmits<{
 
 const handleCheckIdea = () => {
   // 返回id
-  console.log('check', props.data.id)
+  // console.log('check', props.data.id)
   emits('check', props.data.id)
 }
 </script>
@@ -43,8 +43,8 @@ const handleCheckIdea = () => {
     :style="{ backgroundColor: props.data.bgc }"
     @click="handleCheckIdea"
   >
-    <Handle :position="props.data.targetPosition" type="target" />
-    <Handle :position="props.data.sourcePosition" type="source" />
+    <Handle :position="props.data.targetPosition as Position" type="target" />
+    <Handle :position="props.data.sourcePosition as Position" type="source" />
     <span>
       {{ props.data.name }}
     </span>

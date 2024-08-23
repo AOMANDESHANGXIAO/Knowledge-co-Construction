@@ -7,7 +7,7 @@ import { escapeData } from '@/utils/escapeHandler'
 axios.defaults.timeout = 10000 // 请求超时时间
 
 const Service = axios.create({
-  baseURL: 'http://127.0.0.1:8000',
+  baseURL: 'http://127.0.0.1:3000',
   // baseURL: 'http://122.51.107.161:8000',
 })
 
@@ -18,6 +18,7 @@ Service.interceptors.request.use(
     const user = localStorage.getItem('user')
     if (user) {
       config.headers.Authorization = JSON.parse(user)?.userInfo.token
+      console.log('设置了请求头', config.headers.Authorization)
     }
     if (config.data) {
       // 处理data中的每一个参数，将 ' " `等转义
