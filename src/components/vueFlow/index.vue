@@ -6,9 +6,9 @@ import '@vue-flow/minimap/dist/style.css'
 import { Controls } from '@vue-flow/controls'
 import '@vue-flow/controls/dist/style.css'
 import { nextTick, onMounted } from 'vue'
-import topicNode from '@/components/Node/topicNode/index.vue'
-import groupNode from '@/components/Node/groupNode/index.vue'
-import ideaNode from '@/components/Node/ideaNode/index.vue'
+import topicNode from './components/topicNode/index.vue'
+import groupNode from './components/groupNode/index.vue'
+import ideaNode from './components/ideaNode/index.vue'
 import { queryFlowDataApi } from '@/apis/flow/index.ts'
 import useRequest from '@/hooks/Async/useRequest'
 import { QueryFlowResponse } from '@/apis/flow/type'
@@ -25,9 +25,13 @@ import useState from '@/hooks/State/useState.ts'
  * WARNING: 设置nodes和edges状态时在一个函数内最好只更新一次
  * 不要在一个函数内更新多次
  * 否则会引起BUG！！
+ * TODO: 实现功能
+ * 1. 传递回复观点事件 (判断是否可以修改事件)
  */
+
 defineOptions({
   option: 'flow-component',
+  name: 'MyVueFlow',
 })
 
 const {
@@ -186,6 +190,24 @@ onMounted(() => {
   })
 })
 
+/**
+ * event: 修改观点事件，查看观点事件
+ */
+const emits = defineEmits<{
+  (e: 'reviseIdea', id: string): void
+  (e: 'checkIdea', id: string): void
+}>()
+
+const onClickIdeaNode = (id: string) => {
+  if (id === student_id) {
+    console.log('修改观点')
+    emits('reviseIdea', id)
+  } else {
+    console.log('查看观点')
+    emits('checkIdea', id)
+  }
+}
+
 defineExpose({
   handleLayout,
 })
@@ -193,6 +215,7 @@ defineExpose({
 
 <template>
   <div class="layout-flow" style="width: 100vw; height: 100vh">
+    <!-- flow -->
     <VueFlow :nodes="nodes" :edges="edges" v-if="!loading">
       <!-- bind your custom node type to a component by using slots, slot names are always `node-<type>` -->
       <template #node-topic="props">
@@ -202,13 +225,7 @@ defineExpose({
         <groupNode :data="props.data" @revise="" />
       </template>
       <template #node-idea="props">
-        <ideaNode
-          :data="props.data"
-          @revise-self=""
-          @reply-approve=""
-          @reply-oppose=""
-          @check=""
-        />
+        <ideaNode :data="props.data" @click="onClickIdeaNode" />
       </template>
 
       <Background
@@ -226,6 +243,8 @@ defineExpose({
         <slot></slot>
       </Panel>
     </VueFlow>
+    <!-- loader -->
+    <div class="loader" v-else></div>
   </div>
 </template>
 
@@ -235,7 +254,32 @@ defineExpose({
 
 /* import the default theme, this is optional but generally recommended */
 @import '@vue-flow/core/dist/theme-default.css';
-
+/* HTML: <div class="loader"></div> */
+.loader {
+  width: 45px;
+  aspect-ratio: 1;
+  --c: no-repeat linear-gradient(#000 0 0);
+  background: var(--c) 0% 50%, var(--c) 50% 50%, var(--c) 100% 50%;
+  background-size: 20% 100%;
+  animation: l1 1s infinite linear;
+}
+@keyframes l1 {
+  0% {
+    background-size: 20% 100%, 20% 100%, 20% 100%;
+  }
+  33% {
+    background-size: 20% 10%, 20% 100%, 20% 100%;
+  }
+  50% {
+    background-size: 20% 100%, 20% 10%, 20% 100%;
+  }
+  66% {
+    background-size: 20% 100%, 20% 100%, 20% 10%;
+  }
+  100% {
+    background-size: 20% 100%, 20% 100%, 20% 100%;
+  }
+}
 .layout-flow {
   background-color: #1a192b;
   height: 100%;
