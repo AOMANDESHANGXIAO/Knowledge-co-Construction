@@ -3,7 +3,6 @@ type GroupNodeProps = {
   groupConclusion: string // 群组结论
   bgc: string
   group_id: string | number
-
 }
 
 interface TimeLineItem {

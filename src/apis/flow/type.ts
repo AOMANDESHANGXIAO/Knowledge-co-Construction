@@ -1,4 +1,6 @@
 import { ArgumentType } from '@/views/Home/components/ArgumentFlowComponent/type'
+// import { Position } from '@vue-flow/core'
+
 interface CreateNewIdeaArgs {
   topic_id: number
   student_id: number
@@ -49,6 +51,9 @@ interface ReviseSelfIdeaParams {
   student_id: number
 }
 
+/**
+ * @deprecated
+ */
 interface QueryFlowData {
   edges: Edge[]
   nodes: Node[]
@@ -56,17 +61,21 @@ interface QueryFlowData {
 }
 
 interface Edge {
-  id: number
-  source: number
-  target: number
+  id: string
+  source: string
+  target: string
   type: string
   [property: string]: any
 }
 
 interface Node {
   data: NodeData
-  id: number
+  id: string
   type: string
+  position: {
+    x: number
+    y: number
+  }
   [property: string]: any
 }
 
@@ -107,6 +116,47 @@ interface QueryNodeContentData {
   [property: string]: any
 }
 
+interface NodeResponseBased<T extends 'idea' | 'group' | 'topic', D> {
+  id: string
+  type: T
+  position: {
+    x: number
+    y: number
+  }
+  data: D
+}
+interface EdgeResponse {
+  id: string
+  source: string
+  target: string
+  _type: "idea_to_group" | "group_to_discuss" | "approve" | "reject"
+  animated: boolean
+}
+
+interface QueryFlowResponse {
+  nodes: Array<
+    | NodeResponseBased<
+        'idea',
+        {
+          name: string
+          id: number
+          bgc: string
+        }
+      >
+    | NodeResponseBased<
+        'group',
+        {
+          groupName: string
+          groupConclusion: string
+          bgc: string
+          group_id: number
+        }
+      >
+    | NodeResponseBased<'topic', { text: string }>
+  >
+  edges: Array<EdgeResponse>
+}
+
 export type {
   ProposeIdeaParams,
   ReplyIdeaParams,
@@ -114,5 +164,6 @@ export type {
   ReviseSelfIdeaParams,
   QueryFlowData,
   QueryNodeContentData,
-  CreateNewIdeaArgs
+  CreateNewIdeaArgs,
+  QueryFlowResponse
 }

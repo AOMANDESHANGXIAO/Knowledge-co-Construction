@@ -2,6 +2,7 @@ import type { Ref } from 'vue'
 import { TopicNodeProps } from '@/components/Node/topicNode/type.ts'
 import { GroupNodeProps } from '@/components/Node/groupNode/type.ts'
 import { IdeaNodeProps } from '@/components/Node/ideaNode/type.ts'
+import { Position } from '@vue-flow/core'
 
 export enum LayoutDirection {
   Vertical = 'TB', // 上下排列
@@ -23,8 +24,7 @@ export enum EdgeType {
 
 export interface VueFlowNode {
   id: string // 节点id
-  type: NodeType // 节点类型
-  label?: string // 节点的标签
+  type: "idea" | "group" | "topic" // 节点类型
   position: {
     // 节点初始位置
     x: number
@@ -43,3 +43,55 @@ export interface VueFlowEdge {
     stroke: string | Ref<string> // 线的颜色
   }
 }
+
+/**
+ * 
+ */
+export interface TopicNode {
+  text: string
+  sourcePosition: Position
+  targetPosition: Position
+}
+
+export interface IdeaNode {
+  name: string
+  id: string
+  bgc: string
+  student_id: string
+  highlight?: boolean
+  targetPosition: Position
+  sourcePosition: Position
+}
+
+export interface GroupNode {
+  groupName: string
+  groupConclusion: string
+  bgc: string
+  group_id: number
+  targetPosition: Position
+  sourcePosition: Position
+}
+
+export interface Node {
+  id: string
+  type: 'idea' | 'group' | 'topic'
+  position: {
+    x: number
+    y: number
+  }
+  data: TopicNode | IdeaNode | GroupNode
+}
+
+export interface Edge {
+  id: string
+  source: string
+  target: string
+  _type: "idea_to_group" | "group_to_discuss" | "approve" | "reject"
+  animated: boolean
+  style: {
+    stroke: string
+  }
+}
+
+
+export type LayoutDir = 'TB' | 'LR'

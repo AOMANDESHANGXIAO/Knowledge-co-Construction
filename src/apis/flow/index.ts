@@ -5,14 +5,18 @@ import type {
   ReplyIdeaParams,
   ReviseGroupConclusionParams,
   ReviseSelfIdeaParams,
-  QueryFlowData,
+  QueryFlowResponse,
   QueryNodeContentData,
 } from './type.ts'
 
 const queryFlowDataApi = (
   topic_id: number
-): Promise<Response<QueryFlowData>> => {
-  return Service.get(`/flow/query?topic_id=${topic_id}`)
+): Promise<Response<QueryFlowResponse>> => {
+  return Service.get(`/flow/query`, {
+    params: {
+      topic_id,
+    },
+  })
 }
 
 const queryNodeContentApi = (

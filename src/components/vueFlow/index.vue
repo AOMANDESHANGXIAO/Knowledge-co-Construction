@@ -5,23 +5,33 @@ import { MiniMap } from '@vue-flow/minimap'
 import '@vue-flow/minimap/dist/style.css'
 import { Controls } from '@vue-flow/controls'
 import '@vue-flow/controls/dist/style.css'
-import { ref, nextTick } from 'vue'
+import { nextTick, onMounted } from 'vue'
 import topicNode from '@/components/Node/topicNode/index.vue'
 import groupNode from '@/components/Node/groupNode/index.vue'
 import ideaNode from '@/components/Node/ideaNode/index.vue'
-import { useLayout } from '@/hooks/VueFlow/useLayout'
-import { useCssVar } from '@vueuse/core'
 import { queryFlowDataApi } from '@/apis/flow/index.ts'
-import { useRouter } from 'vue-router'
-import { diffArr, getNotification } from '@/utils/diffHandler/index.ts'
-import { useUserStore } from '@/store/modules/user'
-import { LayoutDirection, VueFlowNode, VueFlowEdge, EdgeType } from './type.ts'
+import useRequest from '@/hooks/Async/useRequest'
+import { QueryFlowResponse } from '@/apis/flow/type'
+import useQueryParam from '@/hooks/router/useQueryParam'
+import { EDGE_COLORS } from './option'
+import type { Node, Edge, LayoutDir } from './type'
+import { useLayout } from '@/hooks/VueFlow/useLayout'
+import { getStuNodeIds, getGroupNodeId } from './utils'
+import { useNotification } from './hook'
+import { useUserStore } from '@/store/modules/user/index.ts'
+import useState from '@/hooks/State/useState.ts'
 
+/**
+ * WARNING: 设置nodes和edges状态时在一个函数内最好只更新一次
+ * 不要在一个函数内更新多次
+ * 否则会引起BUG！！
+ */
 defineOptions({
   option: 'flow-component',
 })
 
 const {
+  fitView,
   onPaneReady,
   onNodesChange,
   onEdgesChange,
@@ -43,290 +53,161 @@ onEdgesChange(async changes => {
   applyEdgeChanges(nextChanges)
 })
 
-const lineNormalColor = useCssVar('--normal-line-color')
-const lineApproveColor = useCssVar('--approve-line-color')
-const lineOpposeColor = useCssVar('--oppose-line-color')
+const topicId = useQueryParam<number>('topic_id')
 
-const lineColors = {
-  group_to_discuss: lineNormalColor.value,
-  idea_to_group: lineNormalColor.value,
-  approve: lineApproveColor.value,
-  reject: lineOpposeColor.value,
-}
+const { getOneUserInfo } = useUserStore()
 
-const DEFAULT_STROKE_COLOR = '#fff'
+const student_id = getOneUserInfo<string>('id')
+const group_id = getOneUserInfo<string>('group_id')
 
-const handlerEdgesColor = (edges: VueFlowEdge[]) => {
-  return edges.map(edge => {
-    const color = lineColors[edge._type as EdgeType] || DEFAULT_STROKE_COLOR
+const { setHighlightNotification } = useNotification()
 
-    return { ...edge, style: { stroke: color } }
-  })
-}
-
-// =======查询节点数据和边的数据逻辑==========
-const nodes = ref<VueFlowNode[]>([])
-
-const edges = ref<VueFlowEdge[]>([])
-
-const router = useRouter()
-
-async function drawFlow(newNodes: VueFlowNode[], newEdges: VueFlowEdge[]) {
-  console.log('newNodes>>>>', newNodes)
-  console.log('newEdges>>>>', newEdges)
-  nodes.value = [...newNodes]
-  edges.value = [...newEdges]
-  edges.value = [...handlerEdgesColor(edges.value)]
-
-  await nextTick(() => {
-    layoutGraph(LayoutDirection.Vertical)
-  })
-}
-
-/**
- * 定位到屏幕中心点的nodeIds
- */
-const nodeIds = ref<string[]>([])
-
-const groupNodeId = ref<string[]>([])
-
-/**
- * @description 基于两次数组不同的地方，为学生设置提示
- */
-const setReplyNotification = (resEdges: any, resNodes: any) => {
-  let node_id: any
-
-  const newArr = diffArr(edges.value, resEdges)
-  // console.log('the diff is', newArr)
-  const userId = useUserStore().userInfo.id
-
-  let notes
-  if (newArr.length) {
-    notes = getNotification(userId.toString(), resNodes, newArr)
-
-    node_id = notes.map(note => note.source)
-    // console.log(data.data.nodes, 'data.data.nodes')
-    nodeIds.value = node_id
-    ElNotification({
-      title: '互动通知',
-      message: '有' + notes.length + '人刚刚回复了你的观点, 去看看吧~',
-      type: 'info',
-      duration: 5000,
-    })
-
-    // 设置highlight
-    const res = resNodes.map(node => {
-      // console.log('node is ', node)
-      if (node_id.includes(node.id)) {
+const stateFormatter = (data: QueryFlowResponse) => {
+  return {
+    nodes: data.nodes.map(node => {
+      if (node.type === 'idea') {
+        const { data } = node
         return {
           ...node,
           data: {
-            ...node.data,
-            highlight: true,
+            name: data.name,
+            id: String(data.id),
+            bgc: data.bgc,
+            student_id: String(data.id),
+            highlight: false,
+            targetPosition: Position.Left,
+            sourcePosition: Position.Right,
+          },
+        }
+      } else if (node.type === 'group') {
+        return {
+          ...node,
+          data: {
+            groupName: node.data.groupName,
+            groupConclusion: node.data.groupConclusion,
+            bgc: node.data.bgc,
+            group_id: node.data.group_id,
+            targetPosition: Position.Left,
+            sourcePosition: Position.Right,
+          },
+        }
+      } else {
+        return {
+          ...node,
+          data: {
+            text: node.data.text,
+            sourcePosition: Position.Left,
+            targetPosition: Position.Right,
           },
         }
       }
-
-      return node
-    })
-    // console.log('res', res)
-    return res
-  } else {
-    return resNodes
-  }
-}
-
-/**
- * @description 设置viewPort的中心点为groupConclusion
- */
-const getGroupNodeid = (resNodes: any) => {
-  const groupId = useUserStore().userInfo.group_id as number
-  // nodeIds.value =
-  let groupNode
-  console.log('2', resNodes)
-  for (let i = 0; i < resNodes.length; i++) {
-    if (resNodes[i].data.group_id === groupId && resNodes[i].type === 'group') {
-      groupNode = resNodes[i]
-      break
-    }
-  }
-  return groupNode.id
-}
-
-/**
- *
- * @param callback 刷新节点的回调
- * @description 这个函数有一个BUG，可以实现功能，最好不要动任何代码
- */
-const queryFlowData = (callback: Function = () => {}) => {
-  const topic_id = router.currentRoute.value.query?.topic_id as unknown as
-    | number
-    | undefined
-  console.log(topic_id)
-  if (!topic_id) return
-  queryFlowDataApi(topic_id)
-    .then(res => {
-      const data: any = res
-      let resNodes = JSON.parse(JSON.stringify(data.data.nodes))
-      let resEdges = JSON.parse(JSON.stringify(data.data.edges))
-      if (data.success) {
-        /**
-         * 如果有新的节点，则提示,
-         */
-        nodeIds.value = []
-        if (edges.value.length) {
-          /**
-           * 设置收到的回复节点作为viewPort的中心点
-           */
-          resNodes = setReplyNotification(resEdges, resNodes)
-        }
-        /**
-         * 默认将viewPort的中心设置为本组的结论节点
-         */
-        if (!nodeIds.value.length && !groupNodeId.value.length) {
-          groupNodeId.value = [getGroupNodeid(resNodes)]
-        }
-
-        nodes.value = [...resNodes]
-        edges.value = [...resEdges]
-
-        callback()
+    }),
+    edges: data.edges.map(edge => {
+      const strokeColor = EDGE_COLORS[edge._type]
+      return {
+        ...edge,
+        style: {
+          stroke: strokeColor,
+        },
       }
-    })
-    .catch(err => {
-      console.log(err)
-    })
+    }),
+  }
 }
 
-onPaneReady(() => {
-  if (nodes.value.length && edges.value.length) {
-    edges.value = handlerEdgesColor(edges.value)
-    layoutGraph(LayoutDirection.Vertical)
-  }
+const { loading, run } = useRequest({
+  apiFn: async () => {
+    return await queryFlowDataApi(topicId.value)
+  },
+  onSuccess: (data: { nodes: Node[]; edges: Edge[] }) => {
+    setNodes(data.nodes)
+    setEdges(data.edges)
+  },
+  onFail: () => {},
+  formatter: stateFormatter,
 })
 
-queryFlowData()
+const [nodes, setNodes] = useState<Node[]>([])
 
-// =======================================
+const [edges, setEdges] = useState<Edge[]>([])
+
+/**
+ * init flow data
+ */
+run()
+
 const { layout } = useLayout()
 
-const { fitView } = useVueFlow()
+const handleLayout = async (direction: LayoutDir) => {
+  const sourcePosition = direction === 'LR' ? Position.Right : Position.Bottom
+  const targetPosition = direction === 'LR' ? Position.Left : Position.Top
+  let nodesValue = [...nodes.value]
+  let edgesValue = [...edges.value]
 
-async function layoutGraph(direction: LayoutDirection) {
-  // 如果是上下排列的话要将nodes中的position属性做一个变换，将出去位置改为下
-  // 将别人进来的位置改为上
-  if (direction === LayoutDirection.Vertical) {
-    nodes.value = nodes.value.map(node => {
-      return {
-        ...node,
-        data: {
-          ...node.data,
-          sourcePosition: Position.Bottom,
-          targetPosition: Position.Top,
-        },
-      }
-    })
-  } else if (direction === LayoutDirection.Horizontal) {
-    nodes.value = nodes.value.map(node => {
-      return {
-        ...node,
-        data: {
-          ...node.data,
-          sourcePosition: Position.Right,
-          targetPosition: Position.Left,
-        },
-      }
-    })
+  nodesValue.forEach(node => {
+    node.data.sourcePosition = sourcePosition
+    node.data.targetPosition = targetPosition
+  })
+  // 查询是否有回复自己的
+  const stuNodeIds = getStuNodeIds(nodesValue, student_id)
+
+  const positionNodes: { nodes: string[] } = { nodes: [] }
+
+  if (stuNodeIds.length) {
+    nodesValue = setHighlightNotification(edgesValue, student_id, nodesValue)
+    positionNodes.nodes = stuNodeIds
+  } else {
+    // 查找团队节点
+    const groupNodeId = getGroupNodeId(nodesValue, +group_id)
+
+    if (groupNodeId) {
+      positionNodes.nodes = [groupNodeId]
+    }
   }
 
-  nodes.value = layout(nodes.value, edges.value, direction)
+  nodesValue = layout(nodesValue, edgesValue, direction)
+
+  setNodes(nodesValue)
+  setEdges(edgesValue)
 
   await nextTick(() => {
-    if (nodeIds.value.length) {
-      // console.log('fitView1', { nodes: nodeIds.value })
-      fitView({ nodes: nodeIds.value }).then(() => {
-        /**
-         * something bug here，have to use fitView twice...
-         */
-        fitView({ nodes: nodeIds.value })
-      })
-    } else if (groupNodeId.value.length) {
-      // console.log('fitView2')
-      fitView({ nodes: groupNodeId.value })
-    } else {
-      fitView()
-    }
+    setTimeout(() => {
+      if (positionNodes.nodes.length) {
+        fitView(positionNodes)
+      } else {
+        fitView()
+      }
+    }, 100)
   })
 }
 
-function getNodesAndEdges() {
-  return {
-    nodes: nodes.value,
-    edges: edges.value,
-  }
-}
-
-const refresh = () => {
-  // 刷新节点和边
-  const callBack = () => {
-    drawFlow(nodes.value, edges.value)
-  }
-  queryFlowData(callBack)
-}
-
-defineExpose({
-  layoutGraph,
-  drawFlow,
-  getNodesAndEdges,
-  refresh,
-  lineNormalColor,
-  lineApproveColor,
-  lineOpposeColor,
+onMounted(() => {
+  onPaneReady(async () => {
+    handleLayout('TB')
+  })
 })
 
-const emits = defineEmits([
-  'reply-approve',
-  'reply-oppose',
-  'revise',
-  'revise-self',
-  'check',
-])
-
-const handleReplyApprove = (id: string) => {
-  emits('reply-approve', id)
-}
-
-const handleReplyOppose = (id: string) => {
-  emits('reply-oppose', id)
-}
-const handleEmitRevise = (payload: { content: string }) => {
-  emits('revise', payload)
-}
-const handleReviseSelf = (payload: { id: string; content: string }) => {
-  emits('revise-self', payload)
-}
-const handleCheck = (id: string) => {
-  emits('check', id)
-}
+defineExpose({
+  handleLayout,
+})
 </script>
 
 <template>
   <div class="layout-flow" style="width: 100vw; height: 100vh">
-    <VueFlow :nodes="nodes" :edges="edges" v-if="nodes.length && edges.length">
+    <VueFlow :nodes="nodes" :edges="edges" v-if="!loading">
       <!-- bind your custom node type to a component by using slots, slot names are always `node-<type>` -->
       <template #node-topic="props">
         <topicNode :data="props.data" />
       </template>
       <template #node-group="props">
-        <groupNode :data="props.data" @revise="handleEmitRevise" />
+        <groupNode :data="props.data" @revise="" />
       </template>
       <template #node-idea="props">
         <ideaNode
           :data="props.data"
-          @revise-self="handleReviseSelf"
-          @reply-approve="handleReplyApprove"
-          @reply-oppose="handleReplyOppose"
-          @check="handleCheck"
+          @revise-self=""
+          @reply-approve=""
+          @reply-oppose=""
+          @check=""
         />
       </template>
 

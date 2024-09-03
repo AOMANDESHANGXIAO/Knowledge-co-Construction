@@ -24,9 +24,14 @@ export const useUserStore = defineStore(
       }
     }
 
+    function getOneUserInfo<T = User[keyof User]>(key: keyof User): T {
+      return userInfo.value[key] as T
+    }
+
     return {
       userInfo,
       setUserInfo,
+      getOneUserInfo,
     }
   },
   { persist: true }

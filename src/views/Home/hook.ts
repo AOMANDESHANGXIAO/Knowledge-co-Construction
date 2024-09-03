@@ -188,7 +188,7 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
   }
 
   function handleLayout(direction: LayoutDirection) {
-    vueFlowRef.value?.layoutGraph(direction)
+    vueFlowRef.value?.handleLayout(direction)
   }
 
   return {
