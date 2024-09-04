@@ -7,7 +7,7 @@
 // 4. 设置 -- 布局
 // 5. 垂直排列 -- 布局
 // 6. 水平排列 -- 布局
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import flowComponent from '@/components/vueFlow/index.vue'
 import argumentFlowComponent from './components/ArgumentFlowComponent/index.vue'
 import useState from '@/hooks/State/useState'
@@ -59,11 +59,14 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
 
   const [visible, setVisible] = useState(false)
 
-  const [sumbitStatus, setSumbitStatus, previousSubmitStatus] = useState<Status>(Status.Propose)
+  const [sumbitStatus, setSumbitStatus, previousSubmitStatus] =
+    useState<Status>(Status.Propose)
 
   const [loading, setLoading] = useState(false)
 
-  const [ nodeId, setNodeId ] = useState('') // 被选中的node的id
+  const [nodeId, setNodeId] = useState('') // 被选中的node的id
+
+  const [reply, setReply] = useState<'none' | 'oppose' | 'approve'>('none')
 
   const { key, refresh } = useRefresh()
 
@@ -84,7 +87,12 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
         setVisible(true)
         setSumbitStatus(Status.Propose)
         // 如果上一次就是提出观点状态,并且组件已经渲染出来
-        if(!(previousSubmitStatus.value === Status.Propose && argumentFlowRef.value)) {
+        if (
+          !(
+            previousSubmitStatus.value === Status.Propose &&
+            argumentFlowRef.value
+          )
+        ) {
           refresh()
         }
         return
@@ -190,6 +198,15 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
     vueFlowRef.value?.handleLayout(direction)
   }
 
+  /**
+   * 监听组件状态的变化
+   */
+  watch(sumbitStatus, newValue => {
+    if (newValue === Status.Propose) {
+      argumentFlowRef.value?.initState()
+    }
+  })
+
   return {
     argumentFlowRef,
     vueFlowRef,
@@ -204,6 +221,8 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
     handleLayout,
     nodeId,
     key,
+    reply,
+    setReply,
   }
 }
 

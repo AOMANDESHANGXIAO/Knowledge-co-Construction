@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // TODO: 重构组件
-import { h, ref } from 'vue';
+import { h, ref } from 'vue'
 import { VueFlow, Panel, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
@@ -22,6 +22,7 @@ import { QueryNodeContentData } from '@/apis/flow/type'
 import { convertToHTML } from './utils'
 import { onMounted } from 'vue'
 import useFeedback from './hooks/useFeedback'
+import ArrowIcon from './components/icon/index.vue'
 
 const {
   createNode,
@@ -43,11 +44,14 @@ const props = withDefaults(
     nodes?: NodeType[]
     edges?: EdgeType[]
     nodeId?: string // nodeId是为了查询观点内容
+    reply?: 'none' | 'oppose' | 'approve' // 表示是否正在修改
   }>(),
   {
     status: Status.Propose,
     nodes: () => [],
     edges: () => [],
+    nodeId: '',
+    reply: 'none',
   }
 )
 
@@ -166,7 +170,6 @@ onMounted(async () => {
 const { feedbackList, feedbackCallback: feedbackFunction } = useFeedback()
 
 const feedbackCallback = () => {
-  
   const nodesValue = nodes.value
   const edgesValue = edges.value
 
@@ -638,17 +641,61 @@ defineExpose({
   setEdges,
   setFitView,
   handleLayoutGraph,
+  initState,
   // handleInitProposeArgument,
 })
 
 // TODO: 1. 设置两个按钮，在查看观点时，可以选择支持观点或者反对观点。
-const handleClickSupport = () => {}
+// 记录点击支持或者反对后指向的观点
+const [targetNodes, setTargetNodes] = useState<NodeType[]>([])
 
-const handleClickOppose = () => {}
+const [targetEdges, setTargetEdges] = useState<EdgeType[]>([])
+
+const setTargetArgument = (nodes: NodeType[], edges: EdgeType[]) => {
+  setTargetNodes([...nodes])
+  setTargetEdges([...edges])
+}
+
+const emits = defineEmits<{
+  (e: 'update:reply', reply: 'none' | 'oppose' | 'approve'): void
+  (e: 'update:status', status: Status): void
+}>()
+
+const handleClickSupport = () => {
+  setTargetArgument(nodes.value, edges.value)
+  emits('update:reply', 'approve') // 传递给父组件
+  emits('update:status', Status.Propose)
+}
+
+const handleClickOppose = () => {
+  setTargetArgument(nodes.value, edges.value)
+  emits('update:reply', 'oppose') // 传递给父组件
+  emits('update:status', Status.Propose)
+}
+
+const MAX_CONTENT_WIDTH = '400px'
+const MIN_CONTENT_WIDTH = '20px'
+
+const contentStyle = ref({
+  width: MAX_CONTENT_WIDTH,
+  transition: 'width 0.3s',
+})
+
+const handleClickArrow = () => {
+  // 折叠
+  console.log('折叠')
+  if (contentStyle.value.width === MIN_CONTENT_WIDTH) {
+    contentStyle.value.width = MAX_CONTENT_WIDTH
+    console.log(contentStyle.value.width)
+  } else {
+    contentStyle.value.width = MIN_CONTENT_WIDTH
+    console.log(contentStyle.value.width)
+  }
+}
 
 // TODO: 2. 在右下角显示正在回应的组件的文字版本
 const argumentText = computed(() => {
-  return convertToHTML({ nodes: nodes.value, edges: edges.value })
+  return convertToHTML({ nodes: targetNodes.value, edges: targetEdges.value })
 })
 </script>
 
@@ -684,7 +731,7 @@ const argumentText = computed(() => {
     <Panel
       position="top-right"
       class="button-group-container"
-      v-if="props.status !== Status.Check"
+      v-if="props.status === Status.Propose"
     >
       <el-popconfirm title="你确定要重置论证?" @confirm="reset">
         <template #reference>
@@ -745,7 +792,7 @@ const argumentText = computed(() => {
       </el-popconfirm>
       <el-popconfirm
         title="你确定要跳转至观点编辑页面吗?"
-        @click="handleClickOppose"
+        @confirm="handleClickOppose"
       >
         <template #reference>
           <el-button plain style="margin-left: 0" type="danger"
@@ -771,9 +818,27 @@ const argumentText = computed(() => {
       ></el-alert>
     </Panel>
 
-    <!-- TODO: 设置一个右下角的文字版，以文字的形式显示当前的论证内容，或是正在针对哪个观点 -->
-    <Panel position="bottom-right" class="argument-text">
-      <div class="argument-text-content" v-html="argumentText"></div>
+    <!-- TODO: 右下角的文字版，表示正在反驳或是关注的观点 -->
+    <Panel
+      position="bottom-right"
+      class="argument-text"
+      :style="contentStyle"
+      v-if="props.reply !== 'none'"
+    >
+      <!-- 可以折叠 -->
+      <section style="width: 100%; height: 100%; position: relative">
+        <ArrowIcon
+          class="arrow"
+          @click="handleClickArrow"
+          :class="contentStyle.width === MAX_CONTENT_WIDTH ? 'arrow-up' : 'arrow-down'"
+        ></ArrowIcon>
+        <el-scrollbar height="200px">
+          <h3 class="argument-text-title" :class="props.reply">
+            {{ props.reply === 'oppose' ? '反驳观点' : '支持观点' }}
+          </h3>
+          <div class="argument-text-content" v-html="argumentText"></div>
+        </el-scrollbar>
+      </section>
     </Panel>
   </VueFlow>
 </template>
@@ -807,10 +872,42 @@ const argumentText = computed(() => {
   box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.08);
   padding: 10px;
   background-color: #fff;
-  width: 200px;
-  max-height: 400px;
+  width: 400px;
+  height: 200px;
+  /* overflow: auto; */
 }
 .argument-text-content {
-  overflow-y: auto;
+  /* overflow-y: auto; */
+  font-size: 14px;
+  line-height: 1.5;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+.argument-text-title {
+  margin-bottom: 10px;
+}
+.approve {
+  color: green;
+}
+.oppose {
+  color: red;
+}
+
+.arrow {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  cursor: pointer;
+  z-index: 20;
+  transition: all 0.3s ease;
+}
+
+.arrow-up {
+  transform: rotate(0deg);
+}
+.arrow-down {
+  transform: rotate(90deg);
+  right:-7px;
+  top:0;
 }
 </style>

@@ -19,6 +19,7 @@ const studentId = getOneUserInfo('id') as string
 const {
   key,
   nodeId,
+  reply,
   argumentFlowRef,
   vueFlowRef,
   visible,
@@ -49,9 +50,10 @@ const onCheckIdea = (nodeId: string) => {
       <div class="argument-flow-container">
         <argumentFlowComponent
           ref="argumentFlowRef"
-          :status="sumbitStatus"
+          v-model:status="sumbitStatus"
           :node-id="nodeId"
           :key="key"
+          v-model:reply="reply"
         ></argumentFlowComponent>
       </div>
       <div class="button-footer-container">
