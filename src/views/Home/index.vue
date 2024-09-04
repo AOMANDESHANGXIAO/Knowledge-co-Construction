@@ -17,6 +17,8 @@ const { getOneUserInfo } = useUserStore()
 const studentId = getOneUserInfo('id') as string
 
 const {
+  key,
+  nodeId,
   argumentFlowRef,
   vueFlowRef,
   visible,
@@ -36,11 +38,9 @@ const onReviseIdea = (nodeId: string) => {
 }
 
 const onCheckIdea = (nodeId: string) => {
-  // console.log('学生检查观点', nodeId)
+  console.log('学生检查观点', nodeId)
   handleIdeaAction('check', { id: nodeId })
 }
-
-// const { key, refresh } = useRefresh()
 </script>
 
 <template>
@@ -50,6 +50,8 @@ const onCheckIdea = (nodeId: string) => {
         <argumentFlowComponent
           ref="argumentFlowRef"
           :status="sumbitStatus"
+          :node-id="nodeId"
+          :key="key"
         ></argumentFlowComponent>
       </div>
       <div class="button-footer-container">

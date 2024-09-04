@@ -46,15 +46,24 @@ const {
 // 禁止删除节点
 onNodesChange(async changes => {
   const nextChanges = changes.filter(change => change.type !== 'remove')
-
+  // console.log('nextChanges', nextChanges)
+  if(nextChanges.length === 0) return
   applyNodeChanges(nextChanges)
+  // console.log('changes node', changes)
+  // const nextChanges = changes.filter(change => change.type !== 'remove')
+  // return
+  // applyNodeChanges(nextChanges)
 })
 
 // 禁止删除边
 onEdgesChange(async changes => {
+  // console.log('changes edge', changes)
   const nextChanges = changes.filter(change => change.type !== 'remove')
-
+  if(nextChanges.length === 0) return
   applyEdgeChanges(nextChanges)
+  // return
+  // const nextChanges = changes.filter(change => change.type !== 'remove')
+  // applyEdgeChanges(nextChanges)
 })
 
 const topicId = useQueryParam<number>('topic_id')

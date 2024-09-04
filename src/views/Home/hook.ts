@@ -17,6 +17,7 @@ import { proposeIdeaApi } from '@/apis/flow'
 import { CreateNewIdeaArgs } from '@/apis/flow/type'
 import { LayoutDirection } from '../../components/vueFlow/type'
 import useRequest from '@/hooks/Async/useRequest'
+import useRefresh from '../../hooks/Element/useRefresh'
 
 type IdeaAction =
   | 'propose'
@@ -58,9 +59,13 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
 
   const [visible, setVisible] = useState(false)
 
-  const [sumbitStatus, setSumbitStatus] = useState<Status>(Status.Propose)
+  const [sumbitStatus, setSumbitStatus, previousSubmitStatus] = useState<Status>(Status.Propose)
 
   const [loading, setLoading] = useState(false)
+
+  const [ nodeId, setNodeId ] = useState('') // 被选中的node的id
+
+  const { key, refresh } = useRefresh()
 
   /**
    *
@@ -78,19 +83,29 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
          */
         setVisible(true)
         setSumbitStatus(Status.Propose)
-        argumentFlowRef.value?.handleInitProposeArgument()
+        // 如果上一次就是提出观点状态,并且组件已经渲染出来
+        if(!(previousSubmitStatus.value === Status.Propose && argumentFlowRef.value)) {
+          refresh()
+        }
         return
       }
       // 被用作检查观点
       case 'check': {
+        console.log('check 1')
         setSumbitStatus(Status.Check)
         const id = payload?.id
+        console.log('check 2')
         if (!id) {
           showWarningMsg('请先选择一个节点')
           return
         }
+        // console.log('check 3')
         setVisible(true)
-        argumentFlowRef.value?.handleCheckArgument(id)
+        // console.log('check 4')
+        // FIXME: BUG, 第一次点击时组件没有渲染完毕,导致这里无法发送请求
+        // argumentFlowRef.value?.handleCheckArgument(id)
+        setNodeId(id)
+        refresh()
         return
       }
       case 'reply': {
@@ -187,6 +202,8 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
     handleIdeaAction,
     handleSumbit,
     handleLayout,
+    nodeId,
+    key,
   }
 }
 

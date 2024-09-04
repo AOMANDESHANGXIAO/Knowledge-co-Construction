@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// TODO: 重构组件
 import { h, ref } from 'vue'
 import { VueFlow, Panel, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
@@ -19,6 +20,8 @@ import useRequest from '@/hooks/Async/useRequest'
 import { queryNodeContentApi } from '@/apis/flow'
 import { QueryNodeContentData } from '@/apis/flow/type'
 import { convertToHTML } from './utils'
+import { onMounted } from 'vue'
+
 const {
   createNode,
   createEdge,
@@ -39,9 +42,12 @@ const props = withDefaults(
     status?: Status
     nodes?: NodeType[]
     edges?: EdgeType[]
+    nodeId?: string // nodeId是为了查询观点内容
   }>(),
   {
     status: Status.Propose,
+    nodes: () => [],
+    edges: () => [],
   }
 )
 
@@ -54,9 +60,39 @@ const [edges, setEdgesValue] = useState<EdgeType[]>([])
 const initState = () => {
   setNodesValue(initData.nodes)
   setEdgesValue(initData.edges)
+  setFitView()
 }
 
-initState()
+const { run: queryNodeContent } = useRequest({
+  apiFn: async () => {
+    const id = props.nodeId as string
+    return await queryNodeContentApi(+id)
+  },
+  onSuccess: ({
+    nodes,
+    edges,
+  }: {
+    nodes: any
+    edges: QueryNodeContentData['edges']
+  }) => {
+    // console.log('queryNodeContent', nodes, edges)
+    setNodesValue(nodes)
+    setEdgesValue(edges)
+  },
+  formatter: (data: QueryNodeContentData) => {
+    return {
+      nodes: data.nodes.map(node => ({
+        ...node,
+        _type: node.data._type,
+      })),
+      edges: data.edges,
+    }
+  },
+  onError: () => {},
+  onFinally: () => {
+    setFitView()
+  },
+})
 
 const reset = () => {
   if (props.status === Status.Check) {
@@ -96,9 +132,32 @@ onPaneReady(() => {
   handleLayoutGraph()
 })
 
-const handleLayoutGraph = () => {
-  layoutGraph(LayoutDirection.Vertical)
+const handleLayoutGraph = async () => {
+  setNodesValue(layout(nodes.value, edges.value, 'LR'))
+
+  await nextTick(() => {
+    fitView()
+  })
 }
+
+const setFitView = () => {
+  setTimeout(() => {
+    handleLayoutGraph()
+  }, 100)
+}
+
+/**
+ * 在外面强制更新组件,不然处理起来太麻烦了
+ */
+onMounted(async () => {
+  if (props.status === Status.Check) {
+    // 发送请求，获取数据
+    queryNodeContent()
+  } else if (props.status === Status.Propose) {
+    // 将nodes,和edges设置为初始
+    initState()
+  }
+})
 
 // ==================================
 /**
@@ -629,7 +688,7 @@ onNodesChange(async changes => {
       nextChanges.push(change)
     }
   }
-  if(props.status === Status.Check) return
+  if (props.status === Status.Check) return
   applyNodeChanges(nextChanges)
 })
 
@@ -649,58 +708,13 @@ const editVisible = computed(() => {
 // =========================
 const argumentVueFlowRef = ref<InstanceType<typeof VueFlow> | null>()
 
-const { run: queryNodeContent } = useRequest({
-  apiFn: async () => {
-    const id = queryNodeId.value
-    return await queryNodeContentApi(+id)
-  },
-  onSuccess: ({
-    nodes,
-    edges,
-  }: {
-    nodes: any
-    edges: QueryNodeContentData['edges']
-  }) => {
-    // console.log('queryNodeContent', nodes, edges)
-    setNodesValue(nodes)
-    setEdgesValue(edges)
-  },
-  formatter: (data: QueryNodeContentData) => {
-    return {
-      nodes: data.nodes.map(node => ({
-        ...node,
-        _type: node.data._type,
-      })),
-      edges: data.edges,
-    }
-  },
-  onError: err => {
-    console.log(err)
-  },
-  onFinally: () => {
-    queryNodeId.value = ''
-    setFitView()
-  },
-})
-const queryNodeId = ref('')
-
-/**
- *
- * @param nodeId 节点id
- * @description 这个方法被暴露出去，用于查看观点
- */
-const handleCheckArgument = (nodeId: string) => {
-  queryNodeId.value = nodeId
-  queryNodeContent()
-}
-
 /**
  * 这个函数被用来初始化发布观点
  */
-const handleInitProposeArgument = () => {
-  initState() // 首先重置节点内容
-  setFitView() // 设置视图
-}
+// const handleInitProposeArgument = () => {
+//   initState() // 首先重置节点内容
+//   setFitView() // 设置视图
+// }
 
 const getArgumentNodes = () => {
   return nodes.value
@@ -718,12 +732,6 @@ const setEdges = (value: EdgeType[]) => {
   setEdgesValue(value)
 }
 
-const setFitView = () => {
-  setTimeout(() => {
-    handleLayoutGraph()
-  }, 100)
-}
-
 defineExpose({
   getArgumentNodes,
   getArgumentEdges,
@@ -731,8 +739,7 @@ defineExpose({
   setEdges,
   setFitView,
   handleLayoutGraph,
-  handleCheckArgument,
-  handleInitProposeArgument,
+  // handleInitProposeArgument,
 })
 
 // TODO: 1. 设置两个按钮，在查看观点时，可以选择支持观点或者反对观点。
