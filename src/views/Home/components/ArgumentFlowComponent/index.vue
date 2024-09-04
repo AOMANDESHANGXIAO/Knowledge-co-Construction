@@ -15,6 +15,9 @@ import Dialog from './components/dialog/index.vue'
 import { useNodeEdgeHandler } from '@/utils/nodeEdgeHandler/index.ts'
 import list from './data.ts'
 import useState from '@/hooks/State/useState.ts'
+import useRequest from '@/hooks/Async/useRequest'
+import { queryNodeContentApi } from '@/apis/flow'
+import { QueryNodeContentData } from '@/apis/flow/type'
 
 const {
   createNode,
@@ -44,46 +47,43 @@ const props = withDefaults(
 
 const initData = list
 
-
 const [nodes, setNodesValue] = useState<NodeType[]>([])
 
 const [edges, setEdgesValue] = useState<EdgeType[]>([])
 
 const initState = () => {
-  if (props.status === Status.Propose) {
-    setNodesValue(initData.nodes)
-    setEdgesValue(initData.edges)
-  }
+  setNodesValue(initData.nodes)
+  setEdgesValue(initData.edges)
 }
 
 initState()
 
 const reset = () => {
-  if (props.status !== Status.Propose) {
+  if (props.status === Status.Check) {
     ElNotification({
       title: '警告',
-      message: '你不能重置已经完成的论证!',
+      message: '该论点仅供查看!',
       type: 'warning',
     })
     return
+  } else if (props.status === Status.Propose) {
+    initState()
+    feedbackCallback()
+    handleLayoutGraph()
   }
-  initState()
-  feedbackCallback()
-  handleLayoutGraph()
 }
+
 
 const dataClaimIds = ref({
   dataId: getDataNodeId(nodes.value),
   claimId: getClaimNodeId(nodes.value),
 })
 
-
 const { layout } = useLayout()
 
 const { fitView } = useVueFlow()
 
 async function layoutGraph(direction: LayoutDirection) {
-
   setNodesValue(layout(nodes.value, edges.value, direction))
 
   await nextTick(() => {
@@ -648,6 +648,52 @@ const editVisible = computed(() => {
 // =========================
 const argumentVueFlowRef = ref<InstanceType<typeof VueFlow> | null>()
 
+const { run: queryNodeContent } = useRequest({
+  apiFn: async () => {
+    const id = queryNodeId.value
+    return await queryNodeContentApi(+id)
+  },
+  onSuccess: ({
+    nodes,
+    edges,
+  }: {
+    nodes: any
+    edges: QueryNodeContentData['edges']
+  }) => {
+    // console.log('queryNodeContent', nodes, edges)
+    setNodesValue(nodes)
+    setEdgesValue(edges)
+  },
+  formatter: (data: QueryNodeContentData) => {
+    return {
+      nodes: data.nodes.map(node => ({
+        ...node,
+        _type: node.data._type,
+      })),
+      edges: data.edges,
+    }
+  },
+  onError: err => {
+    console.log(err)
+  },
+  onFinally: () => {
+    queryNodeId.value = ''
+    setFitView()
+  },
+})
+const queryNodeId = ref('')
+
+const handleCheckArgument = (nodeId: string) => {
+  queryNodeId.value = nodeId
+  queryNodeContent()
+}
+
+const handleInitProposeArgument = () => {
+  // console.log('handleInitProposeArgument')
+  initState()
+  setFitView()
+}
+
 const getArgumentNodes = () => {
   return nodes.value
 }
@@ -667,7 +713,7 @@ const setEdges = (value: EdgeType[]) => {
 const setFitView = () => {
   setTimeout(() => {
     handleLayoutGraph()
-  }, 100);
+  }, 100)
 }
 
 defineExpose({
@@ -677,6 +723,8 @@ defineExpose({
   setEdges,
   setFitView,
   handleLayoutGraph,
+  handleCheckArgument,
+  handleInitProposeArgument
 })
 </script>
 

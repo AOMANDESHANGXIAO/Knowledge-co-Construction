@@ -64,8 +64,6 @@ export enum ArgumentType {
 
 export enum Status {
   Propose,
-  Approve,
-  Reject,
   Check,
 }
 

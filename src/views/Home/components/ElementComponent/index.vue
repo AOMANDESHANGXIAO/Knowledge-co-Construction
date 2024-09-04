@@ -47,7 +47,14 @@ const elementMap = {
 
 const props = defineProps<Props>()
 
-console.log('debugger props ===> ', props)
+watch(
+  () => props.modelValue,
+  () => {
+    setInputValue(props.modelValue)
+  }
+)
+
+// console.log('debugger props ===> ', props)
 
 const dialogVisible = ref(false)
 
@@ -232,6 +239,7 @@ if (props._type === ArgumentType.Backing) {
     >
       {{ elementMap[props._type].title }}
     </div>
+
     <div class="text" @dblclick="dialogVisible = true">
       {{
         form.inputValue ||

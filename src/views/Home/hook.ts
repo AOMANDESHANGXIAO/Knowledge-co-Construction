@@ -16,6 +16,8 @@ import { ElMessage, ElNotification } from 'element-plus'
 import { proposeIdeaApi, queryNodeContentApi } from '@/apis/flow'
 import { CreateNewIdeaArgs } from '@/apis/flow/type'
 import { LayoutDirection } from '../../components/vueFlow/type'
+import useRequest from '@/hooks/Async/useRequest'
+import { QueryNodeContentData } from '@/apis/flow/type'
 
 type IdeaAction =
   | 'propose'
@@ -61,24 +63,28 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
 
   const [loading, setLoading] = useState(false)
 
+  /**
+   * 
+   * @param action 
+   * @param payload {id: string} id为node的Id 
+   * @returns 
+   */
   function handleIdeaAction(action: IdeaAction, payload?: { id: string }) {
     switch (action) {
+      // 被用作提出观点
       case 'propose': {
         /**
          * use the argumentFlowRef to propose idea
          * we should make the dialog visible
          */
         setVisible(true)
+        setSumbitStatus(Status.Propose)
+        argumentFlowRef.value?.handleInitProposeArgument()
         return
       }
+      // 被用作检查观点
       case 'check': {
-        /**
-         * these codes were used to check the content of idea
-         */
         setSumbitStatus(Status.Check)
-        /**
-         * the nodes' id
-         */
         const id = payload?.id
         if (!id) {
           showWarningMsg('请先选择一个节点')
@@ -86,24 +92,26 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
         }
         setVisible(true)
 
-        queryNodeContentApi(+id)
-          .then(res => {
-            if (res.success) {
-              const { nodes, edges } = res.data
-
-              argumentFlowRef.value!.setNodes(
-                nodes.map(node => ({
-                  ...node,
-                  _type: node.data._type,
-                }))
-              )
-              argumentFlowRef.value!.setEdges(edges)
-            }
-          })
-          .catch(err => {
+        const { run } = useRequest({
+          apiFn: async () => {
+            return await queryNodeContentApi(+id)
+          },
+          onSuccess: ({ nodes, edges }: QueryNodeContentData) => {
+            argumentFlowRef.value!.setNodes(
+              nodes.map(node => ({
+                ...node,
+                _type: node.data._type,
+              }))
+            )
+            argumentFlowRef.value!.setEdges(edges)
+            argumentFlowRef.value!.setFitView()
+          },
+          onError: err => {
             showNotification(err, 'error')
-          })
+          },
+        })
 
+        run()
         return
       }
       case 'reply': {
@@ -178,12 +186,12 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
       case Status.Check: {
         return
       }
-      case Status.Approve: {
-        return
-      }
-      case Status.Reject: {
-        return
-      }
+      // case Status.Approve: {
+      //   return
+      // }
+      // case Status.Reject: {
+      //   return
+      // }
     }
   }
 

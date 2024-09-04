@@ -6,21 +6,15 @@ import { IconName } from '@/components/Icons/HomePageIcon/type.ts'
 import argumentFlowComponent from './components/ArgumentFlowComponent/index.vue'
 import MyButton from '@/components/ElementPlusPackage/MyButton.vue'
 import { useMyVueFlow } from './hook.ts'
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
 import { useUserStore } from '../../store/modules/user/index'
+import useQueryParam from '@/hooks/router/useQueryParam'
+// import useRefresh from '../../hooks/Element/useRefresh'
 
-const route = useRoute()
+const topicId = useQueryParam<number>('topic_id')
 
-const userStore = useUserStore()
+const { getOneUserInfo } = useUserStore()
 
-const getTopicIdFromRoute = computed(() => {
-  return route.query.topicId
-})
-
-const getStudentIdFromStore = computed(() => {
-  return userStore.userInfo.id
-})
+const studentId = getOneUserInfo('id') as string
 
 const {
   argumentFlowRef,
@@ -33,23 +27,25 @@ const {
   handleSumbit,
   handleLayout,
 } = useMyVueFlow({
-  topic_id: Number(getTopicIdFromRoute.value),
-  student_id: getStudentIdFromStore.value,
+  topic_id: topicId.value,
+  student_id: +studentId,
 })
 
-const handleCheckEvent = (id: string) => {
-  handleIdeaAction('check', { id })
+const onReviseIdea = (nodeId: string) => {
+  console.log('学生修改观点', nodeId)
 }
+
+const onCheckIdea = (nodeId: string) => {
+  // console.log('学生检查观点', nodeId)
+  handleIdeaAction('check', { id: nodeId })
+}
+
+// const { key, refresh } = useRefresh()
 </script>
 
 <template>
   <section class="dialog-container" v-show="visible">
-    <el-dialog
-      v-model="visible"
-      v-if="visible"
-      width="1200"
-      :append-to-body="true"
-    >
+    <el-dialog v-model="visible" width="1200" :append-to-body="true">
       <div class="argument-flow-container">
         <argumentFlowComponent
           ref="argumentFlowRef"
@@ -70,10 +66,8 @@ const handleCheckEvent = (id: string) => {
   <div class="vue-flow-container">
     <flow-component
       ref="vueFlowRef"
-      @oppose=""
-      @approve=""
-      @revise=""
-      @check="handleCheckEvent"
+      @reviseIdea="onReviseIdea"
+      @checkIdea="onCheckIdea"
     >
       <div class="layout-panel">
         <button title="发表观点" @click="handleIdeaAction('propose')">

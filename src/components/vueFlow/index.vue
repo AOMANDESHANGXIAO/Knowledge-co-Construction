@@ -77,7 +77,7 @@ const stateFormatter = (data: QueryFlowResponse) => {
             name: data.name,
             id: String(data.id),
             bgc: data.bgc,
-            student_id: String(data.id),
+            student_id: String(data.student_id),
             highlight: false,
             targetPosition: Position.Left,
             sourcePosition: Position.Right,
@@ -198,13 +198,20 @@ const emits = defineEmits<{
   (e: 'checkIdea', id: string): void
 }>()
 
-const onClickIdeaNode = (id: string) => {
-  if (id === student_id) {
-    console.log('修改观点')
-    emits('reviseIdea', id)
+const onClickIdeaNode = ({
+  nodeId,
+  studentId,
+}: {
+  nodeId: string
+  studentId: string
+}) => {
+  // console.log('学生id', studentId, '观点id', nodeId)
+  if (student_id === studentId) {
+    // console.log('修改观点')
+    emits('reviseIdea', nodeId)
   } else {
-    console.log('查看观点')
-    emits('checkIdea', id)
+    // console.log('查看观点')
+    emits('checkIdea', nodeId)
   }
 }
 

@@ -141,6 +141,7 @@ interface QueryFlowResponse {
           name: string
           id: number
           bgc: string
+          student_id: number
         }
       >
     | NodeResponseBased<
