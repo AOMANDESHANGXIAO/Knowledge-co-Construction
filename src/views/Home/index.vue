@@ -29,17 +29,19 @@ const {
   handleIdeaAction,
   handleSumbit,
   handleLayout,
+  refreshVueFlow
 } = useMyVueFlow({
   topic_id: topicId.value,
   student_id: +studentId,
 })
 
+// TODO: 后端实现后对接
 const onReviseIdea = (nodeId: string) => {
   console.log('学生修改观点', nodeId)
 }
 
 const onCheckIdea = (nodeId: string) => {
-  console.log('学生检查观点', nodeId)
+  // console.log('学生检查观点', nodeId)
   handleIdeaAction('check', { id: nodeId })
 }
 </script>
@@ -80,7 +82,7 @@ const onCheckIdea = (nodeId: string) => {
         <button title="总结观点" @click="">
           <Icon :name="IconName.Summary" />
         </button>
-        <button title="刷新" @click="">
+        <button title="刷新" @click="refreshVueFlow">
           <Icon :name="IconName.Refresh" />
         </button>
         <button title="返回首页" @click="">

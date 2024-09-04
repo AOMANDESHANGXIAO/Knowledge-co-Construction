@@ -13,8 +13,8 @@ import argumentFlowComponent from './components/ArgumentFlowComponent/index.vue'
 import useState from '@/hooks/State/useState'
 import { Status } from './components/ArgumentFlowComponent/type'
 import { ElMessage, ElNotification } from 'element-plus'
-import { proposeIdeaApi } from '@/apis/flow'
-import { CreateNewIdeaArgs } from '@/apis/flow/type'
+import { proposeIdeaApi, replyIdeaApi } from '@/apis/flow'
+import { CreateNewIdeaArgs, ReplyIdeaParams } from '@/apis/flow/type'
 import { LayoutDirection } from '../../components/vueFlow/type'
 import useRequest from '@/hooks/Async/useRequest'
 import useRefresh from '../../hooks/Element/useRefresh'
@@ -66,9 +66,14 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
 
   const [nodeId, setNodeId] = useState('') // 被选中的node的id
 
-  const [reply, setReply] = useState<'none' | 'oppose' | 'approve'>('none')
+  const [reply, setReply] = useState<'none' | 'reject' | 'approve'>('none')
 
   const { key, refresh } = useRefresh()
+
+  const refreshVueFlow = () => {
+    console.log('refreshVueFlow')
+    vueFlowRef.value?.refreshData()
+  }
 
   /**
    *
@@ -94,6 +99,8 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
           )
         ) {
           refresh()
+        } else {
+          setReply('none')
         }
         return
       }
@@ -107,35 +114,21 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
           showWarningMsg('请先选择一个节点')
           return
         }
-        // console.log('check 3')
         setVisible(true)
-        // console.log('check 4')
-        // FIXME: BUG, 第一次点击时组件没有渲染完毕,导致这里无法发送请求
-        // argumentFlowRef.value?.handleCheckArgument(id)
         setNodeId(id)
+        setReply('none')
         refresh()
-        return
-      }
-      case 'reply': {
-        return
-      }
-      case 'revise': {
-        return
-      }
-      case 'support': {
-        return
-      }
-      case 'unsupport': {
         return
       }
     }
   }
 
+  // TODO: 对接后端, 回复观点,同意还是反对.
   function handleSumbit() {
     switch (sumbitStatus.value) {
       case Status.Propose: {
         /**
-         * click button to propose idea
+         * 为 none 就是提出自己的观点
          */
         const [nodes, edges] = [
           argumentFlowRef.value!.getArgumentNodes(),
@@ -147,42 +140,86 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
             return
           }
         }
-        const createParams: CreateNewIdeaArgs = {
-          topic_id,
-          student_id,
-          nodes: nodes.map(node => ({
-            id: node.id,
-            data: {
-              inputValue: node.data.inputValue,
-              _type: node.data._type as string,
+        console.log('reply', reply.value)
+
+        if (reply.value === 'none') {
+          const createParams: CreateNewIdeaArgs = {
+            topic_id,
+            student_id,
+            nodes: nodes.map(node => ({
+              id: node.id,
+              data: {
+                inputValue: node.data.inputValue,
+                _type: node.data._type as string,
+              },
+              type: 'element',
+            })),
+            edges: edges.map(edge => ({
+              id: edge.id,
+              source: edge.source,
+              target: edge.target,
+              _type: edge._type,
+            })),
+          }
+          setLoading(true)
+          const { run } = useRequest({
+            apiFn: async () => await proposeIdeaApi(createParams),
+            onSuccess: () => {
+              showNotification('论点发布成功', 'success')
+              setVisible(false)
+              refreshVueFlow()
             },
-            type: 'element',
-          })),
-          edges: edges.map(edge => ({
-            id: edge.id,
-            source: edge.source,
-            target: edge.target,
-            _type: edge._type,
-          })),
+            onFail: () => {
+              showNotification('论点发布失败', 'error')
+            },
+            onFinally: () => {
+              setLoading(false)
+            },
+          })
+          run()
+        } else if (reply.value === 'approve' || reply.value === 'reject') {
+          const replyParams: ReplyIdeaParams = {
+            topic_id,
+            student_id,
+            replyType: reply.value,
+            replyNodeId: +nodeId.value,
+            nodes: nodes.map(node => ({
+              id: node.id,
+              data: {
+                inputValue: node.data.inputValue,
+                _type: node.data._type as string,
+              },
+              type: 'element',
+            })),
+            edges: edges.map(edge => ({
+              id: edge.id,
+              source: edge.source,
+              target: edge.target,
+              _type: edge._type,
+            })),
+          }
+
+          const { run } = useRequest({
+            apiFn: async () => await replyIdeaApi(replyParams),
+            onSuccess: () => {
+              showNotification('回复成功', 'success')
+              setVisible(false)
+              refreshVueFlow()
+            },
+            onFail: () => {
+              showNotification('回复失败', 'error')
+            },
+            onFinally: () => {
+              setLoading(false)
+            },
+          })
+          run()
         }
-        setLoading(true)
-        const { run } = useRequest({
-          apiFn: async () => await proposeIdeaApi(createParams),
-          onSuccess: () => {
-            showNotification('论点发布成功', 'success')
-            setVisible(false)
-          },
-          onFail: () => {
-            showNotification('论点发布失败', 'error')
-          },
-          onFinally: () => {
-            setLoading(false)
-          },
-        })
-        run()
+
         return
       }
       case Status.Check: {
+        setVisible(false)
         return
       }
       // case Status.Approve: {
@@ -223,6 +260,7 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
     key,
     reply,
     setReply,
+    refreshVueFlow
   }
 }
 

@@ -5,7 +5,7 @@ import { MiniMap } from '@vue-flow/minimap'
 import '@vue-flow/minimap/dist/style.css'
 import { Controls } from '@vue-flow/controls'
 import '@vue-flow/controls/dist/style.css'
-import { nextTick, onMounted } from 'vue'
+import { nextTick } from 'vue'
 import topicNode from './components/topicNode/index.vue'
 import groupNode from './components/groupNode/index.vue'
 import ideaNode from './components/ideaNode/index.vue'
@@ -36,7 +36,6 @@ defineOptions({
 
 const {
   fitView,
-  onPaneReady,
   onNodesChange,
   onEdgesChange,
   applyNodeChanges,
@@ -47,7 +46,7 @@ const {
 onNodesChange(async changes => {
   const nextChanges = changes.filter(change => change.type !== 'remove')
   // console.log('nextChanges', nextChanges)
-  if(nextChanges.length === 0) return
+  if (nextChanges.length === 0) return
   applyNodeChanges(nextChanges)
   // console.log('changes node', changes)
   // const nextChanges = changes.filter(change => change.type !== 'remove')
@@ -59,7 +58,7 @@ onNodesChange(async changes => {
 onEdgesChange(async changes => {
   // console.log('changes edge', changes)
   const nextChanges = changes.filter(change => change.type !== 'remove')
-  if(nextChanges.length === 0) return
+  if (nextChanges.length === 0) return
   applyEdgeChanges(nextChanges)
   // return
   // const nextChanges = changes.filter(change => change.type !== 'remove')
@@ -88,8 +87,8 @@ const stateFormatter = (data: QueryFlowResponse) => {
             bgc: data.bgc,
             student_id: String(data.student_id),
             highlight: false,
-            targetPosition: Position.Left,
-            sourcePosition: Position.Right,
+            targetPosition: Position.Top,
+            sourcePosition: Position.Bottom,
           },
         }
       } else if (node.type === 'group') {
@@ -100,8 +99,8 @@ const stateFormatter = (data: QueryFlowResponse) => {
             groupConclusion: node.data.groupConclusion,
             bgc: node.data.bgc,
             group_id: node.data.group_id,
-            targetPosition: Position.Left,
-            sourcePosition: Position.Right,
+            targetPosition: Position.Top,
+            sourcePosition: Position.Bottom,
           },
         }
       } else {
@@ -109,8 +108,8 @@ const stateFormatter = (data: QueryFlowResponse) => {
           ...node,
           data: {
             text: node.data.text,
-            sourcePosition: Position.Left,
-            targetPosition: Position.Right,
+            sourcePosition: Position.Top,
+            targetPosition: Position.Bottom,
           },
         }
       }
@@ -137,6 +136,9 @@ const { loading, run } = useRequest({
   },
   onFail: () => {},
   formatter: stateFormatter,
+  onFinally: () => {
+    setFitView()
+  },
 })
 
 const [nodes, setNodes] = useState<Node[]>([])
@@ -147,6 +149,10 @@ const [edges, setEdges] = useState<Edge[]>([])
  * init flow data
  */
 run()
+
+// onMounted(() => {
+//   setFitView()
+// })
 
 const { layout } = useLayout()
 
@@ -193,11 +199,12 @@ const handleLayout = async (direction: LayoutDir) => {
   })
 }
 
-onMounted(() => {
-  onPaneReady(async () => {
+const setFitView = () => {
+  setTimeout(() => {
+    console.log('set fit view')
     handleLayout('TB')
-  })
-})
+  }, 100)
+}
 
 /**
  * event: 修改观点事件，查看观点事件
@@ -226,6 +233,9 @@ const onClickIdeaNode = ({
 
 defineExpose({
   handleLayout,
+  refreshData: () => {
+    run()
+  },
 })
 </script>
 

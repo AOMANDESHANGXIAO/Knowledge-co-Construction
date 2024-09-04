@@ -44,7 +44,7 @@ const props = withDefaults(
     nodes?: NodeType[]
     edges?: EdgeType[]
     nodeId?: string // nodeId是为了查询观点内容
-    reply?: 'none' | 'oppose' | 'approve' // 表示是否正在修改
+    reply?: 'none' | 'reject' | 'approve' // 表示是否正在修改
   }>(),
   {
     status: Status.Propose,
@@ -657,7 +657,7 @@ const setTargetArgument = (nodes: NodeType[], edges: EdgeType[]) => {
 }
 
 const emits = defineEmits<{
-  (e: 'update:reply', reply: 'none' | 'oppose' | 'approve'): void
+  (e: 'update:reply', reply: 'none' | 'reject' | 'approve'): void
   (e: 'update:status', status: Status): void
 }>()
 
@@ -669,7 +669,7 @@ const handleClickSupport = () => {
 
 const handleClickOppose = () => {
   setTargetArgument(nodes.value, edges.value)
-  emits('update:reply', 'oppose') // 传递给父组件
+  emits('update:reply', 'reject') // 传递给父组件
   emits('update:status', Status.Propose)
 }
 
@@ -683,13 +683,13 @@ const contentStyle = ref({
 
 const handleClickArrow = () => {
   // 折叠
-  console.log('折叠')
+  // console.log('折叠')
   if (contentStyle.value.width === MIN_CONTENT_WIDTH) {
     contentStyle.value.width = MAX_CONTENT_WIDTH
-    console.log(contentStyle.value.width)
+    // console.log(contentStyle.value.width)
   } else {
     contentStyle.value.width = MIN_CONTENT_WIDTH
-    console.log(contentStyle.value.width)
+    // console.log(contentStyle.value.width)
   }
 }
 
@@ -830,11 +830,13 @@ const argumentText = computed(() => {
         <ArrowIcon
           class="arrow"
           @click="handleClickArrow"
-          :class="contentStyle.width === MAX_CONTENT_WIDTH ? 'arrow-up' : 'arrow-down'"
+          :class="
+            contentStyle.width === MAX_CONTENT_WIDTH ? 'arrow-up' : 'arrow-down'
+          "
         ></ArrowIcon>
         <el-scrollbar height="200px">
           <h3 class="argument-text-title" :class="props.reply">
-            {{ props.reply === 'oppose' ? '反驳观点' : '支持观点' }}
+            {{ props.reply === 'reject' ? '反驳观点' : '支持观点' }}
           </h3>
           <div class="argument-text-content" v-html="argumentText"></div>
         </el-scrollbar>
@@ -907,7 +909,7 @@ const argumentText = computed(() => {
 }
 .arrow-down {
   transform: rotate(90deg);
-  right:-7px;
-  top:0;
+  right: -7px;
+  top: 0;
 }
 </style>

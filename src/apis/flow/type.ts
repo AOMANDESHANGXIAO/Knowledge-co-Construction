@@ -30,12 +30,9 @@ interface ProposeIdeaParams {
   [property: string]: any
 }
 
-interface ReplyIdeaParams {
-  topic_id: number
-  student_id: number
-  content: string
-  reply_to: number
-  reply_type: 1 | 0 // 1 表示统一， 0表示反对
+interface ReplyIdeaParams extends CreateNewIdeaArgs{
+  replyType:'approve' | 'reject',
+  replyNodeId: number
 }
 
 interface ReviseGroupConclusionParams {

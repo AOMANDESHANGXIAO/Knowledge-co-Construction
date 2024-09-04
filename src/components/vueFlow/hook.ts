@@ -1,3 +1,6 @@
+/**
+ * @deprecated 
+ */
 import { EDGE_COLORS } from './option'
 import { shallowRef } from 'vue'
 import { queryFlowDataApi } from '@/apis/flow'
