@@ -1,208 +1,121 @@
-/*
- * @Author       : ridiculous adventurer
- * @Version      : V1.0
- * @Date         : 2024-07-15 11:52:43
- * @Description  : diff数组的更新情况
- */
-function diffArr(oldArr, newArr) {
-  // 比较数组的id就可以了，遍历一边旧的数组，找到使用了哪些id
-  const oldMap = new Map()
-
-  oldArr.forEach(el => {
-    oldMap.set(el.id, el)
+function convertToHTML(data) {
+  const nodesMap = {}
+  data.nodes.forEach(node => {
+    nodesMap[node.id] = node.data.inputValue
   })
 
-  // 遍历新数组
-  const newEls = []
-  newArr.forEach(el => {
-    // 如果新数组中有旧数组中没有的节点，就是新增的节点
-    if (!oldMap.has(el.id)) {
-      newEls.push(el)
-    }
-  })
+  let htmlOutput = ''
 
-  return newEls
+  // Process premise
+  const premise = nodesMap['data']
+  if (premise) {
+    htmlOutput += `<div><strong><em>前提</em>:</strong> ${premise}</div>\n`
+  }
+
+  // Process backing
+  const backings = data.edges.filter(edge => edge._type === 'backing_warrant')
+  if (backings.length > 0) {
+    htmlOutput += `<div><strong><em>支撑</em>:</strong> ${
+      nodesMap[backings[0].source]
+    }</div>\n`
+  }
+
+  // Process warrants (with backing)
+  const warrants = data.edges.filter(edge => edge._type === 'backing_warrant')
+  if (warrants.length > 0) {
+    htmlOutput += `<div><strong><em>辩护</em> a:</strong><ul>\n`
+    warrants.forEach((warrant, index) => {
+      htmlOutput += `<li>${nodesMap[warrant.target]}</li>\n`
+    })
+    htmlOutput += `</ul></div>\n`
+  }
+
+  // Process qualifier
+  const qualifier = data.edges.find(edge => edge._type === 'qualifier_claim')
+  if (qualifier) {
+    htmlOutput += `<div><strong><em>限定词</em>:</strong> ${
+      nodesMap[qualifier.source]
+    }</div>\n`
+  }
+
+  // Process rebuttal
+  const rebuttal = data.edges.find(edge => edge._type === 'rebuttal_claim')
+  if (rebuttal) {
+    htmlOutput += `<div><strong><em>反驳</em>:</strong> ${
+      nodesMap[rebuttal.source]
+    }</div>\n`
+  }
+
+  // Process conclusion
+  const conclusion = nodesMap['claim']
+  if (conclusion) {
+    htmlOutput += `<div><strong><em>结论</em>:</strong><br><strong><div>${conclusion}</div></div>\n`
+  }
+
+  return htmlOutput
 }
 
-/**
- *
- * @param {string} id 学生id
- * @param {Array} nodes node表
- * @param {Array} addEdges 新增的边表
- */
-function getNotification(id, nodes, addEdges) {
-  // nodes
-  const selfNodeMap = new Map()
-
-  nodes.forEach(el => {
-    if (el.data.student_id === id) {
-      selfNodeMap.set(el.id, el)
-    }
-  })
-
-  const notes = []
-  // 遍历一边addEdges表
-  addEdges.forEach(el => {
-    // 如果target指向学生自己的节点，则是被回复了
-    if (!selfNodeMap.has(el.target)) {
-      notes.push(el)
-    }
-  })
-
-  return notes
+// Example usage:
+const data = {
+  nodes: [
+    { id: 'data', data: { inputValue: '锻炼是适度的', _type: 'data' } },
+    { id: 'claim', data: { inputValue: '锻炼对身体很有好处', _type: 'claim' } },
+    {
+      id: '1725419387290_0',
+      data: {
+        inputValue:
+          '因为锻炼可以帮我们舒缓心情，加强体内的新陈代谢，还可以锻炼肌肉。因此，锻炼对于身体是有好处的。',
+        _type: 'warrant',
+      },
+    },
+    {
+      id: '1725419440220_2',
+      data: { inputValue: '科学研究说明锻炼对于身体很好', _type: 'backing' },
+    },
+    {
+      id: '1725419487269_6',
+      data: { inputValue: '大多数情况下', _type: 'qualifier' },
+    },
+    {
+      id: '1725419515905_8',
+      data: {
+        inputValue: '如果你的身体不便于运动，那么锻炼对于身体可能就是有害的',
+        _type: 'rebuttal',
+      },
+    },
+  ],
+  edges: [
+    {
+      id: 'init-data-claim',
+      source: 'data',
+      target: '1725419487269_6',
+      _type: 'data_claim',
+    },
+    {
+      id: '1725419387290_1',
+      source: '1725419387290_0',
+      target: '1725419487269_6',
+      _type: 'warrant_claim',
+    },
+    {
+      id: '1725419440220_3',
+      source: '1725419440220_2',
+      target: '1725419387290_0',
+      _type: 'backing_warrant',
+    },
+    {
+      id: '1725419487269_7',
+      source: '1725419487269_6',
+      target: '1725419515905_8',
+      _type: 'qualifier_claim',
+    },
+    {
+      id: '1725419515905_9',
+      source: '1725419515905_8',
+      target: 'claim',
+      _type: 'rebuttal_claim',
+    },
+  ],
 }
 
-const oldNodes = [
-  {
-    id: '3',
-    type: 'idea',
-    data: {
-      name: '斌',
-      id: 3,
-      bgc: '#FF7F3E',
-      student_id: 4,
-    },
-    position: {
-      x: 0,
-      y: 0,
-    },
-  },
-  {
-    id: '6',
-    type: 'idea',
-    data: {
-      name: '斌',
-      id: 6,
-      bgc: '#FF7F3E',
-      student_id: 4,
-    },
-    position: {
-      x: 0,
-      y: 0,
-    },
-  },
-]
-
-const newNodes = [
-  {
-    id: '3',
-    type: 'idea',
-    data: {
-      name: '斌',
-      id: 3,
-      bgc: '#FF7F3E',
-      student_id: 4,
-    },
-    position: {
-      x: 0,
-      y: 0,
-    },
-  },
-  {
-    id: '6',
-    type: 'idea',
-    data: {
-      name: '斌',
-      id: 6,
-      bgc: '#FF7F3E',
-      student_id: 4,
-    },
-    position: {
-      x: 0,
-      y: 0,
-    },
-  },
-  {
-    id: '9',
-    type: 'idea',
-    data: {
-      name: '管理员一号',
-      id: 9,
-      bgc: '#FF7F3E',
-      student_id: 7,
-    },
-    position: {
-      x: 0,
-      y: 0,
-    },
-  },
-  {
-    id: '10',
-    type: 'idea',
-    data: {
-      name: '1333',
-      id: 10,
-      bgc: '#FF7F3E',
-      student_id: 9,
-    },
-    position: {
-      x: 0,
-      y: 0,
-    },
-  },
-  {
-    id: '11',
-    type: 'idea',
-    data: {
-      name: '1333',
-      id: 11,
-      bgc: '#FF7F3E',
-      student_id: 9,
-    },
-    position: {
-      x: 0,
-      y: 0,
-    },
-  },
-]
-
-const oldEdges = [
-  {
-    id: '1',
-    source: '2',
-    target: '1',
-    _type: 'group_to_discuss',
-    animated: true,
-  },
-  {
-    id: '2',
-    source: '3',
-    target: '2',
-    _type: 'idea_to_group',
-    animated: true,
-  },
-]
-
-const newEdges = [
-  {
-    id: '1',
-    source: '2',
-    target: '1',
-    _type: 'group_to_discuss',
-    animated: true,
-  },
-  {
-    id: '2',
-    source: '3',
-    target: '2',
-    _type: 'idea_to_group',
-    animated: true,
-  },
-  {
-    id: '3',
-    source: '6',
-    target: '2',
-    _type: 'idea_to_group',
-    animated: true,
-  },
-  {
-    id: '6',
-    source: '9',
-    target: '2',
-    _type: 'idea_to_group',
-    animated: true,
-  },
-]
-
-console.log('These are the new nodes', diffArr(oldNodes, newNodes))
-console.log('These are the new edges', diffArr(oldEdges, newEdges))
+console.log(convertToHTML(data))

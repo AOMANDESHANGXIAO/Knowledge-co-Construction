@@ -11,13 +11,12 @@ import { ref } from 'vue'
 import flowComponent from '@/components/vueFlow/index.vue'
 import argumentFlowComponent from './components/ArgumentFlowComponent/index.vue'
 import useState from '@/hooks/State/useState'
-import { EdgeType, Status } from './components/ArgumentFlowComponent/type'
+import { Status } from './components/ArgumentFlowComponent/type'
 import { ElMessage, ElNotification } from 'element-plus'
-import { proposeIdeaApi, queryNodeContentApi } from '@/apis/flow'
+import { proposeIdeaApi } from '@/apis/flow'
 import { CreateNewIdeaArgs } from '@/apis/flow/type'
 import { LayoutDirection } from '../../components/vueFlow/type'
 import useRequest from '@/hooks/Async/useRequest'
-import { QueryNodeContentData } from '@/apis/flow/type'
 
 type IdeaAction =
   | 'propose'
@@ -64,10 +63,10 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
   const [loading, setLoading] = useState(false)
 
   /**
-   * 
-   * @param action 
-   * @param payload {id: string} id为node的Id 
-   * @returns 
+   *
+   * @param action
+   * @param payload {id: string} id为node的Id
+   * @returns
    */
   function handleIdeaAction(action: IdeaAction, payload?: { id: string }) {
     switch (action) {
@@ -91,27 +90,7 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
           return
         }
         setVisible(true)
-
-        const { run } = useRequest({
-          apiFn: async () => {
-            return await queryNodeContentApi(+id)
-          },
-          onSuccess: ({ nodes, edges }: QueryNodeContentData) => {
-            argumentFlowRef.value!.setNodes(
-              nodes.map(node => ({
-                ...node,
-                _type: node.data._type,
-              }))
-            )
-            argumentFlowRef.value!.setEdges(edges)
-            argumentFlowRef.value!.setFitView()
-          },
-          onError: err => {
-            showNotification(err, 'error')
-          },
-        })
-
-        run()
+        argumentFlowRef.value?.handleCheckArgument(id)
         return
       }
       case 'reply': {
@@ -163,24 +142,21 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
             _type: edge._type,
           })),
         }
-
         setLoading(true)
-        proposeIdeaApi(createParams)
-          .then(res => {
-            if (res.success) {
-              showNotification('论点发布成功', 'success')
-              setVisible(false)
-            } else {
-              showNotification(res.message, 'error')
-            }
-          })
-          .catch(err => {
-            showNotification(err.message, 'error')
-          })
-          .finally(() => {
+        const { run } = useRequest({
+          apiFn: async () => await proposeIdeaApi(createParams),
+          onSuccess: () => {
+            showNotification('论点发布成功', 'success')
+            setVisible(false)
+          },
+          onFail: () => {
+            showNotification('论点发布失败', 'error')
+          },
+          onFinally: () => {
             setLoading(false)
-          })
-
+          },
+        })
+        run()
         return
       }
       case Status.Check: {

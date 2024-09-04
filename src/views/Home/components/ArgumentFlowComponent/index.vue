@@ -18,7 +18,7 @@ import useState from '@/hooks/State/useState.ts'
 import useRequest from '@/hooks/Async/useRequest'
 import { queryNodeContentApi } from '@/apis/flow'
 import { QueryNodeContentData } from '@/apis/flow/type'
-
+import { convertToHTML } from './utils'
 const {
   createNode,
   createEdge,
@@ -72,7 +72,6 @@ const reset = () => {
     handleLayoutGraph()
   }
 }
-
 
 const dataClaimIds = ref({
   dataId: getDataNodeId(nodes.value),
@@ -607,7 +606,8 @@ onNodesChange(async changes => {
   const nextChanges = []
 
   for (const change of changes) {
-    if (change.type === 'remove') {
+    // 不允许在查看时删除
+    if (change.type === 'remove' && props.status !== Status.Check) {
       callBacks.value = []
 
       if (!handleDeleteNode(change.id)) {
@@ -629,6 +629,7 @@ onNodesChange(async changes => {
       nextChanges.push(change)
     }
   }
+  if(props.status === Status.Check) return
   applyNodeChanges(nextChanges)
 })
 
@@ -683,15 +684,22 @@ const { run: queryNodeContent } = useRequest({
 })
 const queryNodeId = ref('')
 
+/**
+ *
+ * @param nodeId 节点id
+ * @description 这个方法被暴露出去，用于查看观点
+ */
 const handleCheckArgument = (nodeId: string) => {
   queryNodeId.value = nodeId
   queryNodeContent()
 }
 
+/**
+ * 这个函数被用来初始化发布观点
+ */
 const handleInitProposeArgument = () => {
-  // console.log('handleInitProposeArgument')
-  initState()
-  setFitView()
+  initState() // 首先重置节点内容
+  setFitView() // 设置视图
 }
 
 const getArgumentNodes = () => {
@@ -724,7 +732,17 @@ defineExpose({
   setFitView,
   handleLayoutGraph,
   handleCheckArgument,
-  handleInitProposeArgument
+  handleInitProposeArgument,
+})
+
+// TODO: 1. 设置两个按钮，在查看观点时，可以选择支持观点或者反对观点。
+const handleClickSupport = () => {}
+
+const handleClickOppose = () => {}
+
+// TODO: 2. 在右下角显示正在回应的组件的文字版本
+const argumentText = computed(() => {
+  return convertToHTML({ nodes: nodes.value, edges: edges.value })
 })
 </script>
 
@@ -803,6 +821,34 @@ defineExpose({
       >
     </Panel>
 
+    <!-- 在查看观点时可以选择支持观点或者反对观点 -->
+    <Panel
+      position="top-right"
+      class="button-group-container"
+      v-else-if="props.status === Status.Check"
+    >
+      <el-popconfirm
+        title="你确定要跳转至观点编辑页面吗?"
+        @confirm="handleClickSupport"
+      >
+        <template #reference>
+          <el-button plain style="margin-left: 0" type="success"
+            >支持观点</el-button
+          >
+        </template>
+      </el-popconfirm>
+      <el-popconfirm
+        title="你确定要跳转至观点编辑页面吗?"
+        @click="handleClickOppose"
+      >
+        <template #reference>
+          <el-button plain style="margin-left: 0" type="danger"
+            >反对观点</el-button
+          >
+        </template>
+      </el-popconfirm>
+    </Panel>
+
     <Panel
       position="top-left"
       class="feedback-tips"
@@ -817,6 +863,11 @@ defineExpose({
         show-icon
         :closable="false"
       ></el-alert>
+    </Panel>
+
+    <!-- TODO: 设置一个右下角的文字版，以文字的形式显示当前的论证内容，或是正在针对哪个观点 -->
+    <Panel position="bottom-right" class="argument-text">
+      <div class="argument-text-content" v-html="argumentText"></div>
     </Panel>
   </VueFlow>
 </template>
@@ -845,5 +896,15 @@ defineExpose({
   width: 200px;
   /* min-height: 200px; */
   background-color: #fff;
+}
+.argument-text {
+  box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.08);
+  padding: 10px;
+  background-color: #fff;
+  width: 200px;
+  max-height: 400px;
+}
+.argument-text-content {
+  overflow-y: auto;
 }
 </style>
