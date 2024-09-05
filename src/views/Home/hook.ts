@@ -20,6 +20,7 @@ import useRequest from '@/hooks/Async/useRequest'
 import useRefresh from '../../hooks/Element/useRefresh'
 import { queryTopicContentApi } from '@/apis/manageTalk'
 import { TopicContent } from '@/apis/manageTalk/type'
+import { NodeType, EdgeType } from './components/ArgumentFlowComponent/type'
 
 type IdeaAction =
   | 'propose'
@@ -108,7 +109,10 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
    * @param payload {id: string} id为node的Id
    * @returns
    */
-  function handleIdeaAction(action: IdeaAction, payload?: { nodeId: string, studentId: string }) {
+  function handleIdeaAction(
+    action: IdeaAction,
+    payload?: { nodeId: string; studentId: string }
+  ) {
     switch (action) {
       // 被用作提出观点
       case 'propose': {
@@ -134,7 +138,10 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
       // 被用作检查观点
       case 'check': {
         setSumbitStatus(Status.Check)
-        const { nodeId, studentId } = payload as { nodeId: string, studentId: string }
+        const { nodeId, studentId } = payload as {
+          nodeId: string
+          studentId: string
+        }
         setVisible(true)
         setNodeId(nodeId)
         setSelectStudentId(studentId) // 设置被选中的学生ID
@@ -265,16 +272,32 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
     return selectStudentId.value === String(student_id)
   })
 
+  // 传递给argumentFlow组件
+  const [nodes, setNodes] = useState<NodeType[]>([])
+  const [edges, setEdges] = useState<EdgeType[]>([])
+
+  const onArgumentModify = (nodesModified: NodeType[], edgesModified: EdgeType[]) => {
+    // 设置初始状态
+    setNodes(nodesModified)
+    setEdges(edgesModified)
+    refresh() // 直接更新组件
+  }
+
   /**
    * 监听组件状态的变化
    */
   watch(sumbitStatus, newValue => {
     if (newValue === Status.Propose) {
       argumentFlowRef.value?.initState()
+    } else if (newValue === Status.Modify) {
+      // argumentFlowRef.value.
     }
   })
 
   return {
+    nodes,
+    edges,
+    onArgumentModify,
     argumentFlowRef,
     vueFlowRef,
     visible,
@@ -292,7 +315,7 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
     setReply,
     refreshVueFlow,
     topicContent,
-    canReviseIdea
+    canReviseIdea,
   }
 }
 

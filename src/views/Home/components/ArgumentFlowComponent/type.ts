@@ -63,8 +63,9 @@ export enum ArgumentType {
 }
 
 export enum Status {
-  Propose,
-  Check,
+  Propose, // 提出
+  Check, // 查看
+  Modify, // 修改
 }
 
 export type { NodeType, EdgeType, AddBackPayload, FeedBack, ArgumentNode }

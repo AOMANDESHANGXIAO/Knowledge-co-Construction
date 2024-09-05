@@ -5,7 +5,7 @@ import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
 import { useLayout } from '@/hooks/VueFlow/useLayout'
 import type { NodeType, EdgeType, AddBackPayload } from './type.ts'
-import { Status } from './type'
+import { Status } from './type';
 import { ArgumentType } from './type.ts'
 import { LayoutDirection } from './type.ts'
 import '@vue-flow/controls/dist/style.css'
@@ -117,9 +117,11 @@ const reset = () => {
   }
 }
 
-const dataClaimIds = ref({
-  dataId: getDataNodeId(nodes.value),
-  claimId: getClaimNodeId(nodes.value),
+const dataClaimIds = computed(()=>{
+  return {
+    dataId: getDataNodeId(nodes.value),
+    claimId: getClaimNodeId(nodes.value),
+  }
 })
 
 const { layout } = useLayout()
@@ -164,6 +166,12 @@ onMounted(async () => {
   } else if (props.status === Status.Propose) {
     // 将nodes,和edges设置为初始
     initState()
+  } else if(props.status === Status.Modify) {
+    // 设置为父组件传递过来的
+    console.log('set nodes and edges', props.nodes, props.edges)
+    setNodesValue(props.nodes)
+    setEdgesValue(props.edges)
+    setFitView()
   }
 })
 
@@ -661,6 +669,8 @@ const setTargetArgument = (nodes: NodeType[], edges: EdgeType[]) => {
 const emits = defineEmits<{
   (e: 'update:reply', reply: 'none' | 'reject' | 'approve'): void
   (e: 'update:status', status: Status): void
+  // 修改事件时向父组件传递现有的nodes和edges
+  (e: 'modify', nodes: NodeType[], edges: EdgeType[]): void
 }>()
 
 const handleClickSupport = () => {
@@ -741,7 +751,14 @@ const { title, content, contentStyle, handleClickArrow, MAX_CONTENT_WIDTH } =
  */
 const handleClickModify = () => {
   // 修改
-  console.log('修改')
+  // 修改的时候要将页面改成提出观点状态？
+  // console.log('修改')
+  emits('update:reply', 'none')
+  emits('update:status', Status.Modify)
+
+  emits('modify', nodes.value, edges.value)
+
+  // feedbackCallback()
 }
 </script>
 
@@ -774,10 +791,11 @@ const handleClickModify = () => {
 
     <Controls />
 
+    <!-- 修改或者提出观点时的按钮 -->
     <Panel
       position="top-right"
       class="button-group-container"
-      v-if="props.status === Status.Propose"
+      v-if="props.status === Status.Propose || props.status === Status.Modify"
     >
       <el-popconfirm title="你确定要重置论证?" @confirm="reset">
         <template #reference>
@@ -824,7 +842,7 @@ const handleClickModify = () => {
     <Panel
       position="top-right"
       class="button-group-container"
-      v-else-if="props.status === Status.Check"
+      v-if="props.status === Status.Check"
     >
       <el-popconfirm
         title="你确定要跳转至观点编辑页面吗?"
@@ -859,6 +877,7 @@ const handleClickModify = () => {
       </el-popconfirm>
     </Panel>
 
+    <!-- 反馈 -->
     <Panel
       position="top-left"
       class="feedback-tips"
@@ -875,6 +894,7 @@ const handleClickModify = () => {
       ></el-alert>
     </Panel>
 
+    <!-- 右下角TIPDS -->
     <Panel position="bottom-right" class="argument-text" :style="contentStyle">
       <!-- 可以折叠 -->
       <section style="width: 100%; height: 100%; position: relative">

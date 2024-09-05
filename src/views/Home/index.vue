@@ -17,6 +17,8 @@ const { getOneUserInfo } = useUserStore()
 const studentId = getOneUserInfo('id') as string
 
 const {
+  nodes,
+  edges,
   canReviseIdea,
   topicContent,
   key,
@@ -32,13 +34,14 @@ const {
   handleSumbit,
   handleLayout,
   refreshVueFlow,
+  onArgumentModify
 } = useMyVueFlow({
   topic_id: topicId.value,
   student_id: +studentId,
 })
 
 /**
- * 
+ *
  * @param payload { id: string; studentId: string } id 为查看节点的id
  */
 const onCheckIdea = (payload: { nodeId: string; studentId: string }) => {
@@ -54,11 +57,14 @@ const onCheckIdea = (payload: { nodeId: string; studentId: string }) => {
         <argumentFlowComponent
           ref="argumentFlowRef"
           v-model:status="sumbitStatus"
+          :nodes="nodes"
+          :edges="edges"
           :node-id="nodeId"
           :key="key"
           :topic-content="topicContent"
           :can-revise-idea="canReviseIdea"
           v-model:reply="reply"
+          @modify="onArgumentModify"
         ></argumentFlowComponent>
       </div>
       <div class="button-footer-container">
@@ -73,10 +79,7 @@ const onCheckIdea = (payload: { nodeId: string; studentId: string }) => {
   </section>
 
   <div class="vue-flow-container">
-    <flow-component
-      ref="vueFlowRef"
-      @checkIdea="onCheckIdea"
-    >
+    <flow-component ref="vueFlowRef" @checkIdea="onCheckIdea">
       <div class="layout-panel">
         <button title="发表观点" @click="handleIdeaAction('propose')">
           <Icon :name="IconName.Idea" />
