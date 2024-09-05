@@ -210,8 +210,7 @@ const setFitView = () => {
  * event: 修改观点事件，查看观点事件
  */
 const emits = defineEmits<{
-  (e: 'reviseIdea', id: string): void
-  (e: 'checkIdea', id: string): void
+  (e: 'checkIdea', payload: { nodeId: string; studentId: string }): void
 }>()
 
 const onClickIdeaNode = ({
@@ -221,14 +220,7 @@ const onClickIdeaNode = ({
   nodeId: string
   studentId: string
 }) => {
-  // console.log('学生id', studentId, '观点id', nodeId)
-  if (student_id === studentId) {
-    // console.log('修改观点')
-    emits('reviseIdea', nodeId)
-  } else {
-    // console.log('查看观点')
-    emits('checkIdea', nodeId)
-  }
+  emits('checkIdea', { nodeId, studentId })
 }
 
 defineExpose({

@@ -68,12 +68,13 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
 
   const [nodeId, setNodeId] = useState('') // 被选中的node的id
 
+  const [selectStudentId, setSelectStudentId] = useState('') // 被选中的node的发布者id
+
   const [reply, setReply] = useState<'none' | 'reject' | 'approve'>('none')
 
   const { key, refresh } = useRefresh()
 
   const refreshVueFlow = () => {
-    // console.log('refreshVueFlow')
     vueFlowRef.value?.refreshData()
   }
 
@@ -107,7 +108,7 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
    * @param payload {id: string} id为node的Id
    * @returns
    */
-  function handleIdeaAction(action: IdeaAction, payload?: { id: string }) {
+  function handleIdeaAction(action: IdeaAction, payload?: { nodeId: string, studentId: string }) {
     switch (action) {
       // 被用作提出观点
       case 'propose': {
@@ -132,16 +133,11 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
       }
       // 被用作检查观点
       case 'check': {
-        console.log('check 1')
         setSumbitStatus(Status.Check)
-        const id = payload?.id
-        console.log('check 2')
-        if (!id) {
-          showWarningMsg('请先选择一个节点')
-          return
-        }
+        const { nodeId, studentId } = payload as { nodeId: string, studentId: string }
         setVisible(true)
-        setNodeId(id)
+        setNodeId(nodeId)
+        setSelectStudentId(studentId) // 设置被选中的学生ID
         setReply('none')
         refresh()
         return
@@ -262,6 +258,14 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
   }
 
   /**
+   * 判断是否可以编辑
+   */
+  const canReviseIdea = computed(() => {
+    // 如果是自己的话题则可以进行编辑
+    return selectStudentId.value === String(student_id)
+  })
+
+  /**
    * 监听组件状态的变化
    */
   watch(sumbitStatus, newValue => {
@@ -288,6 +292,7 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
     setReply,
     refreshVueFlow,
     topicContent,
+    canReviseIdea
   }
 }
 

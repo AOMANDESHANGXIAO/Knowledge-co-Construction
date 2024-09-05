@@ -17,6 +17,7 @@ const { getOneUserInfo } = useUserStore()
 const studentId = getOneUserInfo('id') as string
 
 const {
+  canReviseIdea,
   topicContent,
   key,
   nodeId,
@@ -30,20 +31,19 @@ const {
   handleIdeaAction,
   handleSumbit,
   handleLayout,
-  refreshVueFlow
+  refreshVueFlow,
 } = useMyVueFlow({
   topic_id: topicId.value,
   student_id: +studentId,
 })
 
-// TODO: 后端实现后对接
-const onReviseIdea = (nodeId: string) => {
-  console.log('学生修改观点', nodeId)
-}
-
-const onCheckIdea = (nodeId: string) => {
+/**
+ * 
+ * @param payload { id: string; studentId: string } id 为查看节点的id
+ */
+const onCheckIdea = (payload: { nodeId: string; studentId: string }) => {
   // console.log('学生检查观点', nodeId)
-  handleIdeaAction('check', { id: nodeId })
+  handleIdeaAction('check', payload)
 }
 </script>
 
@@ -57,6 +57,7 @@ const onCheckIdea = (nodeId: string) => {
           :node-id="nodeId"
           :key="key"
           :topic-content="topicContent"
+          :can-revise-idea="canReviseIdea"
           v-model:reply="reply"
         ></argumentFlowComponent>
       </div>
@@ -74,7 +75,6 @@ const onCheckIdea = (nodeId: string) => {
   <div class="vue-flow-container">
     <flow-component
       ref="vueFlowRef"
-      @reviseIdea="onReviseIdea"
       @checkIdea="onCheckIdea"
     >
       <div class="layout-panel">

@@ -45,7 +45,8 @@ const props = withDefaults(
     edges?: EdgeType[]
     nodeId?: string // nodeId是为了查询观点内容
     reply?: 'none' | 'reject' | 'approve' // 表示是否正在修改
-    topicContent?: string
+    topicContent?: string // 当前topic的内容
+    canReviseIdea: boolean // 标记是否能够修改观点
   }>(),
   {
     status: Status.Propose,
@@ -54,6 +55,7 @@ const props = withDefaults(
     nodeId: '',
     reply: 'none',
     topicContent: '',
+    canReviseIdea: false,
   }
 )
 
@@ -647,8 +649,6 @@ defineExpose({
   // handleInitProposeArgument,
 })
 
-// TODO: 1. 设置两个按钮，在查看观点时，可以选择支持观点或者反对观点。
-// 记录点击支持或者反对后指向的观点
 const [targetNodes, setTargetNodes] = useState<NodeType[]>([])
 
 const [targetEdges, setTargetEdges] = useState<EdgeType[]>([])
@@ -674,54 +674,75 @@ const handleClickOppose = () => {
   emits('update:reply', 'reject') // 传递给父组件
   emits('update:status', Status.Propose)
 }
+/**
+ * 用于处理右下角的提示词
+ */
+function useTips() {
+  const MAX_CONTENT_WIDTH = '400px'
+  const MIN_CONTENT_WIDTH = '20px'
 
-const MAX_CONTENT_WIDTH = '400px'
-const MIN_CONTENT_WIDTH = '20px'
+  const contentStyle = ref({
+    width: MAX_CONTENT_WIDTH,
+    transition: 'width 0.3s',
+  })
 
-const contentStyle = ref({
-  width: MAX_CONTENT_WIDTH,
-  transition: 'width 0.3s',
-})
+  const handleClickArrow = () => {
+    // 折叠
+    // console.log('折叠')
+    if (contentStyle.value.width === MIN_CONTENT_WIDTH) {
+      contentStyle.value.width = MAX_CONTENT_WIDTH
+      // console.log(contentStyle.value.width)
+    } else {
+      contentStyle.value.width = MIN_CONTENT_WIDTH
+      // console.log(contentStyle.value.width)
+    }
+  }
 
-const handleClickArrow = () => {
-  // 折叠
-  // console.log('折叠')
-  if (contentStyle.value.width === MIN_CONTENT_WIDTH) {
-    contentStyle.value.width = MAX_CONTENT_WIDTH
-    // console.log(contentStyle.value.width)
-  } else {
-    contentStyle.value.width = MIN_CONTENT_WIDTH
-    // console.log(contentStyle.value.width)
+  const title = computed(() => {
+    if (props.reply === 'none') {
+      return '话题'
+    } else if (props.reply === 'approve') {
+      return '支持观点'
+    } else if (props.reply === 'reject') {
+      return '反对观点'
+    } else {
+      return ''
+    }
+  })
+
+  const content = computed(() => {
+    if (props.reply === 'none') {
+      return props.topicContent
+    } else if (props.reply === 'approve' || props.reply === 'reject') {
+      return convertToHTML({
+        nodes: targetNodes.value,
+        edges: targetEdges.value,
+      })
+    } else {
+      return ''
+    }
+  })
+
+  return {
+    title,
+    content,
+    contentStyle,
+    handleClickArrow,
+    MAX_CONTENT_WIDTH,
+    MIN_CONTENT_WIDTH,
   }
 }
 
-const title = computed(() => {
-  if (props.reply === 'none') {
-    return '发表观点'
-  } else if (props.reply === 'approve') {
-    return '支持观点'
-  } else if (props.reply === 'reject') {
-    return '反对观点'
-  } else {
-    return ''
-  }
-})
+const { title, content, contentStyle, handleClickArrow, MAX_CONTENT_WIDTH } =
+  useTips()
 
-const content = computed(() => {
-  if (props.reply === 'none') {
-    return props.topicContent
-  } else if (props.reply === 'approve' || props.reply === 'reject') {
-    return convertToHTML({ nodes: targetNodes.value, edges: targetEdges.value })
-  } else {
-    return ''
-  }
-})
-
-// // TODO: 2. 在右下角显示正在回应的组件的文字版本
-// const argumentText = computed(() => {
-//   return convertToHTML({ nodes: targetNodes.value, edges: targetEdges.value })
-// })
-//
+/**
+ * 处理修改观点
+ */
+const handleClickModify = () => {
+  // 修改
+  console.log('修改')
+}
 </script>
 
 <template>
@@ -799,7 +820,7 @@ const content = computed(() => {
       >
     </Panel>
 
-    <!-- 在查看观点时可以选择支持观点或者反对观点 -->
+    <!-- 在查看观点时可以选择支持观点或者反对观点, 如果是学生自己的观点，那么还可以修改观点 -->
     <Panel
       position="top-right"
       class="button-group-container"
@@ -825,6 +846,17 @@ const content = computed(() => {
           >
         </template>
       </el-popconfirm>
+      <el-popconfirm
+        title="你确定要修改观点吗?"
+        @confirm="handleClickModify"
+        v-if="props.canReviseIdea"
+      >
+        <template #reference>
+          <el-button plain style="margin-left: 0" type="warning">
+            修改观点
+          </el-button>
+        </template>
+      </el-popconfirm>
     </Panel>
 
     <Panel
@@ -843,8 +875,6 @@ const content = computed(() => {
       ></el-alert>
     </Panel>
 
-    <!-- TODO: 右下角的文字版，表示正在反驳或是关注的观点 -->
-    <!-- 在提出观点时，显示当前话题的文本 -->
     <Panel position="bottom-right" class="argument-text" :style="contentStyle">
       <!-- 可以折叠 -->
       <section style="width: 100%; height: 100%; position: relative">
