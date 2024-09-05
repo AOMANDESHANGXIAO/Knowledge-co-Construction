@@ -4,7 +4,7 @@ import type {
   CreateNewIdeaArgs,
   ReplyIdeaParams,
   ReviseGroupConclusionParams,
-  ReviseSelfIdeaParams,
+  ModifyIdeaParams,
   QueryFlowResponse,
   QueryNodeContentData,
 } from './type.ts'
@@ -33,21 +33,26 @@ const replyIdeaApi = (params: ReplyIdeaParams): Promise<Response> => {
   return Service.post('/flow/reply_idea', params)
 }
 
+const modifyIdeaApi = (params: ModifyIdeaParams): Promise<Response> => {
+  return Service.patch('/flow/modify_idea', params)
+}
+
 const reviseGroupConclusionApi = (
   params: ReviseGroupConclusionParams
 ): Promise<Response> => {
   return Service.post('/flow/revise_group_conclusion', params)
 }
 
-const reviseSelfIdeaApi = (params: ReviseSelfIdeaParams): Promise<Response> => {
-  return Service.post('/flow/revise_self_idea', params)
-}
+// const reviseSelfIdeaApi = (params: ReviseSelfIdeaParams): Promise<Response> => {
+//   return Service.post('/flow/revise_self_idea', params)
+// }
 
 export {
   queryFlowDataApi,
   queryNodeContentApi,
   proposeIdeaApi,
+  modifyIdeaApi,
   replyIdeaApi,
   reviseGroupConclusionApi,
-  reviseSelfIdeaApi,
+  // reviseSelfIdeaApi,
 }

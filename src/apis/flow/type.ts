@@ -35,6 +35,11 @@ interface ReplyIdeaParams extends CreateNewIdeaArgs{
   replyNodeId: number
 }
 
+interface ModifyIdeaParams extends CreateNewIdeaArgs {
+  modifyNodeId: number
+}
+
+
 interface ReviseGroupConclusionParams {
   topic_id: number
   student_id: number
@@ -163,5 +168,6 @@ export type {
   QueryFlowData,
   QueryNodeContentData,
   CreateNewIdeaArgs,
-  QueryFlowResponse
+  QueryFlowResponse,
+  ModifyIdeaParams
 }

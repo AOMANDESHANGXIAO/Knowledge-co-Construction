@@ -13,8 +13,12 @@ import argumentFlowComponent from './components/ArgumentFlowComponent/index.vue'
 import useState from '@/hooks/State/useState'
 import { Status } from './components/ArgumentFlowComponent/type'
 import { ElMessage, ElNotification } from 'element-plus'
-import { proposeIdeaApi, replyIdeaApi } from '@/apis/flow'
-import { CreateNewIdeaArgs, ReplyIdeaParams } from '@/apis/flow/type'
+import { proposeIdeaApi, replyIdeaApi, modifyIdeaApi } from '@/apis/flow'
+import {
+  CreateNewIdeaArgs,
+  ReplyIdeaParams,
+  ModifyIdeaParams,
+} from '@/apis/flow/type'
 import { LayoutDirection } from '../../components/vueFlow/type'
 import useRequest from '@/hooks/Async/useRequest'
 import useRefresh from '../../hooks/Element/useRefresh'
@@ -152,6 +156,58 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
     }
   }
 
+  const { run: ModifyIdea } = useRequest({
+    apiFn: async () => {
+      const [nodes, edges] = [
+        argumentFlowRef.value!.getArgumentNodes(),
+        argumentFlowRef.value!.getArgumentEdges(),
+      ]
+
+      for (const node of nodes) {
+        if (!node.data.inputValue) {
+          showWarningMsg('请先填写观点内容')
+          return
+        }
+      }
+
+      const params: ModifyIdeaParams = {
+        topic_id,
+        student_id,
+        modifyNodeId: +nodeId.value,
+        nodes: nodes.map(node => ({
+          id: node.id,
+          data: {
+            inputValue: node.data.inputValue,
+            _type: node.data._type as string,
+          },
+          type: 'element',
+        })),
+        edges,
+      }
+
+      return await modifyIdeaApi(params)
+
+    },
+    onSuccess: () => {
+      ElNotification({
+        title: 'Success',
+        message: '修改观点成功',
+        type: 'success',
+        position: 'bottom-right',
+      })
+      setVisible(false)
+      refreshVueFlow()
+    },
+    onError: () => {
+      ElNotification({
+        title: 'Error',
+        message: '修改观点失败',
+        type: 'error',
+        position: 'bottom-right',
+      })
+    },
+  })
+
   // TODO: 对接后端, 回复观点,同意还是反对.
   function handleSumbit() {
     switch (sumbitStatus.value) {
@@ -251,6 +307,11 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
         setVisible(false)
         return
       }
+      case Status.Modify: {
+        // 用于修改自己的观点
+        console.log('修改自己的观点')
+        ModifyIdea()
+      }
       // case Status.Approve: {
       //   return
       // }
@@ -276,7 +337,10 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
   const [nodes, setNodes] = useState<NodeType[]>([])
   const [edges, setEdges] = useState<EdgeType[]>([])
 
-  const onArgumentModify = (nodesModified: NodeType[], edgesModified: EdgeType[]) => {
+  const onArgumentModify = (
+    nodesModified: NodeType[],
+    edgesModified: EdgeType[]
+  ) => {
     // 设置初始状态
     setNodes(nodesModified)
     setEdges(edgesModified)

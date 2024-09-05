@@ -9,6 +9,7 @@ import { useMyVueFlow } from './hook.ts'
 import { useUserStore } from '../../store/modules/user/index'
 import useQueryParam from '@/hooks/router/useQueryParam'
 // import useRefresh from '../../hooks/Element/useRefresh'
+import { Status } from './components/ArgumentFlowComponent/type'
 
 const topicId = useQueryParam<number>('topic_id')
 
@@ -34,7 +35,7 @@ const {
   handleSumbit,
   handleLayout,
   refreshVueFlow,
-  onArgumentModify
+  onArgumentModify,
 } = useMyVueFlow({
   topic_id: topicId.value,
   student_id: +studentId,
@@ -69,11 +70,18 @@ const onCheckIdea = (payload: { nodeId: string; studentId: string }) => {
       </div>
       <div class="button-footer-container">
         <my-button @click="setVisible(false)" _type="Cancel"></my-button>
-        <my-button
+        <el-button
+          style="margin-left: 10px"
+          color="#FF8225"
+          @click="handleSumbit"
+          :loading="loading"
+          >{{ sumbitStatus === Status.Propose ? '确认' : '修改' }}</el-button
+        >
+        <!-- <my-button
           @click="handleSumbit"
           _type="OK"
           :loading="loading"
-        ></my-button>
+        ></my-button> -->
       </div>
     </el-dialog>
   </section>

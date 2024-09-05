@@ -168,7 +168,6 @@ onMounted(async () => {
     initState()
   } else if(props.status === Status.Modify) {
     // 设置为父组件传递过来的
-    console.log('set nodes and edges', props.nodes, props.edges)
     setNodesValue(props.nodes)
     setEdgesValue(props.edges)
     setFitView()
@@ -755,7 +754,7 @@ const handleClickModify = () => {
   // console.log('修改')
   emits('update:reply', 'none')
   emits('update:status', Status.Modify)
-
+  // 将当前的nodes和edges传出去，下一次作为修改
   emits('modify', nodes.value, edges.value)
 
   // feedbackCallback()
