@@ -17,6 +17,7 @@ const { getOneUserInfo } = useUserStore()
 const studentId = getOneUserInfo('id') as string
 
 const {
+  topicContent,
   key,
   nodeId,
   reply,
@@ -55,6 +56,7 @@ const onCheckIdea = (nodeId: string) => {
           v-model:status="sumbitStatus"
           :node-id="nodeId"
           :key="key"
+          :topic-content="topicContent"
           v-model:reply="reply"
         ></argumentFlowComponent>
       </div>
@@ -79,6 +81,7 @@ const onCheckIdea = (nodeId: string) => {
         <button title="发表观点" @click="handleIdeaAction('propose')">
           <Icon :name="IconName.Idea" />
         </button>
+        <!-- TODO: 后端实现后对接 -->
         <button title="总结观点" @click="">
           <Icon :name="IconName.Summary" />
         </button>
@@ -88,6 +91,7 @@ const onCheckIdea = (nodeId: string) => {
         <button title="返回首页" @click="">
           <Icon :name="IconName.Home" />
         </button>
+        <!-- TODO: 最后写 -->
         <button title="设置" @click="">
           <Icon :name="IconName.Setting" />
         </button>

@@ -1,6 +1,6 @@
 import Service from '@/apis/index.ts'
 import { Response } from '../libcommon'
-import { TopicListData } from './type.ts'
+import { TopicListData, TopicContent } from './type.ts'
 
 const queryTopicListApi = (
   class_id: number,
@@ -11,9 +11,17 @@ const queryTopicListApi = (
     params: {
       class_id,
       content,
-      sort
-    }
+      sort,
+    },
   })
 }
 
-export { queryTopicListApi }
+const queryTopicContentApi = (id: number): Promise<Response<TopicContent>> => {
+  return Service.get(`/discuss/topic_content`, {
+    params: {
+      id,
+    },
+  })
+}
+
+export { queryTopicListApi, queryTopicContentApi }

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// TODO: 重构组件
 import { h, ref } from 'vue'
 import { VueFlow, Panel, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
@@ -23,6 +22,7 @@ import { convertToHTML } from './utils'
 import { onMounted } from 'vue'
 import useFeedback from './hooks/useFeedback'
 import ArrowIcon from './components/icon/index.vue'
+// import useQueryParam from '@/hooks/router/useQueryParam'
 
 const {
   createNode,
@@ -45,6 +45,7 @@ const props = withDefaults(
     edges?: EdgeType[]
     nodeId?: string // nodeId是为了查询观点内容
     reply?: 'none' | 'reject' | 'approve' // 表示是否正在修改
+    topicContent?: string
   }>(),
   {
     status: Status.Propose,
@@ -52,6 +53,7 @@ const props = withDefaults(
     edges: () => [],
     nodeId: '',
     reply: 'none',
+    topicContent: '',
   }
 )
 
@@ -693,10 +695,33 @@ const handleClickArrow = () => {
   }
 }
 
-// TODO: 2. 在右下角显示正在回应的组件的文字版本
-const argumentText = computed(() => {
-  return convertToHTML({ nodes: targetNodes.value, edges: targetEdges.value })
+const title = computed(() => {
+  if (props.reply === 'none') {
+    return '发表观点'
+  } else if (props.reply === 'approve') {
+    return '支持观点'
+  } else if (props.reply === 'reject') {
+    return '反对观点'
+  } else {
+    return ''
+  }
 })
+
+const content = computed(() => {
+  if (props.reply === 'none') {
+    return props.topicContent
+  } else if (props.reply === 'approve' || props.reply === 'reject') {
+    return convertToHTML({ nodes: targetNodes.value, edges: targetEdges.value })
+  } else {
+    return ''
+  }
+})
+
+// // TODO: 2. 在右下角显示正在回应的组件的文字版本
+// const argumentText = computed(() => {
+//   return convertToHTML({ nodes: targetNodes.value, edges: targetEdges.value })
+// })
+//
 </script>
 
 <template>
@@ -819,12 +844,8 @@ const argumentText = computed(() => {
     </Panel>
 
     <!-- TODO: 右下角的文字版，表示正在反驳或是关注的观点 -->
-    <Panel
-      position="bottom-right"
-      class="argument-text"
-      :style="contentStyle"
-      v-if="props.reply !== 'none'"
-    >
+    <!-- 在提出观点时，显示当前话题的文本 -->
+    <Panel position="bottom-right" class="argument-text" :style="contentStyle">
       <!-- 可以折叠 -->
       <section style="width: 100%; height: 100%; position: relative">
         <ArrowIcon
@@ -836,9 +857,9 @@ const argumentText = computed(() => {
         ></ArrowIcon>
         <el-scrollbar height="200px">
           <h3 class="argument-text-title" :class="props.reply">
-            {{ props.reply === 'reject' ? '反驳观点' : '支持观点' }}
+            {{ title }}
           </h3>
-          <div class="argument-text-content" v-html="argumentText"></div>
+          <div class="argument-text-content" v-html="content"></div>
         </el-scrollbar>
       </section>
     </Panel>

@@ -18,6 +18,8 @@ import { CreateNewIdeaArgs, ReplyIdeaParams } from '@/apis/flow/type'
 import { LayoutDirection } from '../../components/vueFlow/type'
 import useRequest from '@/hooks/Async/useRequest'
 import useRefresh from '../../hooks/Element/useRefresh'
+import { queryTopicContentApi } from '@/apis/manageTalk'
+import { TopicContent } from '@/apis/manageTalk/type'
 
 type IdeaAction =
   | 'propose'
@@ -71,9 +73,33 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
   const { key, refresh } = useRefresh()
 
   const refreshVueFlow = () => {
-    console.log('refreshVueFlow')
+    // console.log('refreshVueFlow')
     vueFlowRef.value?.refreshData()
   }
+
+  /**
+   * 查询topic_id的话题信息
+   */
+  const topicContent = ref('')
+
+  const { run: getTopicContent } = useRequest({
+    apiFn: async () => await queryTopicContentApi(topic_id),
+    onSuccess: (res: TopicContent) => {
+      topicContent.value = res.topic_content
+    },
+    onError: () => {
+      ElNotification({
+        title: 'Error',
+        message: '获取主题内容失败',
+        type: 'error',
+        position: 'bottom-right',
+      })
+    },
+  })
+
+  onMounted(() => {
+    getTopicContent()
+  })
 
   /**
    *
@@ -260,7 +286,8 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
     key,
     reply,
     setReply,
-    refreshVueFlow
+    refreshVueFlow,
+    topicContent,
   }
 }
 

@@ -18,7 +18,14 @@ interface ListItem {
   [property: string]: any;
 }
 
+interface TopicContent {
+  id: number // 话题id
+  topic_content: string // 话题内容
+  created_time: Date // 创建时间
+}
+
 export type {
   TopicListData,
-  ListItem
+  ListItem,
+  TopicContent
 }
