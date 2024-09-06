@@ -7,6 +7,7 @@ import type {
   ModifyIdeaParams,
   QueryFlowResponse,
   QueryNodeContentData,
+  ProposeGroupConclusionParams,
 } from './type.ts'
 
 const queryFlowDataApi = (
@@ -37,6 +38,12 @@ const modifyIdeaApi = (params: ModifyIdeaParams): Promise<Response> => {
   return Service.patch('/flow/modify_idea', params)
 }
 
+const proposeGroupConclusionApi = (
+  params: ProposeGroupConclusionParams
+): Promise<Response> => {
+  return Service.post('/flow/propose_group_idea', params)
+}
+
 const reviseGroupConclusionApi = (
   params: ReviseGroupConclusionParams
 ): Promise<Response> => {
@@ -54,5 +61,6 @@ export {
   modifyIdeaApi,
   replyIdeaApi,
   reviseGroupConclusionApi,
+  proposeGroupConclusionApi
   // reviseSelfIdeaApi,
 }

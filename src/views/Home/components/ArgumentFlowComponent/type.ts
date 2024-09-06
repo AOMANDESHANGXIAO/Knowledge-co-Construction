@@ -62,12 +62,26 @@ export enum ArgumentType {
   Data = 'data',
 }
 
+// TODO: 优化代码
+// 将状态改为由两个状态控制
+export enum Role {
+  Student = 'student',
+  Group = 'group',
+}
+
+export enum Action {
+  Check = 'check',
+  Modify = 'modify',
+}
+
+
 export enum Status {
   Propose, // 提出
   Check, // 查看
   Modify, // 修改
   CheckGroup, // 查看群组
-  FirstSummary // 小组首次总结观点
+  FirstSummary, // 小组首次总结观点
+  ModifyGroupConclusion, // 修改群组总结
 }
 
 export type { NodeType, EdgeType, AddBackPayload, FeedBack, ArgumentNode }

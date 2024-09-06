@@ -10,7 +10,7 @@ interface CreateNewIdeaArgs {
       inputValue: string
       _type: string
     }
-    type: 'element'
+    type: 'element' | string
   }>
   edges: Array<{
     id: string
@@ -37,6 +37,11 @@ interface ReplyIdeaParams extends CreateNewIdeaArgs {
 
 interface ModifyIdeaParams extends CreateNewIdeaArgs {
   modifyNodeId: number
+}
+
+interface ProposeGroupConclusionParams
+  extends Omit<CreateNewIdeaArgs, 'topic_id'> {
+  groupNodeId: string
 }
 
 interface ReviseGroupConclusionParams {
@@ -170,4 +175,5 @@ export type {
   CreateNewIdeaArgs,
   QueryFlowResponse,
   ModifyIdeaParams,
+  ProposeGroupConclusionParams,
 }

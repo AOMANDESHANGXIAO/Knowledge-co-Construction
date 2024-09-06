@@ -5,7 +5,7 @@ import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
 import { useLayout } from '@/hooks/VueFlow/useLayout'
 import type { NodeType, EdgeType, AddBackPayload } from './type.ts'
-import { Status } from './type'
+import { Status, Role, Action } from './type'
 import { ArgumentType } from './type.ts'
 import { LayoutDirection } from './type.ts'
 import '@vue-flow/controls/dist/style.css'
@@ -22,7 +22,6 @@ import { convertToHTML } from './utils'
 import { onMounted } from 'vue'
 import useFeedback from './hooks/useFeedback'
 import ArrowIcon from './components/icon/index.vue'
-// import useQueryParam from '@/hooks/router/useQueryParam'
 
 const {
   createNode,
@@ -98,7 +97,6 @@ const { run: queryNodeContent } = useRequest({
     nodes: any
     edges: QueryNodeContentData['edges']
   }) => {
-    // console.log('queryNodeContent', nodes, edges)
     setNodesValue(nodes)
     setEdgesValue(edges)
   },
@@ -191,8 +189,33 @@ onMounted(async () => {
   } else if (props.status === Status.FirstSummary) {
     // 初次总结也设置为初始
     initState()
+  } else if (props.status === Status.ModifyGroupConclusion) {
+    // 修改组结论,则查询数据
+    queryNodeContent()
   }
 })
+
+// onMounted(async () => {
+//   const { role, action } = props
+
+//   if (role === Role.Student) {
+//     /**
+//      * 处理查看学生节点时
+//      */
+//     if (action === Action.Modify) {
+//     } else if (action === Action.Check) {
+//       // 查看观点
+//       queryNodeContent()
+//     }
+//   } else if (role === Role.Group) {
+//     /**
+//      * 处理查看组内观点
+//      */
+//     if (action === Action.Modify) {
+//     } else if (action === Action.Check) {
+//     }
+//   }
+// })
 
 // ==================================
 /**
@@ -641,14 +664,6 @@ const editVisible = computed(() => {
 // =========================
 const argumentVueFlowRef = ref<InstanceType<typeof VueFlow> | null>()
 
-/**
- * 这个函数被用来初始化发布观点
- */
-// const handleInitProposeArgument = () => {
-//   initState() // 首先重置节点内容
-//   setFitView() // 设置视图
-// }
-
 const getArgumentNodes = () => {
   return nodes.value
 }
@@ -673,7 +688,6 @@ defineExpose({
   setFitView,
   handleLayoutGraph,
   initState,
-  // handleInitProposeArgument,
 })
 
 const [targetNodes, setTargetNodes] = useState<NodeType[]>([])
@@ -688,6 +702,8 @@ const setTargetArgument = (nodes: NodeType[], edges: EdgeType[]) => {
 const emits = defineEmits<{
   (e: 'update:reply', reply: 'none' | 'reject' | 'approve'): void
   (e: 'update:status', status: Status): void
+  (e: 'update:role', role: Role): void
+  (e: 'update:action', action: Action): void
   // 修改事件时向父组件传递现有的nodes和edges
   (e: 'modify', nodes: NodeType[], edges: EdgeType[]): void
 }>()
@@ -696,12 +712,16 @@ const handleClickSupport = () => {
   setTargetArgument(nodes.value, edges.value)
   emits('update:reply', 'approve') // 传递给父组件
   emits('update:status', Status.Propose)
+  // emits('update:role', Role.Student) // 修改学生的Idea
+  // emits('update:action', Action.Modify) // 表示修改
 }
 
 const handleClickOppose = () => {
   setTargetArgument(nodes.value, edges.value)
-  emits('update:reply', 'reject') // 传递给父组件
   emits('update:status', Status.Propose)
+  emits('update:reply', 'reject') // 传递给父组件
+  // emits('update:role', Role.Student) // 修改学生的Idea
+  // emits('update:action', Action.Modify) // 表示修改
 }
 /**
  * 用于处理右下角的提示词
@@ -769,15 +789,12 @@ const { title, content, contentStyle, handleClickArrow, MAX_CONTENT_WIDTH } =
  * 处理修改观点
  */
 const handleClickModify = () => {
-  // 修改
+  // 将页面转变成修改
   // 修改的时候要将页面改成提出观点状态？
-  // console.log('修改')
   emits('update:reply', 'none')
   emits('update:status', Status.Modify)
   // 将当前的nodes和edges传出去，下一次作为修改
   emits('modify', nodes.value, edges.value)
-
-  // feedbackCallback()
 }
 </script>
 

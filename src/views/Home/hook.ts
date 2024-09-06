@@ -12,7 +12,7 @@ import flowComponent from '@/components/vueFlow/index.vue'
 import { GroupNodeProps } from '@/components/vueFlow/components/groupNode/type.ts'
 import argumentFlowComponent from './components/ArgumentFlowComponent/index.vue'
 import useState from '@/hooks/State/useState'
-import { Status } from './components/ArgumentFlowComponent/type'
+import { Status} from './components/ArgumentFlowComponent/type'
 import { ElMessage, ElNotification } from 'element-plus'
 import { proposeIdeaApi, replyIdeaApi, modifyIdeaApi } from '@/apis/flow'
 import {
@@ -26,8 +26,10 @@ import useRefresh from '../../hooks/Element/useRefresh'
 import { queryTopicContentApi } from '@/apis/manageTalk'
 import { TopicContent } from '@/apis/manageTalk/type'
 import { NodeType, EdgeType } from './components/ArgumentFlowComponent/type'
+import { proposeGroupConclusionApi } from '@/apis/flow'
+import { ProposeGroupConclusionParams } from '@/apis/flow/type'
 
-type IdeaAction = 'propose' | 'check' | 'checkGroup' // 检查小组节点
+type IdeaAction = 'propose' | 'check' | 'checkGroup' | 'summaryGroupConclusion' // 检查小组节点
 
 const showWarningMsg = (msg: string) => {
   ElMessage({
@@ -186,49 +188,103 @@ function useMyVueFlow({ topic_id, student_id, group_id }: UseMyVueFlowProps) {
         refresh()
         return
       }
+      case 'summaryGroupConclusion': {
+      }
     }
   }
 
   /**
-   *
+   * 这个函数被用来拿到学生自己的小组节点
+   * @returns
    */
-  const handleSummary = () => {
-    // 获取本组的checkedGroupNodeId和groupConclusion
+  const getGroupNode = () => {
     const { nodes } = vueFlowRef.value!.getState()
     const groupNode = nodes.find(node => {
       if (node.type !== 'group') return false
       const data = node.data as GroupNodeProps
       if (data.group_id === group_id) return true
     })
+    return groupNode
+  }
+
+  /**
+   * 这个函数被用来打开argumentFlow对话框
+   * 如果小组没有观点，那么就是初次提出小组观点
+   * 如果小组有观点，那么就是修改小组观点
+   */
+  const handleSummary = () => {
+    const groupNode = getGroupNode()
+
     const [id, groupConclusion] = [
       groupNode?.id,
       (groupNode?.data as GroupNodeProps).groupConclusion,
     ]
+    setNodeId(id as string)
     // 如果groupConclusion是空的，那么就是初次提出小组观点
-    if (!groupConclusion) {
-      console.log('初次提出小组观点')
-      setSumbitStatus(Status.FirstSummary)
-      setReply('none')
-      setVisible(true)
-      refresh()
-    } else {
-      console.log('修改小组观点')
+    groupConclusion
+      ? setSumbitStatus(Status.ModifyGroupConclusion)
+      : setSumbitStatus(Status.FirstSummary)
+
+    setReply('none')
+    setVisible(true)
+    refresh()
+  }
+
+  /**
+   *
+   * 这个函数被用来获取论证图组件的状态，包括nodes和edges
+   */
+  const getArgumentFlowState = () => {
+    const [nodes, edges] = [
+      argumentFlowRef.value!.getArgumentNodes(),
+      argumentFlowRef.value!.getArgumentEdges(),
+    ]
+
+    for (const node of nodes) {
+      if (!node.data.inputValue) {
+        showWarningMsg('请先填写观点内容')
+        return {
+          flag: false,
+          nodes: [],
+          edges: [],
+        }
+      }
     }
+
+    return { nodes, edges, flag: true }
+  }
+
+  /**
+   *
+   * @param nodes
+   * @returns
+   * @description 这个函数被用来格式化发送请求时的Node列表
+   */
+  const formatterRequestNode = (
+    nodes: CreateNewIdeaArgs['nodes']
+  ): Array<{
+    id: string
+    data: {
+      inputValue: string
+      _type: string
+    }
+    type: 'element'
+  }> => {
+    return nodes.map(node => ({
+      id: node.id,
+      data: {
+        inputValue: node.data.inputValue,
+        _type: node.data._type as string,
+      },
+      type: 'element',
+    }))
   }
 
   const { run: ModifyIdea } = useRequest({
     apiFn: async () => {
-      const [nodes, edges] = [
-        argumentFlowRef.value!.getArgumentNodes(),
-        argumentFlowRef.value!.getArgumentEdges(),
-      ]
+      const { nodes, edges, flag } = getArgumentFlowState()
 
-      for (const node of nodes) {
-        if (!node.data.inputValue) {
-          showWarningMsg('请先填写观点内容')
-          return
-        }
-      }
+      if (!flag) return
 
       const params: ModifyIdeaParams = {
         topic_id,
@@ -267,43 +323,59 @@ function useMyVueFlow({ topic_id, student_id, group_id }: UseMyVueFlowProps) {
     },
   })
 
-  // TODO: 对接后端, 回复观点,同意还是反对.
+  const { run: proposeGroupConclusion } = useRequest({
+    apiFn: async () => {
+      // 设置参数
+      const { nodes, edges, flag } = getArgumentFlowState()
+      if (!flag) return
+
+      const groupNode = getGroupNode()
+      const id = groupNode?.id
+      if (!id) return
+      setcheckedGroupNodeId(id)
+
+      const params: ProposeGroupConclusionParams = {
+        groupNodeId: checkedGroupNodeId.value,
+        student_id,
+        nodes: formatterRequestNode(nodes),
+        edges,
+      }
+
+      return await proposeGroupConclusionApi(params)
+    },
+    onSuccess: () => {
+      ElNotification({
+        title: 'Success',
+        message: '提出小组观点成功',
+        type: 'success',
+        position: 'bottom-right',
+      })
+      setVisible(false)
+      refreshVueFlow()
+    },
+    onError: () => {
+      ElNotification({
+        title: 'Error',
+        message: '提出小组观点失败',
+        type: 'error',
+        position: 'bottom-right',
+      })
+    },
+  })
+
   function handleSumbit() {
     switch (sumbitStatus.value) {
       case Status.Propose: {
-        /**
-         * 为 none 就是提出自己的观点
-         */
-        const [nodes, edges] = [
-          argumentFlowRef.value!.getArgumentNodes(),
-          argumentFlowRef.value!.getArgumentEdges(),
-        ]
-        for (const node of nodes) {
-          if (!node.data.inputValue) {
-            showWarningMsg('请先填写观点内容')
-            return
-          }
-        }
-        console.log('reply', reply.value)
+        const { nodes, edges, flag } = getArgumentFlowState()
+
+        if (!flag) return
 
         if (reply.value === 'none') {
           const createParams: CreateNewIdeaArgs = {
             topic_id,
             student_id,
-            nodes: nodes.map(node => ({
-              id: node.id,
-              data: {
-                inputValue: node.data.inputValue,
-                _type: node.data._type as string,
-              },
-              type: 'element',
-            })),
-            edges: edges.map(edge => ({
-              id: edge.id,
-              source: edge.source,
-              target: edge.target,
-              _type: edge._type,
-            })),
+            nodes: formatterRequestNode(nodes),
+            edges,
           }
           setLoading(true)
           const { run } = useRequest({
@@ -370,13 +442,18 @@ function useMyVueFlow({ topic_id, student_id, group_id }: UseMyVueFlowProps) {
         // 用于修改自己的观点
         // console.log('修改自己的观点')
         ModifyIdea()
+        return
       }
-      // case Status.Approve: {
-      //   return
-      // }
-      // case Status.Reject: {
-      //   return
-      // }
+      case Status.FirstSummary: {
+        // 提出小组结论
+        proposeGroupConclusion()
+        return
+      }
+      case Status.ModifyGroupConclusion: {
+        // 修改小组结论
+        proposeGroupConclusion()
+        return
+      }
     }
   }
 
