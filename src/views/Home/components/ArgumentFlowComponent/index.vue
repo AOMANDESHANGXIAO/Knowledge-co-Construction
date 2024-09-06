@@ -5,7 +5,7 @@ import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
 import { useLayout } from '@/hooks/VueFlow/useLayout'
 import type { NodeType, EdgeType, AddBackPayload } from './type.ts'
-import { Status } from './type';
+import { Status } from './type'
 import { ArgumentType } from './type.ts'
 import { LayoutDirection } from './type.ts'
 import '@vue-flow/controls/dist/style.css'
@@ -47,6 +47,7 @@ const props = withDefaults(
     reply?: 'none' | 'reject' | 'approve' // 表示是否正在修改
     topicContent?: string // 当前topic的内容
     canReviseIdea: boolean // 标记是否能够修改观点
+    canReviseGroupConclusion: boolean // 标记是否能够修改组结论
   }>(),
   {
     status: Status.Propose,
@@ -56,6 +57,7 @@ const props = withDefaults(
     reply: 'none',
     topicContent: '',
     canReviseIdea: false,
+    canReviseGroupConclusion: false,
   }
 )
 
@@ -70,6 +72,19 @@ const initState = () => {
   setEdgesValue(initData.edges)
   setFitView()
 }
+
+/**
+ * 用来控制组件中条件渲染的变量
+ */
+const renderConditions = computed(() => {
+  return {
+    modifyOrProposeBtns:
+      props.status === Status.Propose ||
+      props.status === Status.Modify ||
+      props.status === Status.FirstSummary,
+    checkBtns: props.status === Status.Check,
+  }
+})
 
 const { run: queryNodeContent } = useRequest({
   apiFn: async () => {
@@ -117,7 +132,7 @@ const reset = () => {
   }
 }
 
-const dataClaimIds = computed(()=>{
+const dataClaimIds = computed(() => {
   return {
     dataId: getDataNodeId(nodes.value),
     claimId: getClaimNodeId(nodes.value),
@@ -166,11 +181,16 @@ onMounted(async () => {
   } else if (props.status === Status.Propose) {
     // 将nodes,和edges设置为初始
     initState()
-  } else if(props.status === Status.Modify) {
+  } else if (props.status === Status.Modify) {
     // 设置为父组件传递过来的
     setNodesValue(props.nodes)
     setEdgesValue(props.edges)
     setFitView()
+  } else if (props.status === Status.CheckGroup) {
+    // 查看组内论点
+  } else if (props.status === Status.FirstSummary) {
+    // 初次总结也设置为初始
+    initState()
   }
 })
 
@@ -794,7 +814,7 @@ const handleClickModify = () => {
     <Panel
       position="top-right"
       class="button-group-container"
-      v-if="props.status === Status.Propose || props.status === Status.Modify"
+      v-if="renderConditions.modifyOrProposeBtns"
     >
       <el-popconfirm title="你确定要重置论证?" @confirm="reset">
         <template #reference>
@@ -841,7 +861,7 @@ const handleClickModify = () => {
     <Panel
       position="top-right"
       class="button-group-container"
-      v-if="props.status === Status.Check"
+      v-if="renderConditions.checkBtns"
     >
       <el-popconfirm
         title="你确定要跳转至观点编辑页面吗?"

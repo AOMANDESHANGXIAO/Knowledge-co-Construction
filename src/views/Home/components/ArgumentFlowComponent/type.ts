@@ -66,6 +66,8 @@ export enum Status {
   Propose, // 提出
   Check, // 查看
   Modify, // 修改
+  CheckGroup, // 查看群组
+  FirstSummary // 小组首次总结观点
 }
 
 export type { NodeType, EdgeType, AddBackPayload, FeedBack, ArgumentNode }

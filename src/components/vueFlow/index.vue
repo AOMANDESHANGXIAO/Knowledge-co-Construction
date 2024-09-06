@@ -25,8 +25,6 @@ import useState from '@/hooks/State/useState.ts'
  * WARNING: 设置nodes和edges状态时在一个函数内最好只更新一次
  * 不要在一个函数内更新多次
  * 否则会引起BUG！！
- * TODO: 实现功能
- * 1. 传递回复观点事件 (判断是否可以修改事件)
  */
 
 defineOptions({
@@ -45,24 +43,15 @@ const {
 // 禁止删除节点
 onNodesChange(async changes => {
   const nextChanges = changes.filter(change => change.type !== 'remove')
-  // console.log('nextChanges', nextChanges)
   if (nextChanges.length === 0) return
   applyNodeChanges(nextChanges)
-  // console.log('changes node', changes)
-  // const nextChanges = changes.filter(change => change.type !== 'remove')
-  // return
-  // applyNodeChanges(nextChanges)
 })
 
 // 禁止删除边
 onEdgesChange(async changes => {
-  // console.log('changes edge', changes)
   const nextChanges = changes.filter(change => change.type !== 'remove')
   if (nextChanges.length === 0) return
   applyEdgeChanges(nextChanges)
-  // return
-  // const nextChanges = changes.filter(change => change.type !== 'remove')
-  // applyEdgeChanges(nextChanges)
 })
 
 const topicId = useQueryParam<number>('topic_id')
@@ -99,6 +88,7 @@ const stateFormatter = (data: QueryFlowResponse) => {
             groupConclusion: node.data.groupConclusion,
             bgc: node.data.bgc,
             group_id: node.data.group_id,
+            node_id: node.data.node_id,
             targetPosition: Position.Top,
             sourcePosition: Position.Bottom,
           },
@@ -150,10 +140,6 @@ const [edges, setEdges] = useState<Edge[]>([])
  */
 run()
 
-// onMounted(() => {
-//   setFitView()
-// })
-
 const { layout } = useLayout()
 
 const handleLayout = async (direction: LayoutDir) => {
@@ -201,7 +187,6 @@ const handleLayout = async (direction: LayoutDir) => {
 
 const setFitView = () => {
   setTimeout(() => {
-    console.log('set fit view')
     handleLayout('TB')
   }, 100)
 }
@@ -211,6 +196,10 @@ const setFitView = () => {
  */
 const emits = defineEmits<{
   (e: 'checkIdea', payload: { nodeId: string; studentId: string }): void
+  (
+    e: 'checkGroup',
+    payload: { groupId: string; nodeId: string; groupConclusion: string }
+  ): void
 }>()
 
 const onClickIdeaNode = ({
@@ -223,11 +212,30 @@ const onClickIdeaNode = ({
   emits('checkIdea', { nodeId, studentId })
 }
 
+const onClickGroupNode = (payload: {
+  groupId: string
+  nodeId: string
+  groupConclusion: string
+}) => {
+  emits('checkGroup', payload)
+}
+
+/**
+ * expose a function to get the nodes and edges
+ */
+const getState = () => {
+  return {
+    nodes: nodes.value,
+    edges: edges.value,
+  }
+}
+
 defineExpose({
   handleLayout,
   refreshData: () => {
     run()
   },
+  getState,
 })
 </script>
 
@@ -240,7 +248,7 @@ defineExpose({
         <topicNode :data="props.data" />
       </template>
       <template #node-group="props">
-        <groupNode :data="props.data" @revise="" />
+        <groupNode :data="props.data" @click="onClickGroupNode" />
       </template>
       <template #node-idea="props">
         <ideaNode :data="props.data" @click="onClickIdeaNode" />

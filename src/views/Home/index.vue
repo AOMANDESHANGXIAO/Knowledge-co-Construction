@@ -9,7 +9,8 @@ import { useMyVueFlow } from './hook.ts'
 import { useUserStore } from '../../store/modules/user/index'
 import useQueryParam from '@/hooks/router/useQueryParam'
 // import useRefresh from '../../hooks/Element/useRefresh'
-import { Status } from './components/ArgumentFlowComponent/type'
+// import { Status } from './components/ArgumentFlowComponent/type'
+import { ElNotification } from 'element-plus'
 
 const topicId = useQueryParam<number>('topic_id')
 
@@ -17,10 +18,13 @@ const { getOneUserInfo } = useUserStore()
 
 const studentId = getOneUserInfo('id') as string
 
+const groupId = getOneUserInfo('group_id') as string
+
 const {
   nodes,
   edges,
   canReviseIdea,
+  canReviseGroupConclusion,
   topicContent,
   key,
   nodeId,
@@ -36,9 +40,11 @@ const {
   handleLayout,
   refreshVueFlow,
   onArgumentModify,
+  handleSummary,
 } = useMyVueFlow({
   topic_id: topicId.value,
   student_id: +studentId,
+  group_id: +groupId,
 })
 
 /**
@@ -46,8 +52,23 @@ const {
  * @param payload { id: string; studentId: string } id 为查看节点的id
  */
 const onCheckIdea = (payload: { nodeId: string; studentId: string }) => {
-  // console.log('学生检查观点', nodeId)
   handleIdeaAction('check', payload)
+}
+
+const onCheckGroup = (payload: {
+  groupId: string
+  nodeId: string
+  groupConclusion: string
+}) => {
+  if (!payload.groupConclusion) {
+    ElNotification({
+      title: '提示',
+      message: '该小组还未总结观点',
+      type: 'warning',
+    })
+    return
+  }
+  handleIdeaAction('checkGroup', payload)
 }
 </script>
 
@@ -64,6 +85,7 @@ const onCheckIdea = (payload: { nodeId: string; studentId: string }) => {
           :key="key"
           :topic-content="topicContent"
           :can-revise-idea="canReviseIdea"
+          :can-revise-group-conclusion="canReviseGroupConclusion"
           v-model:reply="reply"
           @modify="onArgumentModify"
         ></argumentFlowComponent>
@@ -75,7 +97,7 @@ const onCheckIdea = (payload: { nodeId: string; studentId: string }) => {
           color="#FF8225"
           @click="handleSumbit"
           :loading="loading"
-          >{{ sumbitStatus === Status.Propose ? '确认' : '修改' }}</el-button
+          >{{ loading ? '提交中' : '提交' }}</el-button
         >
         <!-- <my-button
           @click="handleSumbit"
@@ -87,13 +109,17 @@ const onCheckIdea = (payload: { nodeId: string; studentId: string }) => {
   </section>
 
   <div class="vue-flow-container">
-    <flow-component ref="vueFlowRef" @checkIdea="onCheckIdea">
+    <flow-component
+      ref="vueFlowRef"
+      @checkIdea="onCheckIdea"
+      @checkGroup="onCheckGroup"
+    >
       <div class="layout-panel">
         <button title="发表观点" @click="handleIdeaAction('propose')">
           <Icon :name="IconName.Idea" />
         </button>
         <!-- TODO: 后端实现后对接 -->
-        <button title="总结观点" @click="">
+        <button title="总结观点" @click="handleSummary">
           <Icon :name="IconName.Summary" />
         </button>
         <button title="刷新" @click="refreshVueFlow">

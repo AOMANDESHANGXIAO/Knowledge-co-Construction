@@ -9,6 +9,7 @@
 // 6. 水平排列 -- 布局
 import { ref, watch } from 'vue'
 import flowComponent from '@/components/vueFlow/index.vue'
+import { GroupNodeProps } from '@/components/vueFlow/components/groupNode/type.ts'
 import argumentFlowComponent from './components/ArgumentFlowComponent/index.vue'
 import useState from '@/hooks/State/useState'
 import { Status } from './components/ArgumentFlowComponent/type'
@@ -26,13 +27,7 @@ import { queryTopicContentApi } from '@/apis/manageTalk'
 import { TopicContent } from '@/apis/manageTalk/type'
 import { NodeType, EdgeType } from './components/ArgumentFlowComponent/type'
 
-type IdeaAction =
-  | 'propose'
-  | 'check'
-  | 'reply'
-  | 'revise'
-  | 'support'
-  | 'unsupport'
+type IdeaAction = 'propose' | 'check' | 'checkGroup' // 检查小组节点
 
 const showWarningMsg = (msg: string) => {
   ElMessage({
@@ -54,9 +49,10 @@ const showNotification = (msg: string, type: 'success' | 'error') => {
 interface UseMyVueFlowProps {
   topic_id: number
   student_id: number
+  group_id: number
 }
 
-function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
+function useMyVueFlow({ topic_id, student_id, group_id }: UseMyVueFlowProps) {
   // HTML Element references
   const argumentFlowRef = ref<InstanceType<
     typeof argumentFlowComponent
@@ -88,6 +84,18 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
    */
   const topicContent = ref('')
 
+  /**
+   * 小组节点id
+   */
+  const [checkedGroupNodeId, setcheckedGroupNodeId] = useState('')
+
+  const canReviseGroupConclusion = computed(() => {
+    return (
+      checkedGroupNodeId.value !== '' &&
+      checkedGroupNodeId.value === String(group_id)
+    )
+  })
+
   const { run: getTopicContent } = useRequest({
     apiFn: async () => await queryTopicContentApi(topic_id),
     onSuccess: (res: TopicContent) => {
@@ -113,9 +121,20 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
    * @param payload {id: string} id为node的Id
    * @returns
    */
+  function handleIdeaAction(action: 'propose'): void
+  function handleIdeaAction(
+    action: 'check',
+    payload: { nodeId: string; studentId: string }
+  ): void
+  function handleIdeaAction(
+    action: 'checkGroup',
+    payload: { groupId: string; nodeId: string }
+  ): void
   function handleIdeaAction(
     action: IdeaAction,
-    payload?: { nodeId: string; studentId: string }
+    payload?:
+      | { nodeId: string; studentId: string }
+      | { groupId: string; nodeId: string }
   ) {
     switch (action) {
       // 被用作提出观点
@@ -153,6 +172,47 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
         refresh()
         return
       }
+      // 被用作检查小组观点
+      case 'checkGroup': {
+        setSumbitStatus(Status.CheckGroup)
+        const { groupId, nodeId } = payload as {
+          groupId: string
+          nodeId: string
+        }
+        setVisible(true)
+        setNodeId(nodeId)
+        setcheckedGroupNodeId(groupId)
+        setReply('none')
+        refresh()
+        return
+      }
+    }
+  }
+
+  /**
+   *
+   */
+  const handleSummary = () => {
+    // 获取本组的checkedGroupNodeId和groupConclusion
+    const { nodes } = vueFlowRef.value!.getState()
+    const groupNode = nodes.find(node => {
+      if (node.type !== 'group') return false
+      const data = node.data as GroupNodeProps
+      if (data.group_id === group_id) return true
+    })
+    const [id, groupConclusion] = [
+      groupNode?.id,
+      (groupNode?.data as GroupNodeProps).groupConclusion,
+    ]
+    // 如果groupConclusion是空的，那么就是初次提出小组观点
+    if (!groupConclusion) {
+      console.log('初次提出小组观点')
+      setSumbitStatus(Status.FirstSummary)
+      setReply('none')
+      setVisible(true)
+      refresh()
+    } else {
+      console.log('修改小组观点')
     }
   }
 
@@ -186,7 +246,6 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
       }
 
       return await modifyIdeaApi(params)
-
     },
     onSuccess: () => {
       ElNotification({
@@ -309,7 +368,7 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
       }
       case Status.Modify: {
         // 用于修改自己的观点
-        console.log('修改自己的观点')
+        // console.log('修改自己的观点')
         ModifyIdea()
       }
       // case Status.Approve: {
@@ -380,6 +439,8 @@ function useMyVueFlow({ topic_id, student_id }: UseMyVueFlowProps) {
     refreshVueFlow,
     topicContent,
     canReviseIdea,
+    canReviseGroupConclusion,
+    handleSummary,
   }
 }
 

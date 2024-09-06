@@ -30,15 +30,14 @@ interface ProposeIdeaParams {
   [property: string]: any
 }
 
-interface ReplyIdeaParams extends CreateNewIdeaArgs{
-  replyType:'approve' | 'reject',
+interface ReplyIdeaParams extends CreateNewIdeaArgs {
+  replyType: 'approve' | 'reject'
   replyNodeId: number
 }
 
 interface ModifyIdeaParams extends CreateNewIdeaArgs {
   modifyNodeId: number
 }
-
 
 interface ReviseGroupConclusionParams {
   topic_id: number
@@ -131,7 +130,7 @@ interface EdgeResponse {
   id: string
   source: string
   target: string
-  _type: "idea_to_group" | "group_to_discuss" | "approve" | "reject"
+  _type: 'idea_to_group' | 'group_to_discuss' | 'approve' | 'reject'
   animated: boolean
 }
 
@@ -153,6 +152,7 @@ interface QueryFlowResponse {
           groupConclusion: string
           bgc: string
           group_id: number
+          node_id: string
         }
       >
     | NodeResponseBased<'topic', { text: string }>
@@ -169,5 +169,5 @@ export type {
   QueryNodeContentData,
   CreateNewIdeaArgs,
   QueryFlowResponse,
-  ModifyIdeaParams
+  ModifyIdeaParams,
 }

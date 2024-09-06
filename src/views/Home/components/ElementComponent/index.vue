@@ -161,6 +161,7 @@ if (props._type === ArgumentType.Warrant) {
  */
 const backing = ref()
 
+// 考虑移除添加支撑标签的作用
 function useBacking() {
   const tagsOpt = ref([
     {
@@ -443,7 +444,8 @@ if (props._type === ArgumentType.Backing) {
     </div>
 
     <!-- 支撑的Tags -->
-    <div class="tags-list" v-if="props._type === ArgumentType.Backing">
+    <!-- 考虑移除: -->
+    <!-- <div class="tags-list" v-if="props._type === ArgumentType.Backing">
       <el-tag
         v-for="(tag, index) in backing.tags"
         :key="index"
@@ -475,7 +477,7 @@ if (props._type === ArgumentType.Backing) {
       <el-button :color="defaultColor" @click="backing.handleInsertTag"
         >插 入</el-button
       >
-    </div>
+    </div> -->
 
     <el-divider></el-divider>
 

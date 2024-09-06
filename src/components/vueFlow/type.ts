@@ -1,7 +1,7 @@
 import type { Ref } from 'vue'
-import { TopicNodeProps } from '@/components/Node/topicNode/type.ts'
-import { GroupNodeProps } from '@/components/Node/groupNode/type.ts'
-import { IdeaNodeProps } from '@/components/Node/ideaNode/type.ts'
+import { TopicNodeProps } from './components/topicNode/type.ts'
+import { GroupNodeProps } from './components/groupNode/type.ts'
+import { IdeaNodeProps } from './components/ideaNode/type.ts'
 import { Position } from '@vue-flow/core'
 
 export enum LayoutDirection {
