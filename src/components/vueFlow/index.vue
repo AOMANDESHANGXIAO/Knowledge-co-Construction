@@ -181,15 +181,14 @@ const handleLayout = async (direction: LayoutDir) => {
       } else {
         fitView()
       }
-    }, 100)
+    }, 10)
   })
 }
 
 const setFitView = () => {
   setTimeout(() => {
-    console.log('set Fit View')
     handleLayout('TB')
-  }, 100)
+  }, 50)
 }
 
 /**

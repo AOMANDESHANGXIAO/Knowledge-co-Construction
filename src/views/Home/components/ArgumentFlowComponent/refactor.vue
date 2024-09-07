@@ -19,18 +19,40 @@ import useStateEdit from './hooks/useStateEdit.ts'
 import Dialog from './components/dialog/index.vue'
 import { useDialog } from './hooks/dialog/index'
 
+// 组件一共几个状态
+// 1. chechIdea 查看观点，如果是自己的则显示修改按钮， 如果不是自己的则显示 支持 或者 反对 按钮
+// 2. checkConclusion 查看小组结论，如果是自己组的则可以修改，如果不是自己组的则只能查看
+// 3. modifyIdea // 修改自己的观点
+// 4. modifyConclusion // 修改小组结论
+// 5. replyIdea 回复观点
+// 6. proposeIdea 提出观点
+// 7. proposeConclusion 提出小组结论
+
 const props = withDefaults(
   defineProps<{
     InSelfGroup: boolean // 标记是否是自己的组
     InSelfIdea: boolean // 标记是否是自己的观点
     role: Role // 标记当前组件的角色，Idea或者Conclusion
     action: Action // 标记组件的动作，是否修改(Modify)或者查看观点（Check）
+    condition:
+      | 'chechIdea'
+      | 'checkConclusion'
+      | 'modifyIdea'
+      | 'modifyConclusion'
+      | 'replyIdea'
+      | 'proposeIdea'
+      | 'proposeConclusion'
     showFeedBack: boolean // 是否显示反馈
     focusNodeId: string // 观点节点id
     reply: 'none' | 'reject' | 'approve' // 标记当前节点的回复状态
     topicContent: string // 正在发表观点的内容
+    modifiedNodes: NodeType[]
+    modifiedEdges: EdgeType[]
+    replyNodes: NodeType[]
+    replyEdges: EdgeType[]
   }>(),
   {
+    condition: 'chechIdea',
     InSelfGroup: false,
     InSelfIdea: false,
     role: Role.Idea,
@@ -38,6 +60,11 @@ const props = withDefaults(
     showFeedBack: true,
     focusNodeId: '',
     topicContent: '',
+    modifiedNodes: () => [],
+    modifiedEdges: () => [],
+    replyNodes: () => [],
+    replyEdges: () => [],
+    reply: 'none',
   }
 )
 
@@ -130,12 +157,9 @@ function whenCheckConclusion() {
  */
 function whenModifyIdea() {
   console.log('whenModifyIdea')
-  const { focusNodeId } = props
-  if (focusNodeId) {
-    queryArgumentState()
-  } else {
-    setDefaultValue()
-  }
+  setNodesValue(props.modifiedNodes)
+  setEdgesValue(props.modifiedEdges)
+  setFitView()
 }
 
 /**
@@ -144,18 +168,57 @@ function whenModifyIdea() {
  */
 function whenModifyConclusion() {
   console.log('whenModifyConclusion')
+  setNodesValue(props.modifiedNodes)
+  setEdgesValue(props.modifiedEdges)
+  setFitView()
+}
+
+function replyIdea() {
+  console.log('replyIdea')
+  setDefaultValue()
+}
+
+function proposeIdea() {
+  console.log('proposeIdea')
+  setDefaultValue()
+}
+
+function proposeConclusion() {
+  console.log('proposeConclusion')
+  setDefaultValue()
 }
 
 onMounted(() => {
-  const { role, action } = props
-  if (role === Role.Idea && action === Action.Check) {
-    whenCheckIdea()
-  } else if (role === Role.Conclusion && action === Action.Check) {
-    whenCheckConclusion()
-  } else if (role === Role.Idea && action === Action.Modify) {
-    whenModifyIdea()
-  } else if (role === Role.Conclusion && action === Action.Modify) {
-    whenModifyConclusion()
+  const { condition } = props
+  switch (condition) {
+    case 'chechIdea': {
+      whenCheckIdea()
+      break
+    }
+    case 'checkConclusion': {
+      whenCheckConclusion()
+      break
+    }
+    case 'modifyIdea': {
+      whenModifyIdea()
+      break
+    }
+    case 'modifyConclusion': {
+      whenModifyConclusion()
+      break
+    }
+    case 'replyIdea': {
+      replyIdea()
+      break
+    }
+    case 'proposeIdea': {
+      proposeIdea()
+      break
+    }
+    case 'proposeConclusion': {
+      proposeConclusion()
+      break
+    }
   }
 })
 
@@ -272,6 +335,78 @@ onNodesChange(async changes => {
     applyNodeChanges(nextChanges)
   }
 })
+
+const getArgumentState = () => {
+  return {
+    nodes,
+    edges,
+  }
+}
+
+const emit = defineEmits<{
+  (
+    e: 'onClickRejectBtn',
+    payload: {
+      replyNodes: NodeType[]
+      replyEdges: EdgeType[]
+    }
+  ): void
+  (
+    e: 'onClickAcceptBtn',
+    payload: {
+      replyNodes: NodeType[]
+      replyEdges: EdgeType[]
+    }
+  ): void
+  (
+    e: 'onClickModifyIdeaBtn',
+    payload: { modifiedNodes: NodeType[]; modifiedEdges: EdgeType[] }
+  ): void
+  (
+    e: 'onClickModifyConclusionBtn',
+    payload: { modifiedNodes: NodeType[]; modifiedEdges: EdgeType[] }
+  ): void
+}>()
+
+const handleClickRejectBtn = () => {
+  emit('onClickRejectBtn', {
+    replyNodes: nodes.value,
+    replyEdges: edges.value,
+  })
+}
+
+const handleClickAcceptBtn = () => {
+  emit('onClickAcceptBtn',{
+    replyNodes: nodes.value,
+    replyEdges: edges.value,
+  })
+}
+
+const handleClickModifyIdeaBtn = () => {
+  /**
+   * 在调整自己观点时将nodes和edges的状态传递出去，方便修改
+   * 省去查后台接口
+   */
+  emit('onClickModifyIdeaBtn', {
+    modifiedNodes: nodes.value,
+    modifiedEdges: edges.value,
+  })
+}
+
+const handleClickModifyConclusionBtn = () => {
+  /**
+   * 在调整自己观点时将nodes和edges的状态传递出去，方便修改
+   * 省去查后台接口
+   */
+  emit('onClickModifyConclusionBtn', {
+    modifiedNodes: nodes.value,
+    modifiedEdges: edges.value,
+  })
+}
+
+defineExpose({
+  getArgumentState,
+})
 </script>
 
 <template>
@@ -307,7 +442,13 @@ onNodesChange(async changes => {
     <Panel
       position="top-right"
       class="button-group-container"
-      v-if="props.action === Action.Modify"
+      v-if="
+        condition === 'modifyConclusion' ||
+        condition === 'modifyIdea' ||
+        condition === 'replyIdea' ||
+        condition === 'proposeConclusion' ||
+        condition === 'proposeIdea'
+      "
     >
       <el-popconfirm
         title="你确定要重置论证?"
@@ -377,13 +518,13 @@ onNodesChange(async changes => {
     <Panel
       position="top-right"
       class="button-group-container"
-      v-if="props.action === Action.Check"
+      v-if="condition === 'chechIdea'"
     >
       <!-- 不能支持或者反对自己的观点 -->
       <el-popconfirm
         title="你确定要跳转至观点编辑页面吗?"
-        @confirm=""
-        v-if="!props.InSelfIdea"
+        @confirm="handleClickAcceptBtn"
+        v-if="!InSelfIdea"
       >
         <template #reference>
           <el-button plain style="margin-left: 0" type="success"
@@ -393,8 +534,8 @@ onNodesChange(async changes => {
       </el-popconfirm>
       <el-popconfirm
         title="你确定要跳转至观点编辑页面吗?"
-        @confirm=""
-        v-if="!props.InSelfIdea"
+        @confirm="handleClickRejectBtn"
+        v-if="!InSelfIdea"
       >
         <template #reference>
           <el-button plain style="margin-left: 0" type="danger"
@@ -405,8 +546,8 @@ onNodesChange(async changes => {
       <!-- 只能修改自己的观点 -->
       <el-popconfirm
         title="你确定要修改观点吗?"
-        @confirm=""
-        v-if="props.InSelfIdea"
+        @confirm="handleClickModifyIdeaBtn"
+        v-if="InSelfIdea"
       >
         <template #reference>
           <el-button plain style="margin-left: 0" type="warning">
@@ -419,9 +560,12 @@ onNodesChange(async changes => {
     <Panel
       position="top-right"
       class="button-group-container"
-      v-if="props.role === Role.Conclusion && props.InSelfGroup"
+      v-if="condition === 'checkConclusion' && InSelfGroup"
     >
-      <el-popconfirm title="确定要修改小组总结的观点吗?" @confirm="">
+      <el-popconfirm
+        title="确定要修改小组总结的观点吗?"
+        @confirm="handleClickModifyConclusionBtn"
+      >
         <template #reference>
           <el-button plain style="margin-left: 0" type="warning"
             >修改总结</el-button
@@ -431,7 +575,7 @@ onNodesChange(async changes => {
     </Panel>
 
     <!-- 反馈 -->
-    <Panel v-if="props.showFeedBack" position="top-left" class="feedback-tips">
+    <Panel v-if="showFeedBack" position="top-left" class="feedback-tips">
       <el-alert
         v-for="(item, index) in feedbackList"
         :key="index"

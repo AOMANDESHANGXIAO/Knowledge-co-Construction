@@ -7,69 +7,18 @@ import argumentFlowComponent from './components/ArgumentFlowComponent/refactor.v
 import { useUserStore } from '../../store/modules/user/index'
 import useQueryParam from '@/hooks/router/useQueryParam'
 import useRefresh from '../../hooks/Element/useRefresh'
-// import { Status } from './components/ArgumentFlowComponent/type'
 import { Role, Action } from './components/ArgumentFlowComponent/type.ts'
 import useState from '@/hooks/State/useState.ts'
 import useRequest from '@/hooks/Async/useRequest'
 import { queryTopicContentApi } from '@/apis/manageTalk'
 import { TopicContent } from '@/apis/manageTalk/type'
-
+import useSubmit from './useSubmit.ts'
+import { GroupNodeProps } from '@/components/vueFlow/components/groupNode/type.ts'
+import type {
+  NodeType,
+  EdgeType,
+} from './components/ArgumentFlowComponent/type.ts'
 const { getOneUserInfo } = useUserStore()
-
-const studentId = getOneUserInfo('id') as string
-
-const groupId = getOneUserInfo('group_id') as string
-
-// const {
-//   nodes,
-//   edges,
-//   canReviseIdea,
-//   canReviseGroupConclusion,
-//   topicContent,
-//   key,
-//   nodeId,
-//   reply,
-//   argumentFlowRef,
-//   vueFlowRef,
-//   visible,
-//   sumbitStatus,
-//   loading,
-//   setVisible,
-//   handleIdeaAction,
-//   handleSumbit,
-//   handleLayout,
-//   refreshVueFlow,
-//   onArgumentModify,
-//   handleSummary,
-// } = useMyVueFlow({
-//   topic_id: topicId.value,
-//   student_id: +studentId,
-//   group_id: +groupId,
-// })
-
-// /**
-//  *
-//  * @param payload { id: string; studentId: string } id 为查看节点的id
-//  */
-// const onCheckIdea = (payload: { nodeId: string; studentId: string }) => {
-//   handleIdeaAction('check', payload)
-// }
-
-// const onCheckGroup = (payload: {
-//   groupId: string
-//   nodeId: string
-//   groupConclusion: string
-// }) => {
-//   if (!payload.groupConclusion) {
-//     ElNotification({
-//       title: '提示',
-//       message: '该小组还未总结观点',
-//       type: 'warning',
-//     })
-//     return
-//   }
-//   handleIdeaAction('checkGroup', payload)
-// }
 
 const [dialogVisible, setdialogVisible] = useState(false)
 
@@ -99,24 +48,64 @@ const setRequestParams = (payload: { focusNodeId: string }) => {
 /**
  * 控制argumentFlowComponent组件状态的参数
  */
-const controller = reactive({
+// const controller: {
+//   role: Role
+//   action: Action
+//   InSelfGroup: boolean
+//   InSelfIdea: boolean
+//   reply: 'none' | 'reject' | 'approve'
+// } = reactive({
+//   role: Role.Idea,
+//   action: Action.Check,
+//   InSelfGroup: false,
+//   InSelfIdea: false,
+//   reply: 'none',
+// })
+
+const controller = ref<{
+  role: Role
+  action: Action
+  InSelfGroup: boolean
+  InSelfIdea: boolean
+  reply: 'none' | 'reject' | 'approve'
+}>({
   role: Role.Idea,
   action: Action.Check,
   InSelfGroup: false,
   InSelfIdea: false,
+  reply: 'none',
 })
 
 const setControllerState = (
   role: Role,
   action: Action,
   InSelfGroup?: boolean,
-  InSelfIdea?: boolean
+  InSelfIdea?: boolean,
+  reply?: 'none' | 'reject' | 'approve'
 ) => {
-  controller.role = role
-  controller.action = action
-  InSelfGroup && (controller.InSelfGroup = InSelfGroup)
-  InSelfIdea && (controller.InSelfIdea = InSelfIdea)
+  controller.value.role = role
+  controller.value.action = action
+  if (typeof InSelfGroup === 'boolean') {
+    controller.value.InSelfGroup = InSelfGroup
+  }
+  if (typeof InSelfIdea === 'boolean') {
+    controller.value.InSelfIdea = InSelfIdea
+  }
+  reply && (controller.value.reply = reply)
 }
+
+/**
+ * 控制论证图编辑器渲染状态的参数
+ */
+const [condition, setCondition] = useState<
+  | 'chechIdea'
+  | 'checkConclusion'
+  | 'modifyIdea'
+  | 'modifyConclusion'
+  | 'replyIdea'
+  | 'proposeIdea'
+  | 'proposeConclusion'
+>('chechIdea')
 
 const onClickGroupNode = (payload: {
   groupId: string
@@ -129,14 +118,19 @@ const onClickGroupNode = (payload: {
   const slefGroupId = getOneUserInfo('group_id') as string
   const isSelfGroup = payload.groupId === String(slefGroupId)
   setControllerState(Role.Conclusion, Action.Check, isSelfGroup, false)
+  setCondition('checkConclusion') // 点击小组节点时，论证图编辑器渲染为查看小组结论
   openArgumentEditor()
 }
 
 const onClickIdeaNode = (payload: { nodeId: string; studentId: string }) => {
   setRequestParams({ focusNodeId: payload.nodeId })
+  console.log('被选中节点的NodeId', payload.nodeId)
+  console.log('被选中节点的studentId', payload.studentId)
+  console.log('用户的id', getOneUserInfo('id'))
   const slefStudentId = getOneUserInfo('id') as string
   const isSelfIdea = payload.studentId === String(slefStudentId)
   setControllerState(Role.Idea, Action.Check, false, isSelfIdea)
+  setCondition('chechIdea') // 点击观点节点时，论证图编辑器渲染为查看观点
   openArgumentEditor()
 }
 
@@ -146,6 +140,7 @@ const handleClickProposeIdeaBtn = () => {
   // 设置论证图编辑器请求的参数，为空字符串表示不需要查询
   setRequestParams({ focusNodeId: '' })
   setControllerState(Role.Idea, Action.Modify, inSelfGroup, inSelfIdea)
+  setCondition('proposeIdea') // 点击发表观点按钮时，论证图编辑器渲染为发表观点
   openArgumentEditor()
 }
 
@@ -169,6 +164,221 @@ useRequest({
   },
   immediate: true,
 })
+
+/**
+ * 处理论证图提交
+ */
+
+const argumentFlowRef = ref<InstanceType<typeof argumentFlowComponent> | null>(
+  null
+)
+const vueFlowRef = ref<InstanceType<typeof flowComponent> | null>(null)
+
+const group_id = getOneUserInfo('group_id') as string
+/**
+ * 这个函数被用来拿到学生自己的小组节点
+ * @returns
+ */
+const getGroupNode = () => {
+  const { nodes } = vueFlowRef.value!.getState()
+  console.log('nodes', nodes)
+  console.log('group_id', group_id)
+
+  const groupNode = nodes.find(node => {
+    if (node.type !== 'group') return false
+    const data = node.data as GroupNodeProps
+    if (String(data.group_id) === String(group_id)) return true
+  })
+  return groupNode
+}
+
+const handleClickConclusionBtn = () => {
+  // 做一个判断，如果没有groupConclusion，则状态为提出小组结论
+  // @ts-ignore
+  const groupNode = getGroupNode()
+  console.log('groupNode', groupNode)
+  const data = groupNode!.data as GroupNodeProps
+  if (data.groupConclusion) {
+    setCondition('modifyConclusion')
+  } else {
+    // 否则为修改小组结论
+    setCondition('proposeConclusion')
+  }
+
+  openArgumentEditor()
+}
+
+/**
+ * 记录正在回复的观点
+ */
+const replyNodes: NodeType[] = []
+const replyEdges: EdgeType[] = []
+const onClickRejectBtn = (payload: {
+  replyNodes: NodeType[]
+  replyEdges: EdgeType[]
+}) => {
+  console.log('点击了拒绝按钮')
+  setControllerState(Role.Idea, Action.Modify, false, false, 'reject')
+  setRequestParams({ focusNodeId: '' })
+  setCondition('replyIdea')
+  Object.assign(replyNodes, payload.replyNodes)
+  Object.assign(replyEdges, payload.replyEdges)
+  openArgumentEditor()
+}
+
+const onClickApproveBtn = (payload: {
+  replyNodes: NodeType[]
+  replyEdges: EdgeType[]
+}) => {
+  console.log('点击了同意按钮')
+  setControllerState(Role.Idea, Action.Modify, false, false, 'approve')
+  setRequestParams({ focusNodeId: '' })
+  setCondition('replyIdea')
+  Object.assign(replyNodes, payload.replyNodes)
+  Object.assign(replyEdges, payload.replyEdges)
+  openArgumentEditor()
+}
+
+/**
+ * 记录修改的观点
+ */
+const modifiedNodes: NodeType[] = []
+const modifiedEdges: EdgeType[] = []
+const onClickModifyIdeaBtn = (payload: {
+  modifiedNodes: NodeType[]
+  modifiedEdges: EdgeType[]
+}) => {
+  setControllerState(Role.Idea, Action.Modify, false, false)
+  setCondition('modifyIdea')
+  Object.assign(modifiedNodes, payload.modifiedNodes)
+  Object.assign(modifiedEdges, payload.modifiedEdges)
+  openArgumentEditor()
+}
+
+const onClickModifyConclusionBtn = (payload: {
+  modifiedNodes: NodeType[]
+  modifiedEdges: EdgeType[]
+}) => {
+  setControllerState(Role.Conclusion, Action.Modify, false, false)
+  setCondition('modifyConclusion')
+  Object.assign(modifiedNodes, payload.modifiedNodes)
+  Object.assign(modifiedEdges, payload.modifiedEdges)
+  openArgumentEditor()
+}
+
+/**
+ * 请求参数
+ */
+const studentId = getOneUserInfo('id') as string
+
+const validator = (nodes: NodeType[]) => {
+  for (const node of nodes) {
+    if (!node.data.inputValue) {
+      ElNotification({
+        title: 'Error',
+        message: '请输入观点内容',
+        type: 'error',
+        position: 'bottom-right',
+      })
+      return false
+    }
+  }
+
+  return true
+}
+
+const {
+  submitProposeIdea,
+  submitModifyIdea,
+  submitReplyIdea,
+  submitProposeGroupConclusion,
+} = useSubmit({
+  onSuccess: () => {
+    ElNotification({
+      title: 'Success',
+      message: '提交成功',
+      type: 'success',
+      position: 'bottom-right',
+    })
+    setdialogVisible(false)
+    vueFlowRef.value?.refreshData()
+  },
+  onFail() {
+    ElNotification({
+      title: 'Error',
+      message: '提交失败',
+      type: 'error',
+      position: 'bottom-right',
+    })
+  },
+})
+
+const handleSumbit = () => {
+  const { nodes, edges } = argumentFlowRef.value!.getArgumentState()
+
+  const nodesValue = nodes.value
+  const edgesValue = edges.value
+  if (!validator(nodesValue)) return
+
+  switch (condition.value) {
+    case 'modifyIdea': {
+      submitModifyIdea({
+        topic_id: topicId.value,
+        student_id: +studentId,
+        modifyNodeId: +requestParams.focusNodeId,
+        nodes: nodesValue,
+        edges: edgesValue,
+      })
+      break
+    }
+    case 'modifyConclusion': {
+      break
+    }
+    case 'replyIdea': {
+      if (controller.value.reply === 'none') return
+      submitReplyIdea({
+        replyType: controller.value.reply as 'approve' | 'reject',
+        replyNodeId: +requestParams.focusNodeId,
+        topic_id: topicId.value,
+        student_id: +studentId,
+        nodes: nodesValue,
+        edges: edgesValue,
+      })
+      break
+    }
+    case 'proposeIdea': {
+      submitProposeIdea({
+        topic_id: topicId.value,
+        student_id: +studentId,
+        nodes: nodesValue,
+        edges: edgesValue,
+      })
+      break
+    }
+    case 'proposeConclusion': {
+      const groupNode = getGroupNode()
+
+      if (!groupNode) return
+      const groupNodeId = groupNode.id
+
+      submitProposeGroupConclusion({
+        student_id: +studentId,
+        groupNodeId: groupNodeId,
+        nodes: nodesValue,
+        edges: edgesValue,
+      })
+      break
+    }
+  }
+}
+
+const handleLayout = (direction: LayoutDirection) => {
+  vueFlowRef.value?.handleLayout(direction)
+}
+
+const handleRereshFlowData = () => {
+  vueFlowRef.value?.refreshData()
+}
 </script>
 
 <template>
@@ -176,16 +386,25 @@ useRequest({
     <el-dialog v-model="dialogVisible" width="1200" :append-to-body="true">
       <div class="argument-flow-container">
         <argumentFlowComponent
+          :modified-edges="modifiedEdges"
+          :modified-nodes="modifiedNodes"
+          :reply-edges="replyEdges"
+          :reply-nodes="replyNodes"
           :key="key"
           ref="argumentFlowRef"
+          :condition="condition"
           :role="controller.role"
           :action="controller.action"
           :InSelfGroup="controller.InSelfGroup"
           :InSelfIdea="controller.InSelfIdea"
+          :reply="controller.reply"
           :focus-node-id="requestParams.focusNodeId"
           :show-feed-back="true"
           :topic-content="topicContent"
-          reply="none"
+          @on-click-accept-btn="onClickApproveBtn"
+          @on-click-reject-btn="onClickRejectBtn"
+          @on-click-modify-idea-btn="onClickModifyIdeaBtn"
+          @on-click-modify-conclusion-btn="onClickModifyConclusionBtn"
         ></argumentFlowComponent>
       </div>
       <div class="button-footer-container">
@@ -204,11 +423,7 @@ useRequest({
         <el-button
           style="margin-left: 10px"
           color="#FF8225"
-          @click="
-            () => {
-              setdialogVisible(false)
-            }
-          "
+          @click="handleSumbit"
           >{{ '确定' }}</el-button
         >
       </div>
@@ -225,18 +440,17 @@ useRequest({
         <button title="发表观点" @click="handleClickProposeIdeaBtn">
           <Icon :name="IconName.Idea" />
         </button>
+        <button title="总结观点" @click="handleClickConclusionBtn">
+          <Icon :name="IconName.Summary" />
+        </button>
         <button
-          title="总结观点"
+          title="刷新"
           @click="
             () => {
-              setControllerState(Role.Conclusion, Action.Modify, true)
-              openArgumentEditor()
+              handleRereshFlowData()
             }
           "
         >
-          <Icon :name="IconName.Summary" />
-        </button>
-        <button title="刷新" @click="">
           <Icon :name="IconName.Refresh" />
         </button>
         <button title="返回首页" @click="">
@@ -245,10 +459,24 @@ useRequest({
         <button title="设置" @click="">
           <Icon :name="IconName.Setting" />
         </button>
-        <button title="垂直排列" @click="">
+        <button
+          title="垂直排列"
+          @click="
+            () => {
+              handleLayout(LayoutDirection.Vertical)
+            }
+          "
+        >
           <Icon :name="IconName.Vertical" />
         </button>
-        <button title="水平排列" @click="">
+        <button
+          title="水平排列"
+          @click="
+            () => {
+              handleLayout(LayoutDirection.Horizontal)
+            }
+          "
+        >
           <Icon :name="IconName.Horizontal" />
         </button>
       </div>
