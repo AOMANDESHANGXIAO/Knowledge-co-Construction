@@ -65,8 +65,8 @@ export enum ArgumentType {
 // TODO: 优化代码
 // 将状态改为由两个状态控制
 export enum Role {
-  Student = 'student',
-  Group = 'group',
+  Idea = 'idea',
+  Conclusion = 'Conclusion',
 }
 
 export enum Action {

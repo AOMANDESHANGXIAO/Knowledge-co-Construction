@@ -18,6 +18,7 @@ interface UseRequestOptions {
   formatter?: (data: any) => any
   debounce?: number
   throttle?: number
+  immediate?: boolean
 }
 
 export default function useRequest(props: UseRequestOptions) {
@@ -30,6 +31,7 @@ export default function useRequest(props: UseRequestOptions) {
     formatter,
     debounce = 0,
     throttle = 0,
+    immediate = false,
   } = props
 
   const data = ref<any>(null)
@@ -87,6 +89,8 @@ export default function useRequest(props: UseRequestOptions) {
   onUnmounted(() => {
     if (timer) clearTimeout(timer)
   })
+
+  if(immediate) execute()
 
   return {
     data,

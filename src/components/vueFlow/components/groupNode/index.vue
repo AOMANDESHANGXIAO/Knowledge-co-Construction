@@ -26,13 +26,13 @@ const props = withDefaults(defineProps<Props>(), {
 const emits = defineEmits<{
   // 将group_id传给父组件
   (
-    e: 'click',
+    e: 'onClickGroupNode',
     payload: { groupId: string; nodeId: string; groupConclusion: string }
   ): void
 }>()
 
 const handleClick = () => {
-  emits('click', {
+  emits('onClickGroupNode', {
     groupId: String(props.data.group_id),
     nodeId: String(props.data.node_id),
     groupConclusion: props.data.groupConclusion,

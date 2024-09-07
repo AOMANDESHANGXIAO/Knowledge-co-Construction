@@ -1,6 +1,6 @@
 import { ArgumentType } from "./type";
 
-const list = {
+const DEFAULT_ARGUMENT_STATE = {
   nodes: [
     {
       id: 'data', // 初始化时前提和结论的id是定死的
@@ -33,4 +33,4 @@ const list = {
   ],
 }
 
-export default list
+export default DEFAULT_ARGUMENT_STATE

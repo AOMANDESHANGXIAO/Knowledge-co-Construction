@@ -1,5 +1,6 @@
 import { NodeType, ArgumentType, EdgeType } from '../type'
 import { useNodeEdgeHandler } from '@/utils/nodeEdgeHandler/index.ts'
+import { Ref, ComputedRef } from 'vue'
 
 interface FeedBack {
   title: string
@@ -16,11 +17,19 @@ interface FBOpt {
   }
 }
 
-function useFeedback(){
-  const feedbackList = ref<FeedBack[]>([])
+function useFeedback({
+  nodes,
+  edges,
+}: {
+  nodes: Ref<NodeType[]>
+  edges: Ref<EdgeType[]>
+}) {
+  const feedbackList: ComputedRef<FeedBack[]> = computed(() => {
+    return feedbackCallback(nodes.value, edges.value)
+  })
 
   const { findIsEdgeExistByFilterFunction } = useNodeEdgeHandler()
-  
+
   const feedbackOptions: FBOpt = {
     warrant: {
       title: '缺少辩护',
@@ -48,19 +57,22 @@ function useFeedback(){
       type: 'success',
     },
   }
-  
-  const feedbackCallback = (nodes: NodeType[], edges: EdgeType[]) => {
+
+  const feedbackCallback = (
+    nodes: NodeType[],
+    edges: EdgeType[]
+  ): FeedBack[] => {
     const flagMap = {
       warrant: false, // 辩护
       rebuttal: false, // 反驳
       qualifier: false, // 限定词
     }
-  
+
     const warrantsList: NodeType[] = []
-  
+
     nodes.forEach(item => {
       const _type = item.data._type
-  
+
       switch (_type) {
         case ArgumentType.Warrant:
           flagMap.warrant = true
@@ -76,10 +88,10 @@ function useFeedback(){
           break
       }
     })
-  
+
     // 查找有没有支撑
     let hasBacking = false
-  
+
     for (let j = 0; j < warrantsList.length; j++) {
       const item = warrantsList[j]
       hasBacking = findIsEdgeExistByFilterFunction(edges, edge => {
@@ -91,7 +103,7 @@ function useFeedback(){
       // 没有支撑
       if (!hasBacking) break
     }
-  
+
     // 根据flagMap，判断是否生成反馈
     let feedbacks = []
     Object.keys(flagMap).forEach(key => {
@@ -103,7 +115,7 @@ function useFeedback(){
         })
       }
     })
-  
+
     // 没有辩护时不会出现提示需要支撑
     if (warrantsList.length && !hasBacking) {
       feedbacks.push({
@@ -112,7 +124,7 @@ function useFeedback(){
         type: feedbackOptions.backing.type,
       })
     }
-  
+
     if (feedbacks.length === 0) {
       feedbacks.push({
         title: feedbackOptions.perfect.title,
@@ -120,10 +132,10 @@ function useFeedback(){
         type: feedbackOptions.perfect.type,
       })
     }
-  
-    feedbackList.value = [...feedbacks]
+
+    return feedbacks
   }
-  
+
   return { feedbackList, feedbackCallback }
 }
 

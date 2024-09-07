@@ -187,37 +187,9 @@ const handleLayout = async (direction: LayoutDir) => {
 
 const setFitView = () => {
   setTimeout(() => {
+    console.log('set Fit View')
     handleLayout('TB')
   }, 100)
-}
-
-/**
- * event: 修改观点事件，查看观点事件
- */
-const emits = defineEmits<{
-  (e: 'checkIdea', payload: { nodeId: string; studentId: string }): void
-  (
-    e: 'checkGroup',
-    payload: { groupId: string; nodeId: string; groupConclusion: string }
-  ): void
-}>()
-
-const onClickIdeaNode = ({
-  nodeId,
-  studentId,
-}: {
-  nodeId: string
-  studentId: string
-}) => {
-  emits('checkIdea', { nodeId, studentId })
-}
-
-const onClickGroupNode = (payload: {
-  groupId: string
-  nodeId: string
-  groupConclusion: string
-}) => {
-  emits('checkGroup', payload)
 }
 
 /**
@@ -242,16 +214,22 @@ defineExpose({
 <template>
   <div class="layout-flow" style="width: 100vw; height: 100vh">
     <!-- flow -->
-    <VueFlow :nodes="nodes" :edges="edges" v-if="!loading">
+    <VueFlow
+      :nodes="nodes"
+      :edges="edges"
+      v-if="!loading"
+      :apply-default="false"
+    >
       <!-- bind your custom node type to a component by using slots, slot names are always `node-<type>` -->
       <template #node-topic="props">
         <topicNode :data="props.data" />
       </template>
       <template #node-group="props">
-        <groupNode :data="props.data" @click="onClickGroupNode" />
+        <!-- <groupNode :data="props.data" @click="onClickGroupNode" /> -->
+        <groupNode :data="props.data" v-bind="$attrs" />
       </template>
       <template #node-idea="props">
-        <ideaNode :data="props.data" @click="onClickIdeaNode" />
+        <ideaNode :data="props.data" v-bind="$attrs" />
       </template>
 
       <Background

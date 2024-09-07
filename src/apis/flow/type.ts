@@ -117,7 +117,7 @@ interface ArgumentEdge {
 }
 
 interface QueryNodeContentData {
-  nodes: Pick<ArgumentNode, 'id' | 'data' | 'type' | 'position'>[]
+  nodes: Pick<ArgumentNode, 'id' | 'data' | 'type' | 'position' | '_type'>[]
   edges: ArgumentEdge[]
   [property: string]: any
 }

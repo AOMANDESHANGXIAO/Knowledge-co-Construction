@@ -82,6 +82,7 @@ const renderConditions = computed(() => {
       props.status === Status.Modify ||
       props.status === Status.FirstSummary,
     checkBtns: props.status === Status.Check,
+    groupCheckBtn: props.status === Status.CheckGroup,
   }
 })
 
@@ -185,6 +186,7 @@ onMounted(async () => {
     setEdgesValue(props.edges)
     setFitView()
   } else if (props.status === Status.CheckGroup) {
+    queryNodeContent()
     // 查看组内论点
   } else if (props.status === Status.FirstSummary) {
     // 初次总结也设置为初始
@@ -796,6 +798,13 @@ const handleClickModify = () => {
   // 将当前的nodes和edges传出去，下一次作为修改
   emits('modify', nodes.value, edges.value)
 }
+
+const handleModifyGroupConclusion = () => {
+  console.log('修改小组总结')
+  emits('update:reply', 'none')
+  emits('update:status', Status.ModifyGroupConclusion)
+  emits('modify', nodes.value, edges.value)
+}
 </script>
 
 <template>
@@ -912,6 +921,15 @@ const handleClickModify = () => {
         </template>
       </el-popconfirm>
     </Panel>
+
+    <Pannel position="top-right" class="button-group-container" v-if="renderConditions.groupCheckBtn">
+      <el-popconfirm title="确定要修改小组总结的观点吗?" @confirm="handleModifyGroupConclusion">
+        <template #reference>
+          <el-button plain style="margin-left: 0" type="warning">修改总结</el-button>
+        </template>
+      </el-popconfirm>
+    </Pannel>
+
 
     <!-- 反馈 -->
     <Panel

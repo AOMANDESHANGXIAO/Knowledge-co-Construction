@@ -3,16 +3,16 @@ import flowComponent from '@/components/vueFlow/index.vue'
 import { LayoutDirection } from '@/components/vueFlow/type.ts'
 import Icon from '@/components/Icons/HomePageIcon/index.vue'
 import { IconName } from '@/components/Icons/HomePageIcon/type.ts'
-import argumentFlowComponent from './components/ArgumentFlowComponent/index.vue'
-import MyButton from '@/components/ElementPlusPackage/MyButton.vue'
-import { useMyVueFlow } from './hook.ts'
+import argumentFlowComponent from './components/ArgumentFlowComponent/refactor.vue'
 import { useUserStore } from '../../store/modules/user/index'
 import useQueryParam from '@/hooks/router/useQueryParam'
-// import useRefresh from '../../hooks/Element/useRefresh'
+import useRefresh from '../../hooks/Element/useRefresh'
 // import { Status } from './components/ArgumentFlowComponent/type'
-import { ElNotification } from 'element-plus'
-
-const topicId = useQueryParam<number>('topic_id')
+import { Role, Action } from './components/ArgumentFlowComponent/type.ts'
+import useState from '@/hooks/State/useState.ts'
+import useRequest from '@/hooks/Async/useRequest'
+import { queryTopicContentApi } from '@/apis/manageTalk'
+import { TopicContent } from '@/apis/manageTalk/type'
 
 const { getOneUserInfo } = useUserStore()
 
@@ -20,90 +20,197 @@ const studentId = getOneUserInfo('id') as string
 
 const groupId = getOneUserInfo('group_id') as string
 
-const {
-  nodes,
-  edges,
-  canReviseIdea,
-  canReviseGroupConclusion,
-  topicContent,
-  key,
-  nodeId,
-  reply,
-  argumentFlowRef,
-  vueFlowRef,
-  visible,
-  sumbitStatus,
-  loading,
-  setVisible,
-  handleIdeaAction,
-  handleSumbit,
-  handleLayout,
-  refreshVueFlow,
-  onArgumentModify,
-  handleSummary,
-} = useMyVueFlow({
-  topic_id: topicId.value,
-  student_id: +studentId,
-  group_id: +groupId,
-})
+// const {
+//   nodes,
+//   edges,
+//   canReviseIdea,
+//   canReviseGroupConclusion,
+//   topicContent,
+//   key,
+//   nodeId,
+//   reply,
+//   argumentFlowRef,
+//   vueFlowRef,
+//   visible,
+//   sumbitStatus,
+//   loading,
+//   setVisible,
+//   handleIdeaAction,
+//   handleSumbit,
+//   handleLayout,
+//   refreshVueFlow,
+//   onArgumentModify,
+//   handleSummary,
+// } = useMyVueFlow({
+//   topic_id: topicId.value,
+//   student_id: +studentId,
+//   group_id: +groupId,
+// })
+
+// /**
+//  *
+//  * @param payload { id: string; studentId: string } id 为查看节点的id
+//  */
+// const onCheckIdea = (payload: { nodeId: string; studentId: string }) => {
+//   handleIdeaAction('check', payload)
+// }
+
+// const onCheckGroup = (payload: {
+//   groupId: string
+//   nodeId: string
+//   groupConclusion: string
+// }) => {
+//   if (!payload.groupConclusion) {
+//     ElNotification({
+//       title: '提示',
+//       message: '该小组还未总结观点',
+//       type: 'warning',
+//     })
+//     return
+//   }
+//   handleIdeaAction('checkGroup', payload)
+// }
+
+const [dialogVisible, setdialogVisible] = useState(false)
+
+const { key, refresh } = useRefresh()
 
 /**
- *
- * @param payload { id: string; studentId: string } id 为查看节点的id
+ * 这个方法用来打开论证图编辑器
+ * 1. 首先可视化dialog
+ * 2. 直接更新组件
  */
-const onCheckIdea = (payload: { nodeId: string; studentId: string }) => {
-  handleIdeaAction('check', payload)
+const openArgumentEditor = () => {
+  setdialogVisible(true)
+  refresh()
 }
 
-const onCheckGroup = (payload: {
+/**
+ * 传递给argumentFlowComponent组件的参数
+ */
+const requestParams = reactive({
+  focusNodeId: '',
+})
+
+const setRequestParams = (payload: { focusNodeId: string }) => {
+  requestParams.focusNodeId = payload.focusNodeId
+}
+
+/**
+ * 控制argumentFlowComponent组件状态的参数
+ */
+const controller = reactive({
+  role: Role.Idea,
+  action: Action.Check,
+  InSelfGroup: false,
+  InSelfIdea: false,
+})
+
+const setControllerState = (
+  role: Role,
+  action: Action,
+  InSelfGroup?: boolean,
+  InSelfIdea?: boolean
+) => {
+  controller.role = role
+  controller.action = action
+  InSelfGroup && (controller.InSelfGroup = InSelfGroup)
+  InSelfIdea && (controller.InSelfIdea = InSelfIdea)
+}
+
+const onClickGroupNode = (payload: {
   groupId: string
   nodeId: string
   groupConclusion: string
 }) => {
-  if (!payload.groupConclusion) {
-    ElNotification({
-      title: '提示',
-      message: '该小组还未总结观点',
-      type: 'warning',
-    })
-    return
-  }
-  handleIdeaAction('checkGroup', payload)
+  setRequestParams({ focusNodeId: payload.nodeId })
+  // 打开论证图编辑器
+  // 判断是否在本组
+  const slefGroupId = getOneUserInfo('group_id') as string
+  const isSelfGroup = payload.groupId === String(slefGroupId)
+  setControllerState(Role.Conclusion, Action.Check, isSelfGroup, false)
+  openArgumentEditor()
 }
+
+const onClickIdeaNode = (payload: { nodeId: string; studentId: string }) => {
+  setRequestParams({ focusNodeId: payload.nodeId })
+  const slefStudentId = getOneUserInfo('id') as string
+  const isSelfIdea = payload.studentId === String(slefStudentId)
+  setControllerState(Role.Idea, Action.Check, false, isSelfIdea)
+  openArgumentEditor()
+}
+
+const handleClickProposeIdeaBtn = () => {
+  const inSelfGroup = false
+  const inSelfIdea = true
+  // 设置论证图编辑器请求的参数，为空字符串表示不需要查询
+  setRequestParams({ focusNodeId: '' })
+  setControllerState(Role.Idea, Action.Modify, inSelfGroup, inSelfIdea)
+  openArgumentEditor()
+}
+
+/**
+ * 查询topic话题信息
+ */
+const topicContent = ref('')
+const topicId = useQueryParam<number>('topic_id')
+useRequest({
+  apiFn: async () => await queryTopicContentApi(topicId.value),
+  onSuccess: (res: TopicContent) => {
+    topicContent.value = res.topic_content
+  },
+  onError: () => {
+    ElNotification({
+      title: 'Error',
+      message: '获取主题内容失败',
+      type: 'error',
+      position: 'bottom-right',
+    })
+  },
+  immediate: true,
+})
 </script>
 
 <template>
-  <section class="dialog-container" v-show="visible">
-    <el-dialog v-model="visible" width="1200" :append-to-body="true">
+  <section class="dialog-container" v-show="dialogVisible">
+    <el-dialog v-model="dialogVisible" width="1200" :append-to-body="true">
       <div class="argument-flow-container">
         <argumentFlowComponent
-          ref="argumentFlowRef"
-          v-model:status="sumbitStatus"
-          :nodes="nodes"
-          :edges="edges"
-          :node-id="nodeId"
           :key="key"
+          ref="argumentFlowRef"
+          :role="controller.role"
+          :action="controller.action"
+          :InSelfGroup="controller.InSelfGroup"
+          :InSelfIdea="controller.InSelfIdea"
+          :focus-node-id="requestParams.focusNodeId"
+          :show-feed-back="true"
           :topic-content="topicContent"
-          :can-revise-idea="canReviseIdea"
-          :can-revise-group-conclusion="canReviseGroupConclusion"
-          v-model:reply="reply"
-          @modify="onArgumentModify"
+          reply="none"
         ></argumentFlowComponent>
       </div>
       <div class="button-footer-container">
-        <my-button @click="setVisible(false)" _type="Cancel"></my-button>
+        <el-button
+          @click="
+            () => {
+              setdialogVisible(false)
+            }
+          "
+          plain
+          color="#FF8225"
+          style="margin-left: 10px"
+        >
+          取消
+        </el-button>
         <el-button
           style="margin-left: 10px"
           color="#FF8225"
-          @click="handleSumbit"
-          :loading="loading"
-          >{{ loading ? '提交中' : '提交' }}</el-button
+          @click="
+            () => {
+              setdialogVisible(false)
+            }
+          "
+          >{{ '确定' }}</el-button
         >
-        <!-- <my-button
-          @click="handleSumbit"
-          _type="OK"
-          :loading="loading"
-        ></my-button> -->
       </div>
     </el-dialog>
   </section>
@@ -111,37 +218,37 @@ const onCheckGroup = (payload: {
   <div class="vue-flow-container">
     <flow-component
       ref="vueFlowRef"
-      @checkIdea="onCheckIdea"
-      @checkGroup="onCheckGroup"
+      @onClickGroupNode="onClickGroupNode"
+      @onClickIdeaNode="onClickIdeaNode"
     >
       <div class="layout-panel">
-        <button title="发表观点" @click="handleIdeaAction('propose')">
+        <button title="发表观点" @click="handleClickProposeIdeaBtn">
           <Icon :name="IconName.Idea" />
         </button>
-        <!-- TODO: 后端实现后对接 -->
-        <button title="总结观点" @click="handleSummary">
+        <button
+          title="总结观点"
+          @click="
+            () => {
+              setControllerState(Role.Conclusion, Action.Modify, true)
+              openArgumentEditor()
+            }
+          "
+        >
           <Icon :name="IconName.Summary" />
         </button>
-        <button title="刷新" @click="refreshVueFlow">
+        <button title="刷新" @click="">
           <Icon :name="IconName.Refresh" />
         </button>
         <button title="返回首页" @click="">
           <Icon :name="IconName.Home" />
         </button>
-        <!-- TODO: 最后写 -->
         <button title="设置" @click="">
           <Icon :name="IconName.Setting" />
         </button>
-        <button
-          title="垂直排列"
-          @click="handleLayout(LayoutDirection.Vertical)"
-        >
+        <button title="垂直排列" @click="">
           <Icon :name="IconName.Vertical" />
         </button>
-        <button
-          title="水平排列"
-          @click="handleLayout(LayoutDirection.Horizontal)"
-        >
+        <button title="水平排列" @click="">
           <Icon :name="IconName.Horizontal" />
         </button>
       </div>

@@ -22,7 +22,7 @@ const props = withDefaults(defineProps<Props>(), {
 // 向父组件传递事件,click, 由父组件判断是查看还是修改
 const emits = defineEmits<{
   (
-    e: 'click',
+    e: 'onClickIdeaNode',
     payload: {
       nodeId: string
       studentId: string
@@ -32,7 +32,7 @@ const emits = defineEmits<{
 
 const handleCheckIdea = () => {
   // 返回id
-  emits('click', {
+  emits('onClickIdeaNode', {
     nodeId: props.data.id,
     studentId: String(props.data.student_id),
   })

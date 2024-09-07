@@ -10,13 +10,11 @@ import {
   NodeType,
 } from '@/views/Home/components/ArgumentFlowComponent/type'
 
-
 interface FilterFunction {
   (edge: EdgeType): boolean
 }
 
 function useNodeEdgeHandler() {
-
   let cnt = 0
 
   function createId() {
@@ -81,6 +79,25 @@ function useNodeEdgeHandler() {
         return nodes[i].id
       }
     }
+    return undefined
+  }
+
+  function getQualifierNodeId(nodes: NodeType[]) {
+    for (let i = 0; i < nodes.length; i++) {
+      if (nodes[i].data._type === ArgumentType.Qualifier) {
+        return nodes[i].id
+      }
+    }
+    return undefined
+  }
+
+  function getRebuttalNodeId(nodes: NodeType[]) {
+    for (let i = 0; i < nodes.length; i++) {
+      if (nodes[i].data._type === ArgumentType.Rebuttal) {
+        return nodes[i].id
+      }
+    }
+    return undefined
   }
 
   function getNodeById(nodes: NodeType[], id: string) {
@@ -105,12 +122,15 @@ function useNodeEdgeHandler() {
   }
 
   function removeNodeById(nodes: NodeType[], id: string) {
-    for (let i = 0; i < nodes.length; i++) {
-      if (nodes[i].id === id) {
-        nodes.splice(i, 1)
-        return
-      }
-    }
+    // for (let i = 0; i < nodes.length; i++) {
+    //   if (nodes[i].id === id) {
+    //     nodes.splice(i, 1)
+    //     return
+    //   }
+    // }
+    return nodes.filter(node => {
+      return node.id !== id
+    })
   }
 
   function removeEdgeByType(
@@ -203,6 +223,7 @@ function useNodeEdgeHandler() {
     createEdge,
     getDataNodeId,
     getClaimNodeId,
+    getQualifierNodeId,
     getNodeById,
     getNodeIdsByType,
     removeNodeById,
@@ -213,6 +234,7 @@ function useNodeEdgeHandler() {
     findIsEdgesExistBySourceId,
     clearNotRealatedEdges,
     findIsEdgeExistByFilterFunction,
+    getRebuttalNodeId,
   }
 }
 
