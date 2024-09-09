@@ -18,6 +18,8 @@ import type {
   NodeType,
   EdgeType,
 } from './components/ArgumentFlowComponent/type.ts'
+import miniDashBoard from './components/DashBoardMini/index.vue'
+
 const { getOneUserInfo } = useUserStore()
 
 const [dialogVisible, setdialogVisible] = useState(false)
@@ -48,19 +50,6 @@ const setRequestParams = (payload: { focusNodeId: string }) => {
 /**
  * 控制argumentFlowComponent组件状态的参数
  */
-// const controller: {
-//   role: Role
-//   action: Action
-//   InSelfGroup: boolean
-//   InSelfIdea: boolean
-//   reply: 'none' | 'reject' | 'approve'
-// } = reactive({
-//   role: Role.Idea,
-//   action: Action.Check,
-//   InSelfGroup: false,
-//   InSelfIdea: false,
-//   reply: 'none',
-// })
 
 const controller = ref<{
   role: Role
@@ -396,7 +385,10 @@ const handleRereshFlowData = () => {
  * 点击确认时触发
  */
 const handleOK = () => {
-  if(condition.value === 'chechIdea' || condition.value === 'checkConclusion'){
+  if (
+    condition.value === 'chechIdea' ||
+    condition.value === 'checkConclusion'
+  ) {
     // 关闭弹窗
     setdialogVisible(false)
   } else {
@@ -461,50 +453,57 @@ const handleOK = () => {
       @onClickGroupNode="onClickGroupNode"
       @onClickIdeaNode="onClickIdeaNode"
     >
-      <div class="layout-panel">
-        <button title="发表观点" @click="handleClickProposeIdeaBtn">
-          <Icon :name="IconName.Idea" />
-        </button>
-        <button title="总结观点" @click="handleClickConclusionBtn">
-          <Icon :name="IconName.Summary" />
-        </button>
-        <button
-          title="刷新"
-          @click="
-            () => {
-              handleRereshFlowData()
-            }
-          "
-        >
-          <Icon :name="IconName.Refresh" />
-        </button>
-        <button title="返回首页" @click="">
-          <Icon :name="IconName.Home" />
-        </button>
-        <button title="设置" @click="">
-          <Icon :name="IconName.Setting" />
-        </button>
-        <button
-          title="垂直排列"
-          @click="
-            () => {
-              handleLayout(LayoutDirection.Vertical)
-            }
-          "
-        >
-          <Icon :name="IconName.Vertical" />
-        </button>
-        <button
-          title="水平排列"
-          @click="
-            () => {
-              handleLayout(LayoutDirection.Horizontal)
-            }
-          "
-        >
-          <Icon :name="IconName.Horizontal" />
-        </button>
-      </div>
+      <!-- 右上角插槽放一些控制按钮 -->
+      <template #top-right>
+        <div class="layout-panel">
+          <button title="发表观点" @click="handleClickProposeIdeaBtn">
+            <Icon :name="IconName.Idea" />
+          </button>
+          <button title="总结观点" @click="handleClickConclusionBtn">
+            <Icon :name="IconName.Summary" />
+          </button>
+          <button
+            title="刷新"
+            @click="
+              () => {
+                handleRereshFlowData()
+              }
+            "
+          >
+            <Icon :name="IconName.Refresh" />
+          </button>
+          <button title="返回首页" @click="">
+            <Icon :name="IconName.Home" />
+          </button>
+          <button title="设置" @click="">
+            <Icon :name="IconName.Setting" />
+          </button>
+          <button
+            title="垂直排列"
+            @click="
+              () => {
+                handleLayout(LayoutDirection.Vertical)
+              }
+            "
+          >
+            <Icon :name="IconName.Vertical" />
+          </button>
+          <button
+            title="水平排列"
+            @click="
+              () => {
+                handleLayout(LayoutDirection.Horizontal)
+              }
+            "
+          >
+            <Icon :name="IconName.Horizontal" />
+          </button>
+        </div>
+      </template>
+      <!-- 左上角插槽放dashboard显示小组的互动等 -->
+      <template #top-left>
+        <mini-dash-board />
+      </template>
     </flow-component>
   </div>
 </template>
@@ -645,5 +644,12 @@ h3 {
   &:deep(.el-button:not(.is-plain)) {
     color: #fff;
   }
+}
+$dashboard-width: 300px;
+$dashboard-height: 300px;
+.layout-dashboard {
+  width: $dashboard-width;
+  height: $dashboard-height;
+  background-color: #fff;
 }
 </style>
