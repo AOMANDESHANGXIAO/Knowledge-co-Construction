@@ -319,8 +319,6 @@ const handleSumbit = () => {
 
   const nodesValue = nodes.value
   const edgesValue = edges.value
-  console.log('handleSumbit... nodesValue, edgesValue', nodesValue, edgesValue)
-  console.log(validator(nodesValue))
   if (!validator(nodesValue)) return
 
   switch (condition.value) {
@@ -393,6 +391,19 @@ const handleLayout = (direction: LayoutDirection) => {
 const handleRereshFlowData = () => {
   vueFlowRef.value?.refreshData()
 }
+
+/**
+ * 点击确认时触发
+ */
+const handleOK = () => {
+  if(condition.value === 'chechIdea' || condition.value === 'checkConclusion'){
+    // 关闭弹窗
+    setdialogVisible(false)
+  } else {
+    // 提交
+    handleSumbit()
+  }
+}
 </script>
 
 <template>
@@ -437,7 +448,7 @@ const handleRereshFlowData = () => {
         <el-button
           style="margin-left: 10px"
           color="#FF8225"
-          @click="handleSumbit"
+          @click="handleOK"
           >{{ '确定' }}</el-button
         >
       </div>

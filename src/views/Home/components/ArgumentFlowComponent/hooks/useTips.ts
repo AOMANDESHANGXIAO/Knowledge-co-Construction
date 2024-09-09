@@ -1,14 +1,13 @@
 import { convertToHTML } from '../utils'
 import { NodeType, EdgeType } from '../type'
+import { Condition } from '../type'
 import { Ref } from 'vue'
-import { Action } from '../type'
-
 /**
  * 用于处理右下角的提示词
+ * TODO: 重构提示词逻辑
  */
 export default function useTips(props: {
-  action: Action
-  reply: 'none' | 'approve' | 'reject'
+  condition: Condition
   topicContent: string
   textualizedArgument: {
     nodes: Ref<NodeType[]>
@@ -17,6 +16,7 @@ export default function useTips(props: {
 }) {
   const MAX_CONTENT_WIDTH = '400px'
   const MIN_CONTENT_WIDTH = '20px'
+  const { condition, topicContent } = props
 
   const { nodes, edges } = props.textualizedArgument
 
@@ -34,37 +34,40 @@ export default function useTips(props: {
     }
   }
 
+  const titleMap: Record<Condition, string> = {
+    chechIdea: '检查观点',
+    checkConclusion: '检查结论',
+    modifyIdea: '修改观点',
+    modifyConclusion: '修改结论',
+    replyIdea: '回复观点',
+    proposeIdea: '提出观点',
+    proposeConclusion: '提出结论',
+  }
+
   const title = computed(() => {
-    const { reply, action } = props
-    if (action === Action.Check) {
-      if (reply === 'approve') return '支持观点'
-      if (reply === 'reject') return '反对观点'
-      return '检查观点'
-    } else if (action === Action.Modify) {
-      return '话题'
-    }
+    return titleMap[condition]
   })
 
+  const contentRenderCondition: {
+    [key: string]: Array<Condition>
+  } = {
+    argument: ['chechIdea', 'checkConclusion', 'replyIdea'],
+    topic: [
+      'modifyConclusion',
+      'modifyIdea',
+      'proposeConclusion',
+      'proposeIdea',
+    ],
+  }
+
   const content = computed(() => {
-    const { reply, action, topicContent } = props
-
-    /**
-     * 如果正在回应其他人的观点，或者正在检查观点则文本化论证图
-     */
-    if (action === Action.Check || reply === 'approve' || reply === 'reject') {
-      // 文本化论证图
+    // 1. 如果在检查观点，那么应该渲染检查观点的内容
+    if (contentRenderCondition.argument.includes(condition)) {
+      console.log('convertToHTML', nodes.value, edges.value)
       return convertToHTML({ nodes: nodes.value, edges: edges.value })
-    }
-
-    /**
-     * 如果正在修改自己的论证，则不文本化视图，而是要提示目前正在论证的题目
-     */
-    if (action === Action.Modify) {
-      console.log('topicContent', topicContent)
+    } else if (contentRenderCondition.topic.includes(condition)) {
       return topicContent
     }
-
-    return ''
   })
 
   return {

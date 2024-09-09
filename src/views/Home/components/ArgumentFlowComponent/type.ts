@@ -74,7 +74,6 @@ export enum Action {
   Modify = 'modify',
 }
 
-
 export enum Status {
   Propose, // 提出
   Check, // 查看
@@ -83,5 +82,14 @@ export enum Status {
   FirstSummary, // 小组首次总结观点
   ModifyGroupConclusion, // 修改群组总结
 }
+
+export type Condition =
+  | 'chechIdea'
+  | 'checkConclusion'
+  | 'modifyIdea'
+  | 'modifyConclusion'
+  | 'replyIdea'
+  | 'proposeIdea'
+  | 'proposeConclusion'
 
 export type { NodeType, EdgeType, AddBackPayload, FeedBack, ArgumentNode }

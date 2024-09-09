@@ -18,7 +18,7 @@ import ArrowIcon from './components/icon/index.vue'
 import useStateEdit from './hooks/useStateEdit.ts'
 import Dialog from './components/dialog/index.vue'
 import { useDialog } from './hooks/dialog/index'
-
+import { Condition } from './type.ts'
 // 组件一共几个状态
 // 1. chechIdea 查看观点，如果是自己的则显示修改按钮， 如果不是自己的则显示 支持 或者 反对 按钮
 // 2. checkConclusion 查看小组结论，如果是自己组的则可以修改，如果不是自己组的则只能查看
@@ -34,14 +34,7 @@ const props = withDefaults(
     InSelfIdea: boolean // 标记是否是自己的观点
     role: Role // 标记当前组件的角色，Idea或者Conclusion
     action: Action // 标记组件的动作，是否修改(Modify)或者查看观点（Check）
-    condition:
-      | 'chechIdea'
-      | 'checkConclusion'
-      | 'modifyIdea'
-      | 'modifyConclusion'
-      | 'replyIdea'
-      | 'proposeIdea'
-      | 'proposeConclusion'
+    condition: Condition
     showFeedBack: boolean // 是否显示反馈
     focusNodeId: string // 观点节点id
     reply: 'none' | 'reject' | 'approve' // 标记当前节点的回复状态
@@ -224,17 +217,45 @@ onMounted(() => {
 
 /**
  * 处理右下角的提示词
+ * FIXME: 数据没有响应式，还是得传一个响应式数据
  */
+const handleTextualized = (): {
+  nodes: Ref<NodeType[]>
+  edges: Ref<EdgeType[]>
+} => {
+  const { condition, modifiedNodes, modifiedEdges, replyEdges, replyNodes } =
+    props
+  // 决定文本化的nodes和edges
+  if (condition === 'modifyConclusion' || condition === 'modifyIdea') {
+    return {
+      nodes: ref(modifiedNodes),
+      edges: ref(modifiedEdges)
+    }
+  } else if (condition === 'replyIdea') {
+    return {
+      nodes: ref(replyNodes),
+      edges: ref(replyEdges),
+    }
+  } else if (condition === 'chechIdea' || condition === 'checkConclusion') {
+    return {
+      nodes: nodes,
+      edges: edges,
+    }
+  } else {
+    return {
+      nodes: ref([]),
+      edges: ref([]),
+    }
+  }
+}
+
 const { content, contentStyle, handleToggleFold, MAX_CONTENT_WIDTH, title } =
   useTips({
-    action: props.action,
-    reply: props.reply,
     topicContent: props.topicContent,
-    textualizedArgument: {
-      nodes,
-      edges,
-    },
+    condition: props.condition,
+    textualizedArgument: handleTextualized(),
   })
+
 const editNotification = (msg: string) => {
   ElNotification({
     title: '提示',
@@ -376,7 +397,7 @@ const handleClickRejectBtn = () => {
 }
 
 const handleClickAcceptBtn = () => {
-  emit('onClickAcceptBtn',{
+  emit('onClickAcceptBtn', {
     replyNodes: nodes.value,
     replyEdges: edges.value,
   })
