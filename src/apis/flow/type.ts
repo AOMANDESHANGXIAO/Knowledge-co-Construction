@@ -44,6 +44,10 @@ interface ProposeGroupConclusionParams
   groupNodeId: string
 }
 
+interface ModifyGroupConclusionParams extends ProposeGroupConclusionParams{
+
+}
+
 interface ReviseGroupConclusionParams {
   topic_id: number
   student_id: number
@@ -176,4 +180,5 @@ export type {
   QueryFlowResponse,
   ModifyIdeaParams,
   ProposeGroupConclusionParams,
+  ModifyGroupConclusionParams
 }

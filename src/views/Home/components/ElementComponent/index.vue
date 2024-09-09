@@ -7,6 +7,8 @@ import { Handle, Position } from '@vue-flow/core'
 import tips from '../toolTips/index.vue'
 import lightText from '@/components/common/highlight/index.vue'
 import { useForm } from '@/hooks/form'
+import type { ElInput } from 'element-plus'
+import vFocus from '@/directives/focus'
 
 defineOptions({
   name: 'elementComponent',
@@ -410,10 +412,13 @@ if (props._type === ArgumentType.Backing) {
       <el-form-item prop="input">
         <el-input
           v-model="form.inputValue"
+          v-focus
+          ref="elInputRef"
           @input="updateModelValue"
           :placeholder="`论证的${elementMap[props._type].title}是什么?`"
           type="textarea"
           :autosize="{ minRows: 6, maxRows: 8 }"
+          :autofocus="true"
           maxlength="200"
           show-word-limit
         ></el-input>

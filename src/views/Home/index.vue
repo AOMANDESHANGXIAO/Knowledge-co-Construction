@@ -292,6 +292,7 @@ const {
   submitModifyIdea,
   submitReplyIdea,
   submitProposeGroupConclusion,
+  submitModifyGroupConclusion,
 } = useSubmit({
   onSuccess: () => {
     ElNotification({
@@ -318,6 +319,8 @@ const handleSumbit = () => {
 
   const nodesValue = nodes.value
   const edgesValue = edges.value
+  console.log('handleSumbit... nodesValue, edgesValue', nodesValue, edgesValue)
+  console.log(validator(nodesValue))
   if (!validator(nodesValue)) return
 
   switch (condition.value) {
@@ -332,6 +335,17 @@ const handleSumbit = () => {
       break
     }
     case 'modifyConclusion': {
+      console.log('修改小组结论')
+      const groupNode = getGroupNode()
+
+      if (!groupNode) return
+      const groupNodeId = groupNode.id
+      submitModifyGroupConclusion({
+        student_id: +studentId,
+        groupNodeId: groupNodeId,
+        nodes: nodesValue,
+        edges: edgesValue,
+      })
       break
     }
     case 'replyIdea': {

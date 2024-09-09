@@ -7,10 +7,9 @@ import {
   replyIdeaApi,
   modifyIdeaApi,
   proposeGroupConclusionApi,
+  modifyGroupConclusionApi,
 } from '@/apis/flow'
-import {
-  CreateNewIdeaArgs,
-} from '@/apis/flow/type'
+import { CreateNewIdeaArgs } from '@/apis/flow/type'
 import useRequest from '@/hooks/Async/useRequest'
 /**
  *
@@ -153,10 +152,37 @@ export default function useSumbit({
       immediate: true,
     })
   }
+
+  const submitModifyGroupConclusion = ({
+    student_id,
+    groupNodeId,
+    nodes,
+    edges,
+  }: {
+    student_id: number
+    groupNodeId: string
+    nodes: NodeType[]
+    edges: EdgeType[]
+  }) => {
+    useRequest({
+      apiFn: async () =>
+        await modifyGroupConclusionApi({
+          student_id,
+          groupNodeId,
+          nodes: formatterRequestNode(nodes),
+          edges,
+        }),
+      onSuccess: onSuccess,
+      onFail: onFail,
+      immediate: true,
+    })
+  }
+
   return {
     submitProposeIdea,
     submitModifyIdea,
     submitReplyIdea,
     submitProposeGroupConclusion,
+    submitModifyGroupConclusion
   }
 }

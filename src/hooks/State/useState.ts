@@ -1,4 +1,4 @@
-import { ref, UnwrapRef, Ref } from 'vue'
+import { ref, UnwrapRef, Ref} from 'vue'
 
 /**
  * 
@@ -19,5 +19,4 @@ function useState<T>(
 
   return [state, setState, previousState]
 }
-
 export default useState
