@@ -3,6 +3,7 @@
  * 迷你版的仪表盘
  */
 import { dev_data } from './data'
+import MyAlert from '@/components/ElementPlusPackage/MyAlert.vue'
 
 defineOptions({
   name: 'dash-board-mini',
@@ -20,34 +21,33 @@ withDefaults(
     list: () => dev_data,
   }
 )
+
+const emits = defineEmits<{
+  (e: 'checkDetail'): void
+}>()
+
+const handleCheckDetail = () => {
+  emits('checkDetail')
+}
 </script>
 
 <template>
   <div class="dash-board-mini">
     <header>
       <div class="title">✨学习仪表盘✨</div>
-      <el-text type="info" size="small">查看详情</el-text>
+      <el-text type="info" size="small" @click="handleCheckDetail"
+        >查看详情</el-text
+      >
     </header>
     <section class="alert-layout">
-      <el-alert
+      <my-alert
         v-for="item in list"
         :key="item.title"
-        :title="item.title"
-        :type="item.type"
-        show-icon
+        v-bind="item"
+        :list="item.suggestions"
         :closable="false"
-      >
-        <template #title>
-          <div class="title">{{ item.title }}</div>
-          <div
-            class="content-item"
-            v-for="(suggestion, index) in item.suggestions"
-            :key="index"
-          >
-            {{ `${index + 1}. ${suggestion}` }}
-          </div>
-        </template>
-      </el-alert>
+        show-icon
+      ></my-alert>
     </section>
   </div>
 </template>

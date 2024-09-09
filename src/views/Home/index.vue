@@ -19,7 +19,7 @@ import type {
   EdgeType,
 } from './components/ArgumentFlowComponent/type.ts'
 import miniDashBoard from './components/DashBoardMini/index.vue'
-
+import fullScreenDashBoard from './components/DashBoardFullScreen/index.vue'
 const { getOneUserInfo } = useUserStore()
 
 const [dialogVisible, setdialogVisible] = useState(false)
@@ -396,9 +396,19 @@ const handleOK = () => {
     handleSumbit()
   }
 }
+
+/**
+ * 处理dashBoard
+ */
+const [dashBoardVisible, setDashBoardVisible] = useState(false)
+
+const onCheckDetail = () => {
+  setDashBoardVisible(true)
+}
 </script>
 
 <template>
+  <!-- 论点编辑器dialog -->
   <section class="dialog-container" v-show="dialogVisible">
     <el-dialog v-model="dialogVisible" width="1200" :append-to-body="true">
       <div class="argument-flow-container">
@@ -447,6 +457,7 @@ const handleOK = () => {
     </el-dialog>
   </section>
 
+  <!-- 知识建构图谱 -->
   <div class="vue-flow-container">
     <flow-component
       ref="vueFlowRef"
@@ -502,10 +513,15 @@ const handleOK = () => {
       </template>
       <!-- 左上角插槽放dashboard显示小组的互动等 -->
       <template #top-left>
-        <mini-dash-board />
+        <mini-dash-board @checkDetail="onCheckDetail" />
       </template>
     </flow-component>
   </div>
+
+  <!-- 学习仪表盘dialog -->
+  <el-dialog v-model="dashBoardVisible" width="1200" :append-to-body="true">
+    <fullScreenDashBoard />
+  </el-dialog>
 </template>
 
 <style scoped lang="scss">
