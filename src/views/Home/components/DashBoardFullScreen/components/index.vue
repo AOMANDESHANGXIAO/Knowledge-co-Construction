@@ -42,8 +42,10 @@ withDefaults(
 
 <style lang="scss" scoped>
 .dashboard-item {
-  width: 100%;
+  flex: 1;
+  width: 500px;
   height: 100%;
+  // height: 500px;
 
   header {
     font-size: 20px;

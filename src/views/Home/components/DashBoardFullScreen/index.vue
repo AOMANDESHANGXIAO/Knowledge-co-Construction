@@ -8,7 +8,7 @@ import type { ComposeOption } from 'echarts/core'
 import type {
   // 系列类型的定义后缀都为 SeriesOption
   BarSeriesOption,
-  LineSeriesOption,
+  RadarSeriesOption,
   GraphSeriesOption,
 } from 'echarts/charts'
 
@@ -16,15 +16,10 @@ defineOptions({
   name: 'dash-board-full-screen',
 })
 
-const echartDomStyle = {
-  height: '500px',
-  width: '100%',
-  margin: '0 auto',
-}
 
 const testOption: ComposeOption<GraphSeriesOption> = {
-  text: {
-    title:'测试'
+  title: {
+    text: '测试',
   },
   series: [
     {
@@ -111,22 +106,29 @@ const testOption: ComposeOption<GraphSeriesOption> = {
     },
   ],
 }
+const testRadarOption: ComposeOption<RadarSeriesOption> = {
+  title: {
+    text: '测试雷达图',
+  },
+}
+
+const testBarOption: ComposeOption<BarSeriesOption> = {
+  title: {
+    text: '测试柱状图',
+  },
+}
 </script>
 
 <template>
   <div class="dash-board-full-screen">
-    <DashBoardItem>
-      <ECharts
-        :style="echartDomStyle"
-        :option="testOption"
-        type="graph"
-      ></ECharts>
+    <DashBoardItem title="个人">
+      <ECharts :option="testOption" type="graph"></ECharts>
     </DashBoardItem>
-    <DashBoardItem>
-      <!-- <ECharts :style="echartDomStyle"></ECharts> -->
+    <DashBoardItem title="互动">
+      <ECharts :option="testRadarOption" type="radar"></ECharts>
     </DashBoardItem>
-    <DashBoardItem>
-      <!-- <ECharts :style="echartDomStyle"></ECharts> -->
+    <DashBoardItem title="团队">
+      <ECharts :option="testBarOption" type="bar"></ECharts>
     </DashBoardItem>
   </div>
 </template>
@@ -138,6 +140,10 @@ $dash-board-full-screen-width: 100%;
   justify-content: space-around;
   gap: 10px;
   width: $dash-board-full-screen-width;
-  min-height: 500px;
+  height: 60vh;
+}
+.dashboard-container {
+  width: 300px;
+  height: 300px;
 }
 </style>

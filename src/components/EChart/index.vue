@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import * as echarts from 'echarts/core'
-import { BarChart, LineChart, GraphChart } from 'echarts/charts'
+import { BarChart, LineChart, GraphChart, RadarChart } from 'echarts/charts'
 import {
   TitleComponent,
   TooltipComponent,
@@ -9,14 +9,16 @@ import {
   DatasetComponent,
   // 内置数据转换器组件 (filter, sort)
   TransformComponent,
+  LegendComponent,
 } from 'echarts/components'
 import { LabelLayout, UniversalTransition } from 'echarts/features'
-import { CanvasRenderer } from 'echarts/renderers'
+import { CanvasRenderer, SVGRenderer } from 'echarts/renderers'
 import type {
   // 系列类型的定义后缀都为 SeriesOption
   BarSeriesOption,
   LineSeriesOption,
   GraphSeriesOption,
+  RadarSeriesOption,
 } from 'echarts/charts'
 import type {
   // 组件类型的定义后缀都为 ComponentOption
@@ -27,7 +29,11 @@ import type {
   GraphicComponentOption,
 } from 'echarts/components'
 import type { ComposeOption } from 'echarts/core'
-import { GRAPH_DEFAULT_OPTION } from './option'
+import {
+  GRAPH_DEFAULT_OPTION,
+  RADAR_DEFAULT_OPTION,
+  BAR_DEFAULT_OPTION,
+} from './option'
 
 // 通过 ComposeOption 来组合出一个只有必须组件和图表的 Option 类型
 type ECOption = ComposeOption<
@@ -39,6 +45,7 @@ type ECOption = ComposeOption<
   | GridComponentOption
   | DatasetComponentOption
   | GraphicComponentOption
+  | RadarSeriesOption
 >
 
 // 注册必须的组件
@@ -54,9 +61,12 @@ echarts.use([
   UniversalTransition,
   CanvasRenderer,
   GraphChart,
+  LegendComponent,
+  RadarChart,
+  SVGRenderer,
 ])
 const props = defineProps<{
-  type: 'graph'
+  type: 'graph' | 'radar' | 'bar'
   option: ECOption
 }>()
 
@@ -69,6 +79,8 @@ const myChart = ref<echarts.ECharts | null>(null)
 
 const optionMap = {
   graph: GRAPH_DEFAULT_OPTION,
+  radar: RADAR_DEFAULT_OPTION,
+  bar: BAR_DEFAULT_OPTION,
 }
 
 const getOption = () => {
@@ -89,24 +101,55 @@ const draw = () => {
   if (myChart.value) {
     myChart.value.dispose()
   }
-  myChart.value = echarts.init(chartRef.value!)
+  myChart.value = echarts.init(chartRef.value!, null, {
+    renderer: 'svg',
+    width: 400,
+    height: 400,
+  })
   option && myChart.value?.setOption(option)
 }
 
 onMounted(() => {
+  draw()
+  // window.addEventListener('resize', draw)
+})
+
+onUnmounted(() => {
+  // window.removeEventListener('resize', draw)
+})
+
+onUpdated(() => {
   draw()
 })
 
 watch(
   () => props.option,
   () => {
-    myChart.value && draw()
+    chartRef.value && draw()
   }
 )
 </script>
 
 <template>
-  <div ref="chartRef"></div>
+  <div ref="chartRef" class="echart-container"></div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.echart-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  margin: auto;
+  div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    background-color: pink;
+  }
+}
+</style>
