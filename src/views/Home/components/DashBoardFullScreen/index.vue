@@ -11,121 +11,68 @@ import type {
   RadarSeriesOption,
   GraphSeriesOption,
 } from 'echarts/charts'
+import { queryDashBoard } from '@/apis/flow'
+import { QueryDashBoardResponse } from '@/apis/flow/type'
+import useRequest from '@/hooks/Async/useRequest'
+import useQueryParam from '@/hooks/router/useQueryParam'
+import { useUserStore } from '@/store/modules/user/index'
+import useState from '@/hooks/State/useState'
 
 defineOptions({
   name: 'dash-board-full-screen',
 })
-
-
-const testOption: ComposeOption<GraphSeriesOption> = {
-  title: {
-    text: '测试',
-  },
-  series: [
-    {
-      type: 'graph',
-      layout: 'none',
-      symbolSize: 50,
-      roam: true,
-      label: {
-        show: true,
-      },
-      edgeSymbol: ['circle', 'arrow'],
-      edgeSymbolSize: [10, 10],
-      edgeLabel: {
-        fontSize: 20,
-      },
-      data: [
-        {
-          name: 'Node 1',
-          x: 300,
-          y: 300,
-        },
-        {
-          name: 'Node 2',
-          x: 800,
-          y: 300,
-        },
-        {
-          name: 'Node 3',
-          x: 550,
-          y: 100,
-        },
-        {
-          name: 'Node 4',
-          x: 550,
-          y: 500,
-        },
-      ],
-      // links: [],
-      links: [
-        {
-          source: 0,
-          target: 1,
-          symbolSize: [5, 20],
-          label: {
-            show: true,
-          },
-          lineStyle: {
-            width: 5,
-            curveness: 0.2,
-          },
-        },
-        {
-          source: 'Node 2',
-          target: 'Node 1',
-          label: {
-            show: true,
-          },
-          lineStyle: {
-            curveness: 0.2,
-          },
-        },
-        {
-          source: 'Node 1',
-          target: 'Node 3',
-        },
-        {
-          source: 'Node 2',
-          target: 'Node 3',
-        },
-        {
-          source: 'Node 2',
-          target: 'Node 4',
-        },
-        {
-          source: 'Node 1',
-          target: 'Node 4',
-        },
-      ],
-      lineStyle: {
-        opacity: 0.9,
-        width: 2,
-        curveness: 0,
-      },
-    },
-  ],
-}
-const testRadarOption: ComposeOption<RadarSeriesOption> = {
-  title: {
-    text: '测试雷达图',
-  },
-}
 
 const testBarOption: ComposeOption<BarSeriesOption> = {
   title: {
     text: '测试柱状图',
   },
 }
+
+const { getOneUserInfo } = useUserStore()
+const topicId = useQueryParam<number>('topic_id')
+
+const [dashBoardData, setDashBoardData] = useState<{
+  radar: ComposeOption<RadarSeriesOption>
+  graph: ComposeOption<GraphSeriesOption>
+}>({
+  radar: {},
+  graph: {},
+})
+
+/**
+ * 查询仪表盘
+ */
+useRequest({
+  apiFn: async () => {
+    console.log('student_id', getOneUserInfo('id'))
+    console.log('group_id', getOneUserInfo('group_id'))
+    return await queryDashBoard({
+      topic_id: topicId.value,
+      student_id: getOneUserInfo('id'),
+      group_id: getOneUserInfo('group_id'),
+    })
+  },
+  onSuccess(response: QueryDashBoardResponse) {
+    setDashBoardData({
+      radar: {
+        ...response.radarOption,
+      },
+      graph: {
+        ...response.graphOption,
+      },
+    })
+  },
+  immediate: true,
+})
 </script>
 
 <template>
   <div class="dash-board-full-screen">
-    <DashBoardItem title="个人">
-      <ECharts :option="testOption" type="graph"></ECharts>
+    <DashBoardItem title="论证元素">
+      <ECharts :option="dashBoardData.radar" type="radar"></ECharts>
     </DashBoardItem>
     <DashBoardItem title="互动">
-      <ECharts :option="testRadarOption" type="radar"></ECharts>
+      <ECharts :option="dashBoardData.graph" type="graph"></ECharts>
     </DashBoardItem>
     <DashBoardItem title="团队">
       <ECharts :option="testBarOption" type="bar"></ECharts>

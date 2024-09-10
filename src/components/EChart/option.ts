@@ -12,9 +12,6 @@ const RADAR_DEFAULT_OPTION: ComposeOption<RadarSeriesOption> = {
   title: {
     text: 'Basic Radar Chart',
   },
-  legend: {
-    data: ['Allocated Budget', 'Actual Spending'],
-  },
   radar: {
     // shape: 'circle',
     indicator: [
@@ -56,7 +53,7 @@ const GRAPH_DEFAULT_OPTION: ComposeOption<GraphSeriesOption> = {
   series: [
     {
       type: 'graph',
-      layout: 'none',
+      layout: 'circular',
       symbolSize: 50,
       roam: true,
       label: {
@@ -70,23 +67,15 @@ const GRAPH_DEFAULT_OPTION: ComposeOption<GraphSeriesOption> = {
       data: [
         {
           name: 'Node 1',
-          x: 300,
-          y: 300,
         },
         {
           name: 'Node 2',
-          x: 800,
-          y: 300,
         },
         {
           name: 'Node 3',
-          x: 550,
-          y: 100,
         },
         {
           name: 'Node 4',
-          x: 550,
-          y: 500,
         },
       ],
       links: [

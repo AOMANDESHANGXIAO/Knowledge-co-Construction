@@ -1,5 +1,6 @@
 import { ArgumentType } from '@/views/Home/components/ArgumentFlowComponent/type'
-// import { Position } from '@vue-flow/core'
+import { GraphSeriesOption } from 'echarts/charts'
+import type { ComposeOption } from 'echarts/core'
 
 interface CreateNewIdeaArgs {
   topic_id: number
@@ -44,9 +45,7 @@ interface ProposeGroupConclusionParams
   groupNodeId: string
 }
 
-interface ModifyGroupConclusionParams extends ProposeGroupConclusionParams{
-
-}
+interface ModifyGroupConclusionParams extends ProposeGroupConclusionParams {}
 
 interface ReviseGroupConclusionParams {
   topic_id: number
@@ -169,6 +168,27 @@ interface QueryFlowResponse {
   edges: Array<EdgeResponse>
 }
 
+interface QueryDashBoardResponse {
+  radarOption: {
+    radar: {
+      indicator: Array<{ name: string; max: number }>
+    }
+    legend: { data: Array<string> }
+    title: {
+      text: string
+    }
+    series: {
+      name: string
+      type: 'radar'
+      data: Array<{
+        value: Array<number>
+        name: string
+      }>
+    }
+  }
+  graphOption: ComposeOption<GraphSeriesOption>
+}
+
 export type {
   ProposeIdeaParams,
   ReplyIdeaParams,
@@ -180,5 +200,6 @@ export type {
   QueryFlowResponse,
   ModifyIdeaParams,
   ProposeGroupConclusionParams,
-  ModifyGroupConclusionParams
+  ModifyGroupConclusionParams,
+  QueryDashBoardResponse,
 }

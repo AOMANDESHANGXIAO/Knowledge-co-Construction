@@ -9,6 +9,7 @@ import type {
   QueryNodeContentData,
   ProposeGroupConclusionParams,
   ModifyGroupConclusionParams,
+  QueryDashBoardResponse,
 } from './type.ts'
 
 const queryFlowDataApi = (
@@ -63,6 +64,14 @@ const reviseGroupConclusionApi = (
   return Service.post('/flow/revise_group_conclusion', params)
 }
 
+const queryDashBoard = async (params: {
+  topic_id: number
+  student_id: number
+  group_id: number
+}): Promise<Response<QueryDashBoardResponse>> => {
+  return Service.get('/flow/dashboard', { params })
+}
+
 // const reviseSelfIdeaApi = (params: ReviseSelfIdeaParams): Promise<Response> => {
 //   return Service.post('/flow/revise_self_idea', params)
 // }
@@ -76,5 +85,6 @@ export {
   reviseGroupConclusionApi,
   proposeGroupConclusionApi,
   modifyGroupConclusionApi,
+  queryDashBoard,
   // reviseSelfIdeaApi,
 }
