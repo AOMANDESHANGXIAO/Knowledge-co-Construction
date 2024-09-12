@@ -66,8 +66,12 @@ echarts.use([
   SVGRenderer,
 ])
 const props = defineProps<{
-  type: 'graph' | 'radar' | 'bar'
-  option: ECOption
+  type?: 'graph' | 'radar' | 'bar'
+  option?: ECOption
+  size: {
+    width: number
+    height: number
+  }
 }>()
 
 defineOptions({
@@ -85,6 +89,7 @@ const optionMap = {
 
 const getOption = () => {
   const { type, option } = props
+  if (!type || !option) return
   if (Object.keys(optionMap).includes(type)) {
     return {
       ...optionMap[type],
@@ -92,30 +97,29 @@ const getOption = () => {
     }
   } else {
     console.warn('未配置类型图表')
-    return option
+    return
   }
 }
 
 const draw = () => {
   const option = getOption()
+  if (!option) {
+    console.warn('EChartComponent: 未配置类型图表')
+  }
+
   if (myChart.value) {
     myChart.value.dispose()
   }
   myChart.value = echarts.init(chartRef.value!, null, {
     renderer: 'svg',
-    width: 400,
-    height: 400,
+    width: props.size.width,
+    height: props.size.height,
   })
   option && myChart.value?.setOption(option)
 }
 
 onMounted(() => {
   draw()
-  // window.addEventListener('resize', draw)
-})
-
-onUnmounted(() => {
-  // window.removeEventListener('resize', draw)
 })
 
 onUpdated(() => {
@@ -143,13 +147,5 @@ watch(
   height: 100%;
   position: relative;
   margin: auto;
-  div {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    background-color: pink;
-  }
 }
 </style>

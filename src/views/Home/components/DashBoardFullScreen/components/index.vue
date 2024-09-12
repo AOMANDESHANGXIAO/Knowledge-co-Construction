@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import MyAlert from '@/components/ElementPlusPackage/MyAlert.vue'
 import { dev_data } from './data.ts'
+import ECharts from '@/components/EChart/index.vue'
 
 defineOptions({
   name: 'dashboard-item',
@@ -23,11 +24,11 @@ withDefaults(
 
 <template>
   <div class="dashboard-item">
-    <el-card style="height: 100%">
+    <el-card style="height: 100%; width: 100%">
       <template #header>
         <header>{{ title }}</header>
       </template>
-      <slot></slot>
+      <ECharts v-bind="$attrs" :size="{ width: 300, height: 300 }" />
       <template #footer>
         <my-alert
           v-bind="alert"
@@ -43,25 +44,12 @@ withDefaults(
 <style lang="scss" scoped>
 .dashboard-item {
   flex: 1;
-  width: 500px;
+  width: 300px;
   height: 100%;
-  // height: 500px;
-
   header {
-    font-size: 20px;
-    line-height: 20px;
-    text-align: center;
-  }
-
-  main {
-    padding: 10px;
-    height: 250px;
-  }
-
-  footer {
-    .title {
-      font-size: 26px;
-    }
+    font-size: 18px;
+    // font-weight: bold;
+    text-align: center
   }
 }
 </style>

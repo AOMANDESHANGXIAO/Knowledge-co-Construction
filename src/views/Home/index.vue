@@ -519,7 +519,12 @@ const onCheckDetail = () => {
   </div>
 
   <!-- 学习仪表盘dialog -->
-  <el-dialog v-model="dashBoardVisible" width="1500" :append-to-body="true">
+  <el-dialog
+    v-model="dashBoardVisible"
+    width="1200px"
+    height="80vh"
+    :append-to-body="true"
+  >
     <fullScreenDashBoard />
   </el-dialog>
 </template>

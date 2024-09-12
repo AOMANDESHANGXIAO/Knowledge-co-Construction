@@ -1,5 +1,5 @@
 import { ArgumentType } from '@/views/Home/components/ArgumentFlowComponent/type'
-import { GraphSeriesOption } from 'echarts/charts'
+import { GraphSeriesOption, BarSeriesOption } from 'echarts/charts'
 import type { ComposeOption } from 'echarts/core'
 
 interface CreateNewIdeaArgs {
@@ -187,6 +187,7 @@ interface QueryDashBoardResponse {
     }
   }
   graphOption: ComposeOption<GraphSeriesOption>
+  barOption: ComposeOption<BarSeriesOption>
 }
 
 export type {

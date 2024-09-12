@@ -1,0 +1,358 @@
+{
+  "code": 200,
+  "success": true,
+  "message": "请求成功",
+  "data": {
+    "radarOption": {
+      "title": {
+        "text": "个人论证情况"
+      },
+      "radar": {
+        "indicator": [
+          {
+            "name": "支撑",
+            "max": 13
+          },
+          {
+            "name": "结论",
+            "max": 13
+          },
+          {
+            "name": "前提",
+            "max": 13
+          },
+          {
+            "name": "限定词",
+            "max": 13
+          },
+          {
+            "name": "反驳",
+            "max": 13
+          },
+          {
+            "name": "辩护",
+            "max": 13
+          }
+        ]
+      },
+      "series": {
+        "name": "个人论证情况",
+        "type": "radar",
+        "data": [
+          {
+            "value": [7, 13, 13, 6, 6, 7],
+            "name": "个人论证情况"
+          }
+        ]
+      }
+    },
+    "graphOption": {
+      "title": {
+        "text": "小组互动图"
+      },
+      "tooltip": {},
+      "animationDurationUpdate": 1500,
+      "animationEasingUpdate": "quinticInOut",
+      "series": [
+        {
+          "type": "graph",
+          "layout": "circular",
+          "symbolSize": 50,
+          "roam": true,
+          "label": {
+            "show": true
+          },
+          "edgeSymbol": ["none", "none"],
+          "edgeSymbolSize": [4, 10],
+          "edgeLabel": {
+            "fontSize": 20
+          },
+          "data": [
+            {
+              "name": "斌"
+            },
+            {
+              "name": "管理员一号"
+            },
+            {
+              "name": "1333"
+            },
+            {
+              "name": "斌二世"
+            },
+            {
+              "name": "流浪"
+            },
+            {
+              "name": "昵称"
+            },
+            {
+              "name": "丁真纯一郎"
+            }
+          ],
+          "links": [
+            {
+              "source": "斌",
+              "target": "管理员一号",
+              "lineStyle": {
+                "width": 0
+              }
+            },
+            {
+              "source": "斌",
+              "target": "1333",
+              "lineStyle": {
+                "width": 20
+              }
+            },
+            {
+              "source": "斌",
+              "target": "斌二世",
+              "lineStyle": {
+                "width": 0
+              }
+            },
+            {
+              "source": "斌",
+              "target": "流浪",
+              "lineStyle": {
+                "width": 0
+              }
+            },
+            {
+              "source": "斌",
+              "target": "昵称",
+              "lineStyle": {
+                "width": 0
+              }
+            },
+            {
+              "source": "斌",
+              "target": "丁真纯一郎",
+              "lineStyle": {
+                "width": 0
+              }
+            },
+            {
+              "source": "管理员一号",
+              "target": "1333",
+              "lineStyle": {
+                "width": 0.6451612903225806
+              }
+            },
+            {
+              "source": "管理员一号",
+              "target": "斌二世",
+              "lineStyle": {
+                "width": 0
+              }
+            },
+            {
+              "source": "管理员一号",
+              "target": "流浪",
+              "lineStyle": {
+                "width": 0.6451612903225806
+              }
+            },
+            {
+              "source": "管理员一号",
+              "target": "昵称",
+              "lineStyle": {
+                "width": 0
+              }
+            },
+            {
+              "source": "管理员一号",
+              "target": "丁真纯一郎",
+              "lineStyle": {
+                "width": 0
+              }
+            },
+            {
+              "source": "1333",
+              "target": "斌二世",
+              "lineStyle": {
+                "width": 0
+              }
+            },
+            {
+              "source": "1333",
+              "target": "流浪",
+              "lineStyle": {
+                "width": 1.2903225806451613
+              }
+            },
+            {
+              "source": "1333",
+              "target": "昵称",
+              "lineStyle": {
+                "width": 0
+              }
+            },
+            {
+              "source": "1333",
+              "target": "丁真纯一郎",
+              "lineStyle": {
+                "width": 0
+              }
+            },
+            {
+              "source": "斌二世",
+              "target": "流浪",
+              "lineStyle": {
+                "width": 0
+              }
+            },
+            {
+              "source": "斌二世",
+              "target": "昵称",
+              "lineStyle": {
+                "width": 0
+              }
+            },
+            {
+              "source": "斌二世",
+              "target": "丁真纯一郎",
+              "lineStyle": {
+                "width": 0
+              }
+            },
+            {
+              "source": "流浪",
+              "target": "昵称",
+              "lineStyle": {
+                "width": 0
+              }
+            },
+            {
+              "source": "流浪",
+              "target": "丁真纯一郎",
+              "lineStyle": {
+                "width": 0
+              }
+            },
+            {
+              "source": "昵称",
+              "target": "丁真纯一郎",
+              "lineStyle": {
+                "width": 0
+              }
+            }
+          ],
+          "lineStyle": {
+            "opacity": 0.9,
+            "curveness": 0
+          }
+        }
+      ]
+    },
+    "barOption": {
+      "tooltip": {
+        "trigger": "axis",
+        "axisPointer": {
+          "type": "shadow"
+        }
+      },
+      "legend": {},
+      "grid": {
+        "left": "3%",
+        "right": "4%",
+        "bottom": "3%",
+        "containLabel": true
+      },
+      "xAxis": {
+        "type": "category",
+        "data": ["提出", "修改", "支持", "反对"]
+      },
+      "yAxis": {
+        "type": "value"
+      },
+      "series": [
+        {
+          "name": "斌",
+          "type": "bar",
+          "stack": "total",
+          "label": {
+            "show": true
+          },
+          "emphasis": {
+            "focus": "series"
+          },
+          "data": [3, 0, 11, 31]
+        },
+        {
+          "name": "管理员一号",
+          "type": "bar",
+          "stack": "total",
+          "label": {
+            "show": true
+          },
+          "emphasis": {
+            "focus": "series"
+          },
+          "data": [8, 9, 0, 1]
+        },
+        {
+          "name": "1333",
+          "type": "bar",
+          "stack": "total",
+          "label": {
+            "show": true
+          },
+          "emphasis": {
+            "focus": "series"
+          },
+          "data": [7, 0, 4, 3]
+        },
+        {
+          "name": "斌二世",
+          "type": "bar",
+          "stack": "total",
+          "label": {
+            "show": true
+          },
+          "emphasis": {
+            "focus": "series"
+          },
+          "data": [0, 0, 0, 0]
+        },
+        {
+          "name": "流浪",
+          "type": "bar",
+          "stack": "total",
+          "label": {
+            "show": true
+          },
+          "emphasis": {
+            "focus": "series"
+          },
+          "data": [5, 2, 1, 2]
+        },
+        {
+          "name": "昵称",
+          "type": "bar",
+          "stack": "total",
+          "label": {
+            "show": true
+          },
+          "emphasis": {
+            "focus": "series"
+          },
+          "data": [0, 0, 0, 0]
+        },
+        {
+          "name": "丁真纯一郎",
+          "type": "bar",
+          "stack": "total",
+          "label": {
+            "show": true
+          },
+          "emphasis": {
+            "focus": "series"
+          },
+          "data": [6, 11, 1, 1]
+        }
+      ]
+    }
+  }
+}
