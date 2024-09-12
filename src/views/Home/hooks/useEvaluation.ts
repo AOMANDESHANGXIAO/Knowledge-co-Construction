@@ -12,16 +12,16 @@ import { useUserStore } from '@/store/modules/user'
 import _ from 'lodash'
 
 interface RadarSeriesOptionType extends RadarSeriesOption {
-  title?: {
+  title: {
     text: string
   }
-  radar?: {
+  radar: {
     indicator: {
       name: string
       max: number
     }[]
   }
-  series?: {
+  series: {
     name: string
     type: 'radar'
     data: {
@@ -32,7 +32,7 @@ interface RadarSeriesOptionType extends RadarSeriesOption {
 }
 
 interface GraphSeriesOptionType extends GraphSeriesOption {
-  title?: {
+  title: {
     text: string
   }
   series: {
@@ -401,6 +401,6 @@ function useEvaluation(
     }
   })
 
-  return { evaluatedArgument, evaluatedInteraction, evaluatedGroupContribution }
+  return [evaluatedArgument, evaluatedInteraction, evaluatedGroupContribution]
 }
 export default useEvaluation

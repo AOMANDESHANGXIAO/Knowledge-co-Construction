@@ -12,7 +12,7 @@ defineOptions({
 withDefaults(
   defineProps<{
     list?: Array<{
-      title: '个人' | '同伴' | '小组'
+      title: string
       type: 'success' | 'warning' | 'error' | 'info'
       suggestions: string[]
     }>

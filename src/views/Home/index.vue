@@ -20,6 +20,16 @@ import type {
 } from './components/ArgumentFlowComponent/type.ts'
 import miniDashBoard from './components/DashBoardMini/index.vue'
 import fullScreenDashBoard from './components/DashBoardFullScreen/index.vue'
+import type { ComposeOption } from 'echarts/core'
+import type {
+  // 系列类型的定义后缀都为 SeriesOption
+  BarSeriesOption,
+  RadarSeriesOption,
+  GraphSeriesOption,
+} from 'echarts/charts'
+import { queryDashBoard } from '@/apis/flow'
+import { QueryDashBoardResponse } from '@/apis/flow/type'
+import useEvaluation from './hooks/useEvaluation'
 const { getOneUserInfo } = useUserStore()
 
 const [dialogVisible, setdialogVisible] = useState(false)
@@ -405,6 +415,98 @@ const [dashBoardVisible, setDashBoardVisible] = useState(false)
 const onCheckDetail = () => {
   setDashBoardVisible(true)
 }
+
+/**
+ * 查询仪表盘
+ */
+useRequest({
+  apiFn: async () => {
+    return await queryDashBoard({
+      topic_id: topicId.value,
+      student_id: getOneUserInfo('id'),
+      group_id: getOneUserInfo('group_id'),
+    })
+  },
+  onSuccess(response: QueryDashBoardResponse) {
+    setDashBoardData({
+      radar: {
+        ...response.radarOption,
+      },
+      graph: {
+        ...response.graphOption,
+      },
+      bar: {
+        ...response.barOption,
+      },
+    })
+  },
+  immediate: true,
+})
+
+const [dashBoardData, setDashBoardData] = useState<{
+  radar: ComposeOption<RadarSeriesOption>
+  graph: ComposeOption<GraphSeriesOption>
+  bar: ComposeOption<BarSeriesOption>
+}>({
+  radar: {},
+  graph: {},
+  bar: {},
+})
+
+const evaluationData = computed(() => {
+  return {
+    argumentData: dashBoardData.value.radar,
+    interactionData: dashBoardData.value.graph,
+    groupData: dashBoardData.value.bar,
+  }
+})
+
+// @ts-ignore
+const [argument, interact, contribution] = useEvaluation(evaluationData) // @ts-ignore
+
+const dashBoardRenderList = computed<
+  Array<{
+    title: string
+    option:
+      | ComposeOption<BarSeriesOption>
+      | ComposeOption<GraphSeriesOption>
+      | ComposeOption<RadarSeriesOption>
+    type: 'radar' | 'graph' | 'bar'
+    alert: {
+      title: string
+      type: 'info' | 'success' | 'warning' | 'error'
+      suggestions: string[]
+    }
+  }>
+  // @ts-ignore
+>(() => {
+  return [
+    {
+      title: '论证元素',
+      option: dashBoardData.value.radar,
+      type: 'radar',
+      alert: argument.value,
+    },
+    {
+      title: '互动',
+      option: dashBoardData.value.graph,
+      type: 'graph',
+      alert: interact.value,
+    },
+    {
+      title: '团队',
+      option: dashBoardData.value.bar,
+      type: 'bar',
+      alert: contribution.value,
+    },
+  ]
+})
+
+const dashboardMiniList = computed(()=>{
+  return dashBoardRenderList.value.map((item)=>{
+    return item.alert
+  })
+})
 </script>
 
 <template>
@@ -513,7 +615,7 @@ const onCheckDetail = () => {
       </template>
       <!-- 左上角插槽放dashboard显示小组的互动等 -->
       <template #top-left>
-        <mini-dash-board @checkDetail="onCheckDetail" />
+        <mini-dash-board @checkDetail="onCheckDetail" :list="dashboardMiniList"/>
       </template>
     </flow-component>
   </div>
@@ -525,7 +627,7 @@ const onCheckDetail = () => {
     height="80vh"
     :append-to-body="true"
   >
-    <fullScreenDashBoard />
+    <fullScreenDashBoard :dashBoardRenderList="dashBoardRenderList" />
   </el-dialog>
 </template>
 
