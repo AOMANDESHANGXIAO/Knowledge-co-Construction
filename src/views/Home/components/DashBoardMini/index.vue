@@ -16,9 +16,11 @@ withDefaults(
       type: 'success' | 'warning' | 'error' | 'info'
       suggestions: string[]
     }>
+    title: string
   }>(),
   {
     list: () => dev_data,
+    title: '加载中...',
   }
 )
 
@@ -29,12 +31,12 @@ const emits = defineEmits<{
 const handleCheckDetail = () => {
   emits('checkDetail')
 }
-const getTwoSuggestion = (suggestions:string[]) =>{
-  if(suggestions.length < 2) {
+const getTwoSuggestion = (suggestions: string[]) => {
+  if (suggestions.length < 2) {
     return suggestions
   }
-  
-  return suggestions.slice(0,2)
+
+  return [...suggestions.slice(0, 2), '...']  
 }
 </script>
 
@@ -46,6 +48,10 @@ const getTwoSuggestion = (suggestions:string[]) =>{
         >查看详情</el-text
       >
     </header>
+    <section class="time-layout">
+      <n-gradient-text type="info">当前阶段:</n-gradient-text>
+      <n-gradient-text type="success"> {{ title }} </n-gradient-text>
+    </section>
     <section class="alert-layout">
       <my-alert
         v-for="item in list"
@@ -87,7 +93,6 @@ $min-dash-board-ratio: 0.75;
       }
     }
   }
-
   .alert-layout {
     display: flex;
     flex-direction: column;
@@ -96,6 +101,18 @@ $min-dash-board-ratio: 0.75;
       font-size: 19px;
       font-weight: bold;
     }
+  }
+  .time-layout {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  .n-gradient-text {
+    font-size: 32px;
+    font-weight: bold;
   }
 }
 </style>

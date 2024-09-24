@@ -28,7 +28,7 @@ import type {
   GraphSeriesOption,
 } from 'echarts/charts'
 import { queryDashBoard } from '@/apis/flow'
-import { QueryDashBoardResponse } from '@/apis/flow/type'
+import { QueryDashBoardResponse, TimeLineItem } from '@/apis/flow/type'
 import useEvaluation from './hooks/useEvaluation'
 import _ from 'lodash'
 const { getOneUserInfo } = useUserStore()
@@ -412,6 +412,28 @@ const handleOK = () => {
  * 处理dashBoard
  */
 const [dashBoardVisible, setDashBoardVisible] = useState(false)
+const currentProgress = ref<TimeLineItem['action']>('close')
+const progressTextMap = {
+  close: '讨论完成',
+  summary: '总结观点',
+  feedback: '同伴反馈',
+  propose: '发表观点',
+}
+const progressText = computed(() => progressTextMap[currentProgress.value])
+const actionWeightMap = {
+  close: 4,
+  summary: 3,
+  feedback: 2,
+  propose: 1,
+}
+const timeLineList = ref<
+  {
+    type: 'success' | 'info' | 'warning' | 'error'
+    title: string
+    content: string
+    time: string
+  }[]
+>([])
 
 const onCheckDetail = () => {
   setDashBoardVisible(true)
@@ -420,7 +442,7 @@ const onCheckDetail = () => {
 /**
  * 查询仪表盘
  */
-useRequest({
+const { run: getDashBoardData } = useRequest({
   apiFn: async () => {
     return await queryDashBoard({
       topic_id: topicId.value,
@@ -439,6 +461,25 @@ useRequest({
       bar: {
         ...response.barOption,
       },
+    })
+    // console.log('timeLineList =>', response.timeLineList)
+    const sortedTimeLineList = _.orderBy(
+      response.timeLineList,
+      item => actionWeightMap[item.action],
+      ['asc']
+    )
+    currentProgress.value =
+      sortedTimeLineList[sortedTimeLineList.length - 1]?.action || 'close'
+    timeLineList.value = sortedTimeLineList.map(item => {
+      return {
+        type: item.action === 'close' ? 'success' : 'info',
+        title: item.action,
+        content:
+          item.action === currentProgress.value
+            ? `当前阶段: ${progressTextMap[item.action]}`
+            : progressTextMap[item.action],
+        time: item.created_time,
+      }
     })
   },
   immediate: true,
@@ -590,6 +631,11 @@ watch(
   <div class="vue-flow-container">
     <flow-component
       ref="vueFlowRef"
+      :update-vue-flow-effects="
+        () => {
+          getDashBoardData()
+        }
+      "
       @onClickGroupNode="onClickGroupNode"
       @onClickIdeaNode="onClickIdeaNode"
     >
@@ -606,7 +652,10 @@ watch(
             title="刷新"
             @click="
               () => {
+                // 更新VueFlow的Data
                 handleRereshFlowData()
+                // // 更新dashBoard数据
+                // getDashBoardData()
               }
             "
           >
@@ -642,7 +691,11 @@ watch(
       </template>
       <!-- 左上角插槽放dashboard显示小组的互动等 -->
       <template #top-left>
-        <mini-dash-board @checkDetail="onCheckDetail" :list="alertList" />
+        <mini-dash-board
+          @checkDetail="onCheckDetail"
+          :list="alertList"
+          :title="progressText"
+        />
       </template>
     </flow-component>
   </div>
@@ -657,6 +710,7 @@ watch(
     <fullScreenDashBoard
       :dashBoardRenderList="dashBoardRenderList"
       :alerts="alertList"
+      :time-line-list="timeLineList"
     />
   </el-dialog>
 </template>

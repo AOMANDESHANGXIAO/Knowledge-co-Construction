@@ -31,9 +31,10 @@ const handleClick = () => {
   background-color: var(--theme-color);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
   color: #f9f9f9;
-
+  transition: all 0.5s;
   &:hover {
-    animation: shake 800ms ease-in-out;
+    // animation: shake 800ms ease-in-out;
+    transform: scale(1.05);
     cursor: pointer;
   }
 

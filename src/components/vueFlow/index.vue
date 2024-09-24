@@ -32,6 +32,10 @@ defineOptions({
   name: 'MyVueFlow',
 })
 
+const props = defineProps<{
+  updateVueFlowEffects?: () => void
+}>()
+
 const {
   fitView,
   onNodesChange,
@@ -123,6 +127,7 @@ const { loading, run } = useRequest({
   onSuccess: (data: { nodes: Node[]; edges: Edge[] }) => {
     setNodes(data.nodes)
     setEdges(data.edges)
+    props.updateVueFlowEffects && props.updateVueFlowEffects()
   },
   onFail: () => {},
   formatter: stateFormatter,

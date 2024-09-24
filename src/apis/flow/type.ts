@@ -167,7 +167,12 @@ interface QueryFlowResponse {
   >
   edges: Array<EdgeResponse>
 }
-
+export interface TimeLineItem {
+  id: number
+  action: 'propose' | 'feedback' | 'summary' | 'close'
+  discuss_id: number
+  created_time: string
+}
 interface QueryDashBoardResponse {
   radarOption: {
     radar: {
@@ -188,6 +193,7 @@ interface QueryDashBoardResponse {
   }
   graphOption: ComposeOption<GraphSeriesOption>
   barOption: ComposeOption<BarSeriesOption>
+  timeLineList: Array<TimeLineItem>
 }
 
 export type {
