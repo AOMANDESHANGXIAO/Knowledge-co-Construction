@@ -31,6 +31,8 @@ import { queryDashBoard } from '@/apis/flow'
 import { QueryDashBoardResponse, TimeLineItem } from '@/apis/flow/type'
 import useEvaluation from './hooks/useEvaluation'
 import _ from 'lodash'
+import router from '@/router/index.ts'
+
 const { getOneUserInfo } = useUserStore()
 
 const [dialogVisible, setdialogVisible] = useState(false)
@@ -654,19 +656,25 @@ watch(
               () => {
                 // 更新VueFlow的Data
                 handleRereshFlowData()
-                // // 更新dashBoard数据
-                // getDashBoardData()
               }
             "
           >
             <Icon :name="IconName.Refresh" />
           </button>
-          <button title="返回首页" @click="">
+          <button
+            title="返回首页"
+            @click="
+              () => {
+                // 返回首页
+                router.push({ path: '/' })
+              }
+            "
+          >
             <Icon :name="IconName.Home" />
           </button>
-          <button title="设置" @click="">
+          <!-- <button title="设置" @click="">
             <Icon :name="IconName.Setting" />
-          </button>
+          </button> -->
           <button
             title="垂直排列"
             @click="

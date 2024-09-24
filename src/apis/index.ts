@@ -37,7 +37,7 @@ Service.interceptors.request.use(
 )
 // axios respone拦截器
 Service.interceptors.response.use(
-  async function (response){
+  async function (response) {
     console.log('response >>>>', response)
     if (response.status == 200) {
       return response.data
@@ -57,6 +57,8 @@ Service.interceptors.response.use(
         title: 'error',
         duration: 2000,
       })
+      return response.data
+    } else if (response.status === 201) {
       return response.data
     } else {
       ElNotification({
