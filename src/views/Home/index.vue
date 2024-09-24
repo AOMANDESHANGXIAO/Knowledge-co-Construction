@@ -30,6 +30,7 @@ import type {
 import { queryDashBoard } from '@/apis/flow'
 import { QueryDashBoardResponse } from '@/apis/flow/type'
 import useEvaluation from './hooks/useEvaluation'
+import _ from 'lodash'
 const { getOneUserInfo } = useUserStore()
 
 const [dialogVisible, setdialogVisible] = useState(false)
@@ -462,51 +463,77 @@ const evaluationData = computed(() => {
 })
 
 // @ts-ignore
-const [argument, interact, contribution] = useEvaluation(evaluationData) // @ts-ignore
+const {
+  getEvaluatedArgument,
+  getEvaluatedGroupContribution,
+  getEvaluatedInteraction,
+  // @ts-ignore
+} = useEvaluation(evaluationData)
 
-const dashBoardRenderList = computed<
-  Array<{
+const dashBoardRenderList = ref<
+  {
     title: string
     option:
       | ComposeOption<BarSeriesOption>
       | ComposeOption<GraphSeriesOption>
       | ComposeOption<RadarSeriesOption>
     type: 'radar' | 'graph' | 'bar'
-    alert: {
-      title: string
-      type: 'info' | 'success' | 'warning' | 'error'
-      suggestions: string[]
-    }
-  }>
-  // @ts-ignore
->(() => {
-  return [
-    {
-      title: '论证元素',
-      option: dashBoardData.value.radar,
-      type: 'radar',
-      alert: argument.value,
-    },
-    {
-      title: '互动',
-      option: dashBoardData.value.graph,
-      type: 'graph',
-      alert: interact.value,
-    },
-    {
-      title: '团队',
-      option: dashBoardData.value.bar,
-      type: 'bar',
-      alert: contribution.value,
-    },
-  ]
-})
+  }[]
+>([])
 
-const dashboardMiniList = computed(()=>{
-  return dashBoardRenderList.value.map((item)=>{
-    return item.alert
-  })
-})
+watch(
+  () => dashBoardData.value,
+  (newVal, oldVal) => {
+    if (_.isEqual(newVal, oldVal)) return
+    dashBoardRenderList.value = [
+      {
+        title: '论证元素',
+        option: dashBoardData.value.radar,
+        type: 'radar',
+      },
+      {
+        title: '互动',
+        option: dashBoardData.value.graph,
+        type: 'graph',
+      },
+      {
+        title: '团队',
+        option: dashBoardData.value.bar,
+        type: 'bar',
+      },
+    ]
+  }
+)
+type AlertType = {
+  title: string
+  type: 'info' | 'success' | 'warning' | 'error'
+  suggestions: string[]
+}
+const alertList = ref<AlertType[]>([])
+
+watch(
+  () => dashBoardData.value,
+  (newVal, oldVal) => {
+    if (_.isEqual(newVal, oldVal)) return
+    alertList.value = [
+      getEvaluatedArgument() || {
+        title: '论证元素',
+        type: 'info',
+        suggestions: ['加载中...'],
+      },
+      getEvaluatedInteraction() || {
+        title: '论证元素',
+        type: 'info',
+        suggestions: ['加载中...'],
+      },
+      getEvaluatedGroupContribution() || {
+        title: '论证元素',
+        type: 'info',
+        suggestions: ['加载中...'],
+      },
+    ]
+  }
+)
 </script>
 
 <template>
@@ -615,7 +642,7 @@ const dashboardMiniList = computed(()=>{
       </template>
       <!-- 左上角插槽放dashboard显示小组的互动等 -->
       <template #top-left>
-        <mini-dash-board @checkDetail="onCheckDetail" :list="dashboardMiniList"/>
+        <mini-dash-board @checkDetail="onCheckDetail" :list="alertList" />
       </template>
     </flow-component>
   </div>
@@ -627,7 +654,10 @@ const dashboardMiniList = computed(()=>{
     height="80vh"
     :append-to-body="true"
   >
-    <fullScreenDashBoard :dashBoardRenderList="dashBoardRenderList" />
+    <fullScreenDashBoard
+      :dashBoardRenderList="dashBoardRenderList"
+      :alerts="alertList"
+    />
   </el-dialog>
 </template>
 

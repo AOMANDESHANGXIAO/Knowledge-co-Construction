@@ -24,24 +24,20 @@ defineProps<{
       | ComposeOption<GraphSeriesOption>
       | ComposeOption<RadarSeriesOption>
     type: 'radar' | 'graph' | 'bar'
-    alert: {
-      title: string
-      type: 'info' | 'success' | 'warning' | 'error'
-      suggestions: string[]
-    }
   }>
+  alerts: Array<{ title: string; type: 'info' | 'success' | 'warning' | 'error'; suggestions: string[] }>
 }>()
 </script>
 
 <template>
   <div class="dash-board-full-screen">
     <DashBoardItem
-      v-for="item in dashBoardRenderList"
+      v-for="(item,index) in dashBoardRenderList"
       :key="item.title"
       :title="item.title"
       :option="item.option"
       :type="item.type"
-      :alert="item.alert"
+      :alert="alerts[index]"
     >
     </DashBoardItem>
   </div>

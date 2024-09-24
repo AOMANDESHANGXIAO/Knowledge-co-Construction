@@ -1,6 +1,10 @@
 /**
  * 用于评价论证元素、互动、和团队的情况
  */
+/**
+ * So Many Bugs Here,
+ * 丢弃
+ */
 import type {
   // 系列类型的定义后缀都为 SeriesOption
   BarSeriesOption,
@@ -168,7 +172,7 @@ function useEvaluation(
   /**
    * 评价论证元素
    */
-  const evaluatedArgument = computed(() => {
+  const getEvaluatedArgument = () => {
     const { argumentData } = props.value
     let _type: 'success' | 'warning' | 'error' = 'success'
     const res = loadingHandler()
@@ -206,7 +210,7 @@ function useEvaluation(
       suggestions,
       type: _type,
     }
-  })
+  }
 
   const { getOneUserInfo } = useUserStore()
 
@@ -248,7 +252,7 @@ function useEvaluation(
   /**
    * 评价互动
    */
-  const evaluatedInteraction = computed(() => {
+  const getEvaluatedInteraction = () => {
     const { interactionData } = props.value
     let _type: 'success' | 'warning' | 'error' = 'success'
     const res = loadingHandler()
@@ -299,7 +303,7 @@ function useEvaluation(
       suggestions,
       type: _type,
     }
-  })
+  }
 
   function getRanking(
     data: { name: string; data: number[] }[],
@@ -375,7 +379,7 @@ function useEvaluation(
   /**
    * 评价小组贡献
    */
-  const evaluatedGroupContribution = computed(() => {
+  const getEvaluatedGroupContribution = () => {
     let _type: 'success' | 'warning' | 'error' = 'success'
     const res = loadingHandler()
     if (!res.flag) {
@@ -399,8 +403,12 @@ function useEvaluation(
       suggestions,
       type: _type,
     }
-  })
+  }
 
-  return [evaluatedArgument, evaluatedInteraction, evaluatedGroupContribution]
+  return {
+    getEvaluatedArgument,
+    getEvaluatedGroupContribution,
+    getEvaluatedInteraction,
+  }
 }
 export default useEvaluation

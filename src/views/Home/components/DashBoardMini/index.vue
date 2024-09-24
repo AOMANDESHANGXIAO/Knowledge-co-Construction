@@ -29,6 +29,13 @@ const emits = defineEmits<{
 const handleCheckDetail = () => {
   emits('checkDetail')
 }
+const getTwoSuggestion = (suggestions:string[]) =>{
+  if(suggestions.length < 2) {
+    return suggestions
+  }
+  
+  return suggestions.slice(0,2)
+}
 </script>
 
 <template>
@@ -44,7 +51,7 @@ const handleCheckDetail = () => {
         v-for="item in list"
         :key="item.title"
         v-bind="item"
-        :list="item.suggestions"
+        :list="getTwoSuggestion(item.suggestions)"
         :closable="false"
         show-icon
       ></my-alert>
