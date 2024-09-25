@@ -221,7 +221,7 @@ const onClickRejectBtn = (payload: {
 }) => {
   console.log('点击了拒绝按钮')
   setControllerState(Role.Idea, Action.Modify, false, false, 'reject')
-  setRequestParams({ focusNodeId: '' })
+  // setRequestParams({ focusNodeId: '' })
   setCondition('replyIdea')
   Object.assign(replyNodes, payload.replyNodes)
   Object.assign(replyEdges, payload.replyEdges)
@@ -234,7 +234,7 @@ const onClickApproveBtn = (payload: {
 }) => {
   console.log('点击了同意按钮')
   setControllerState(Role.Idea, Action.Modify, false, false, 'approve')
-  setRequestParams({ focusNodeId: '' })
+  // setRequestParams({ focusNodeId: '' })
   setCondition('replyIdea')
   Object.assign(replyNodes, payload.replyNodes)
   Object.assign(replyEdges, payload.replyEdges)

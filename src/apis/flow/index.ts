@@ -11,7 +11,6 @@ import type {
   ModifyGroupConclusionParams,
   QueryDashBoardResponse,
 } from './type.ts'
-
 const queryFlowDataApi = (
   topic_id: number
 ): Promise<Response<QueryFlowResponse>> => {
@@ -21,12 +20,35 @@ const queryFlowDataApi = (
     },
   })
 }
-
+// /flow/query_content
 const queryNodeContentApi = (
-  node_id: number
+  node_id: number,
+  student_id: number
 ): Promise<Response<QueryNodeContentData>> => {
-  return Service.get(`/flow/query_content?node_id=${node_id}`)
+  return Service({
+    method: 'get',
+    url: '/flow/query_content',
+    params: {
+      node_id,
+      student_id: student_id,
+    },
+  })
 }
+
+const queryGroupNodeContentApi = (
+  node_id: number,
+  student_id: number
+): Promise<Response<QueryNodeContentData>> => {
+  return Service({
+    method: 'get',
+    url: '/flow/query_group_content',
+    params: {
+      node_id,
+      student_id: student_id,
+    },
+  })
+}
+
 
 const proposeIdeaApi = (params: CreateNewIdeaArgs): Promise<Response> => {
   return Service.post('/flow/propose_idea', params)
@@ -86,5 +108,6 @@ export {
   proposeGroupConclusionApi,
   modifyGroupConclusionApi,
   queryDashBoard,
+  queryGroupNodeContentApi
   // reviseSelfIdeaApi,
 }

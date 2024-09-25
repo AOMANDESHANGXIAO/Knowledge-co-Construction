@@ -10,7 +10,10 @@ import useFeedback from './hooks/useFeedback.ts'
 import useState from '@/hooks/State/useState.ts'
 import ElementComponent from '../ElementComponent/index.vue'
 import useRequest from '@/hooks/Async/useRequest'
-import { queryNodeContentApi } from '@/apis/flow/index.ts'
+import {
+  queryNodeContentApi,
+  queryGroupNodeContentApi,
+} from '@/apis/flow/index.ts'
 import { QueryNodeContentData } from '@/apis/flow/type'
 import DEFAULT_ARGUMENT_STATE from './data.ts'
 import useTips from './hooks/useTips'
@@ -19,6 +22,7 @@ import useStateEdit from './hooks/useStateEdit.ts'
 import Dialog from './components/dialog/index.vue'
 import { useDialog } from './hooks/dialog/index'
 import { Condition } from './type.ts'
+import { useUserStore } from '@/store/modules/user/index.ts'
 // 组件一共几个状态
 // 1. chechIdea 查看观点，如果是自己的则显示修改按钮， 如果不是自己的则显示 支持 或者 反对 按钮
 // 2. checkConclusion 查看小组结论，如果是自己组的则可以修改，如果不是自己组的则只能查看
@@ -96,9 +100,12 @@ const { feedbackList } = useFeedback({
  * queryArgumentState用于查询并且设置nodes和edges的状态
  * 如果没有查询出来，则设置默认状态
  */
+const userStore = useUserStore()
+const { getOneUserInfo } = userStore
 const { run: queryArgumentState } = useRequest({
   apiFn: async () => {
-    return await queryNodeContentApi(+props.focusNodeId)
+    const student_id = getOneUserInfo('id') as string
+    return await queryNodeContentApi(+props.focusNodeId, +student_id)
   },
   onSuccess(data: QueryNodeContentData) {
     const { nodes, edges } = data
@@ -127,7 +134,38 @@ const { run: queryArgumentState } = useRequest({
     }
   },
 })
-
+const { run: getGroupNodeContent } = useRequest({
+  apiFn: async () => {
+    const student_id = getOneUserInfo('id') as string
+    return queryGroupNodeContentApi(+props.focusNodeId, +student_id)
+  },
+  onSuccess(data: QueryNodeContentData) {
+    const { nodes, edges } = data
+    setNodesValue(nodes)
+    setEdgesValue(edges)
+    setFitView()
+  },
+  onFail() {
+    setDefaultValue()
+  },
+  onError() {
+    ElNotification({
+      title: '提示',
+      message: '该观点不存在',
+      type: 'warning',
+    })
+  },
+  onFinally() {},
+  formatter(data: QueryNodeContentData) {
+    return {
+      nodes: data.nodes.map(node => ({
+        ...node,
+        _type: node.data._type,
+      })),
+      edges: data.edges,
+    }
+  },
+})
 /**
  * 检查观点时，会根据聚焦的Node的id去查询节点内容
  */
@@ -141,7 +179,8 @@ function whenCheckIdea() {
  */
 function whenCheckConclusion() {
   console.log('whenCheckConclusion')
-  queryArgumentState()
+  // queryArgumentState()
+  getGroupNodeContent()
 }
 
 /**
@@ -229,7 +268,7 @@ const handleTextualized = (): {
   if (condition === 'modifyConclusion' || condition === 'modifyIdea') {
     return {
       nodes: ref(modifiedNodes),
-      edges: ref(modifiedEdges)
+      edges: ref(modifiedEdges),
     }
   } else if (condition === 'replyIdea') {
     return {

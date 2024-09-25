@@ -113,15 +113,17 @@ export default function useSumbit({
     edges: EdgeType[]
   }) => {
     useRequest({
-      apiFn: async () =>
+      apiFn: async () => {
+        // console.log('replyIdeaApi', replyNodeId)
         await replyIdeaApi({
           replyType,
-          replyNodeId,
+          replyNodeId, 
           topic_id,
           student_id,
           nodes: formatterRequestNode(nodes),
           edges,
-        }),
+        })
+      },
       onSuccess: onSuccess,
       onFail: onFail,
       immediate: true,
@@ -183,6 +185,6 @@ export default function useSumbit({
     submitModifyIdea,
     submitReplyIdea,
     submitProposeGroupConclusion,
-    submitModifyGroupConclusion
+    submitModifyGroupConclusion,
   }
 }
