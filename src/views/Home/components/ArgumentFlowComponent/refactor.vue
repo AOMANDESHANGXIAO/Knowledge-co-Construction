@@ -254,10 +254,6 @@ onMounted(() => {
   }
 })
 
-/**
- * 处理右下角的提示词
- * FIXME: 数据没有响应式，还是得传一个响应式数据
- */
 const handleTextualized = (): {
   nodes: Ref<NodeType[]>
   edges: Ref<EdgeType[]>
@@ -339,6 +335,7 @@ const { addNode, resetState, removeNode } = useStateEdit({
   },
 })
 const onAddBacking = (payload: { nodeId: string; inputValue: string }) => {
+  console.log('addBacking...')
   addNode(ArgumentType.Backing, payload)
 }
 const { onEdgesChange, onNodesChange, applyEdgeChanges, applyNodeChanges } =
@@ -479,7 +476,7 @@ defineExpose({
   >
     <template #node-element="props">
       <ElementComponent
-        :nodeId="props.data.nodeId"
+        :nodeId="props.id"
         :_type="props.data._type"
         :visible="true"
         v-model="props.data.inputValue"

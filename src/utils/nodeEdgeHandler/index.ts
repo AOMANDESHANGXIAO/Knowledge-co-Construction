@@ -9,16 +9,14 @@ import {
   EdgeType,
   NodeType,
 } from '@/views/Home/components/ArgumentFlowComponent/type'
-
+import { nanoid } from 'nanoid'
 interface FilterFunction {
   (edge: EdgeType): boolean
 }
 
 function useNodeEdgeHandler() {
-  let cnt = 0
-
   function createId() {
-    return new Date().getTime().toString() + `_${cnt++}`
+    return nanoid()
   }
 
   function createNode(type: ArgumentType) {

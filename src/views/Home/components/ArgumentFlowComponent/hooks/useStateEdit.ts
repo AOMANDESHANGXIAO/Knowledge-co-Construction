@@ -77,14 +77,15 @@ export default function useStateEdit({
       inputValue: string
     }
   ) {
-    const nodesValue = nodes.value
-    const edgesValue = edges.value
+    let nodesValue = [...nodes.value]
+    let edgesValue = [...edges.value]
 
     switch (argumentType) {
       case ArgumentType.Backing: {
         /**
          * 添加支撑
          */
+        console.log('paload', payload)
         const nodeId = payload?.nodeId
         if (!nodeId) {
           return
@@ -140,7 +141,7 @@ export default function useStateEdit({
          */
         // 1. 判断有没有限定词
         const qualifierNodeId = getQualifierNodeId(nodesValue)
-
+        console.log('qualifierNodeId', qualifierNodeId)
         if (qualifierNodeId) {
           onQualifierReadyTrigger && onQualifierReadyTrigger()
           return
@@ -150,6 +151,7 @@ export default function useStateEdit({
         const { id: newQualifierNodeId, newNode } = createNode(
           ArgumentType.Qualifier
         )
+        console.log('newQualifierNodeId', newQualifierNodeId)
 
         const claimNodeId = getClaimNodeId(nodesValue)
         if (!claimNodeId) {
@@ -186,43 +188,61 @@ export default function useStateEdit({
       }
       case ArgumentType.Rebuttal: {
         /**
+         * FIXME: 修改时会有BUG，导致新增的反驳和限定词不能正确连接 ✅
          * 添加反驳
          */
         const qualifierNodeId = getQualifierNodeId(nodesValue)
+        // console.log('qualifierNodeId', qualifierNodeId)
         if (!qualifierNodeId) {
-          console.log('no qualifier node')
+          // console.log('no qualifier node')
           onNotQualifierReadyTrigger && onNotQualifierReadyTrigger()
           return
         }
 
         const rebuttalNodeId = getRebuttalNodeId(nodesValue)
+        // console.log('rebuttalNodeId', rebuttalNodeId)
         if (rebuttalNodeId) {
-          console.log('already have a rebuttal node')
+          // console.log('already have a rebuttal node')
           onRebuttalReadyTrigger && onRebuttalReadyTrigger()
           return
         }
 
-        const { id, newNode } = createNode(ArgumentType.Rebuttal)
-
+        const { id: rebuttalId, newNode } = createNode(ArgumentType.Rebuttal)
+        // console.log('rebuttalId', rebuttalId)
         // 将限定词节点指向反驳节点
         // 原先限定词是指向Claim节点的
-        for (let i = 0; i < edges.value.length; i++) {
-          if (
-            edges.value[i]._type ===
-            `${ArgumentType.Qualifier}_${ArgumentType.Claim}`
-          ) {
-            edges.value[i].target = id
-            break
-          }
-        }
+        // for (let i = 0; i < edges.value.length; i++) {
+        //   if (
+        //     edgesValue[i]._type ===
+        //     `${ArgumentType.Qualifier}_${ArgumentType.Claim}`
+        //   ) {
+        //     edgesValue[i].target = rebuttalId
+        //     break
+        //   }
+        // }
+        // console.log('edgesValue before filter', edgesValue)
+        edgesValue = edgesValue.filter(edge => {
+          return (
+            edge._type !== `${ArgumentType.Qualifier}_${ArgumentType.Claim}`
+          )
+        })
+        // console.log('edgesValue after filter', edgesValue)
+        // 限定指向反驳
+        const edgeOfQualifierToRebuttal = createEdge({
+          source: qualifierNodeId,
+          target: rebuttalId,
+          sourceType: ArgumentType.Qualifier,
+          targetType: ArgumentType.Rebuttal,
+        })
+        edgesValue.push(edgeOfQualifierToRebuttal.newEdge)
         const claimNodeId = getClaimNodeId(nodesValue) as string
 
-        // 限定词需要指向claim
+        // 反驳指向claim
         const edgeOption = {
-          source: id,
+          source: rebuttalId,
           target: claimNodeId,
           sourceType: ArgumentType.Rebuttal,
-          targetType: ArgumentType.Qualifier,
+          targetType: ArgumentType.Claim,
         }
 
         const { newEdge } = createEdge(edgeOption)
@@ -236,6 +256,9 @@ export default function useStateEdit({
     }
 
     onAddNodeTrigger && onAddNodeTrigger()
+    console.log('before Clear', nodes.value, edges.value)
+    setEdges(clearNotRealatedEdges(nodes.value, edges.value))
+    console.log('after Clear', nodes.value, edges.value)
   }
 
   /**

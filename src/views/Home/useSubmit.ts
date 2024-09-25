@@ -94,11 +94,11 @@ export default function useSumbit({
         })
       },
       onSuccess() {
-        console.log('提交成功')
+        // console.log('提交成功')
         onSuccess()
       },
       onFail() {
-        console.log('提交失败')
+        // console.log('提交失败')
         onFail()
       },
       immediate: true,
@@ -133,11 +133,11 @@ export default function useSumbit({
         })
       },
       onSuccess() {
-        console.log('提交成功')
+        // console.log('提交成功')
         onSuccess()
       },
       onFail() {
-        console.log('提交失败')
+        // console.log('提交失败')
         onFail()
       },
       immediate: true,
@@ -165,11 +165,11 @@ export default function useSumbit({
         })
       },
       onSuccess() {
-        console.log('提交成功')
+        // console.log('提交成功')
         onSuccess()
       },
       onFail() {
-        console.log('提交失败')
+        // console.log('提交失败')
         onFail()
       },
       immediate: true,
@@ -197,11 +197,11 @@ export default function useSumbit({
         })
       },
       onSuccess() {
-        console.log('提交成功')
+        // console.log('提交成功')
         onSuccess()
       },
       onFail() {
-        console.log('提交失败')
+        // console.log('提交失败')
         onFail()
       },
       immediate: true,

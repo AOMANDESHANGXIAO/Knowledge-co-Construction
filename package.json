@@ -28,6 +28,7 @@
     "lodash": "^4.17.21",
     "lottie-web": "^5.12.2",
     "naive-ui": "^2.39.0",
+    "nanoid": "^5.0.7",
     "pinia": "^2.1.7",
     "pinia-plugin-persistedstate": "^3.2.1",
     "vue": "^3.4.21",
