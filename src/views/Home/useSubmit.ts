@@ -56,13 +56,14 @@ export default function useSumbit({
     edges: EdgeType[]
   }) => {
     useRequest({
-      apiFn: async () =>
-        await proposeIdeaApi({
+      apiFn: async () => {
+        return proposeIdeaApi({
           topic_id,
           student_id,
           nodes: formatterRequestNode(nodes),
           edges,
-        }),
+        })
+      },
       onSuccess: onSuccess,
       onFail: onFail,
       immediate: true,
@@ -83,16 +84,23 @@ export default function useSumbit({
     edges: EdgeType[]
   }) => {
     useRequest({
-      apiFn: async () =>
-        await modifyIdeaApi({
+      apiFn: async () => {
+        return modifyIdeaApi({
           modifyNodeId,
           topic_id,
           student_id,
           nodes: formatterRequestNode(nodes),
           edges,
-        }),
-      onSuccess: onSuccess,
-      onFail: onFail,
+        })
+      },
+      onSuccess() {
+        console.log('提交成功')
+        onSuccess()
+      },
+      onFail() {
+        console.log('提交失败')
+        onFail()
+      },
       immediate: true,
     })
   }
@@ -115,17 +123,23 @@ export default function useSumbit({
     useRequest({
       apiFn: async () => {
         // console.log('replyIdeaApi', replyNodeId)
-        await replyIdeaApi({
+        return replyIdeaApi({
           replyType,
-          replyNodeId, 
+          replyNodeId,
           topic_id,
           student_id,
           nodes: formatterRequestNode(nodes),
           edges,
         })
       },
-      onSuccess: onSuccess,
-      onFail: onFail,
+      onSuccess() {
+        console.log('提交成功')
+        onSuccess()
+      },
+      onFail() {
+        console.log('提交失败')
+        onFail()
+      },
       immediate: true,
     })
   }
@@ -142,15 +156,22 @@ export default function useSumbit({
     edges: EdgeType[]
   }) => {
     useRequest({
-      apiFn: async () =>
-        await proposeGroupConclusionApi({
+      apiFn: async () => {
+        return proposeGroupConclusionApi({
           student_id,
           groupNodeId,
           nodes: formatterRequestNode(nodes),
           edges,
-        }),
-      onSuccess: onSuccess,
-      onFail: onFail,
+        })
+      },
+      onSuccess() {
+        console.log('提交成功')
+        onSuccess()
+      },
+      onFail() {
+        console.log('提交失败')
+        onFail()
+      },
       immediate: true,
     })
   }
@@ -167,15 +188,22 @@ export default function useSumbit({
     edges: EdgeType[]
   }) => {
     useRequest({
-      apiFn: async () =>
-        await modifyGroupConclusionApi({
+      apiFn: async () => {
+        return modifyGroupConclusionApi({
           student_id,
           groupNodeId,
           nodes: formatterRequestNode(nodes),
           edges,
-        }),
-      onSuccess: onSuccess,
-      onFail: onFail,
+        })
+      },
+      onSuccess() {
+        console.log('提交成功')
+        onSuccess()
+      },
+      onFail() {
+        console.log('提交失败')
+        onFail()
+      },
       immediate: true,
     })
   }

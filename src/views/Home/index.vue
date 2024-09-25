@@ -335,7 +335,7 @@ const handleSumbit = () => {
       break
     }
     case 'modifyConclusion': {
-      console.log('修改小组结论')
+      // console.log('修改小组结论')
       const groupNode = getGroupNode()
 
       if (!groupNode) return
