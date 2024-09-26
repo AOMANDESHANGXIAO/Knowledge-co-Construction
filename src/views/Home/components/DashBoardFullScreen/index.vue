@@ -4,6 +4,7 @@
  */
 import DashBoardItem from './components/index.vue'
 import type { ComposeOption } from 'echarts/core'
+import type { QueryWordCloudResult } from '@/apis/flow/index'
 import type {
   // 系列类型的定义后缀都为 SeriesOption
   BarSeriesOption,
@@ -11,11 +12,17 @@ import type {
   GraphSeriesOption,
 } from 'echarts/charts'
 import WordCloudUI from './components/WordCloudUI/index.vue'
+import _ from 'lodash'
 defineOptions({
   name: 'dash-board-full-screen',
 })
 
-withDefaults(
+type WordCloudDataSetItem = {
+  name: string
+  value: number
+}
+
+const props = withDefaults(
   defineProps<{
     dashBoardRenderList: Array<{
       title: string
@@ -36,6 +43,7 @@ withDefaults(
       content: string
       time: string
     }>
+    wordCloudTextList?: QueryWordCloudResult['list']
   }>(),
   {
     timeLineList: () => [
@@ -52,288 +60,52 @@ withDefaults(
         time: new Date().toLocaleString('chinese'),
       },
     ],
+    wordCloudTextList: () => [] as QueryWordCloudResult['list'],
   }
 )
+const getCloudWordData = inject('getCloudWordData') as () => void
 
-const dataset = ref([
-  {
-    name: 'vel',
-    value: 4,
-  },
-  {
-    name: 'et',
-    value: 4,
-  },
-  {
-    name: 'tortor',
-    value: 3,
-  },
-  {
-    name: 'ex',
-    value: 3,
-  },
-  {
-    name: 'a',
-    value: 3,
-  },
-  {
-    name: 'vitae',
-    value: 3,
-  },
-  {
-    name: 'efficitur',
-    value: 3,
-  },
-  {
-    name: 'neque',
-    value: 3,
-  },
-  {
-    name: 'non',
-    value: 2,
-  },
-  {
-    name: 'mauris',
-    value: 2,
-  },
-  {
-    name: 'volutpat',
-    value: 2,
-  },
-  {
-    name: 'nulla',
-    value: 2,
-  },
-  {
-    name: 'purus',
-    value: 2,
-  },
-  {
-    name: 'leo',
-    value: 2,
-  },
-  {
-    name: 'urna',
-    value: 2,
-  },
-  {
-    name: 'dictum',
-    value: 2,
-  },
-  {
-    name: 'iaculis',
-    value: 2,
-  },
-  {
-    name: 'eget',
-    value: 2,
-  },
-  {
-    name: 'gravida',
-    value: 2,
-  },
-  {
-    name: 'phasellus',
-    value: 2,
-  },
-  {
-    name: 'ipsum',
-    value: 2,
-  },
-  {
-    name: 'lectus',
-    value: 2,
-  },
-  {
-    name: 'eu',
-    value: 2,
-  },
-  {
-    name: 'curabitur',
-    value: 1,
-  },
-  {
-    name: 'rhoncus',
-    value: 1,
-  },
-  {
-    name: 'quam',
-    value: 1,
-  },
-  {
-    name: 'tempor',
-    value: 1,
-  },
-  {
-    name: 'placerat',
-    value: 1,
-  },
-  {
-    name: 'metus',
-    value: 1,
-  },
-  {
-    name: 'aliquet',
-    value: 1,
-  },
-  {
-    name: 'morbi',
-    value: 1,
-  },
-  {
-    name: 'malesuada',
-    value: 1,
-  },
-  {
-    name: 'id',
-    value: 1,
-  },
-  {
-    name: 'pellentesque',
-    value: 1,
-  },
-  {
-    name: 'nam',
-    value: 1,
-  },
-  {
-    name: 'consectetur',
-    value: 1,
-  },
-  {
-    name: 'molestie',
-    value: 1,
-  },
-  {
-    name: 'aliquam',
-    value: 1,
-  },
-  {
-    name: 'ac',
-    value: 1,
-  },
-  {
-    name: 'cursus',
-    value: 1,
-  },
-  {
-    name: 'nullam',
-    value: 1,
-  },
-  {
-    name: 'accumsan',
-    value: 1,
-  },
-  {
-    name: 'nisi',
-    value: 1,
-  },
-  {
-    name: 'vehicula',
-    value: 1,
-  },
-  {
-    name: 'integer',
-    value: 1,
-  },
-  {
-    name: 'rutrum',
-    value: 1,
-  },
-  {
-    name: 'magna',
-    value: 1,
-  },
-  {
-    name: 'proin',
-    value: 1,
-  },
-  {
-    name: 'velit',
-    value: 1,
-  },
-  {
-    name: 'nulla',
-    value: 1,
-  },
-  {
-    name: 'suscipit',
-    value: 1,
-  },
-  {
-    name: 'tempus',
-    value: 1,
-  },
-  {
-    name: 'sodales',
-    value: 1,
-  },
-  {
-    name: 'lacinia',
-    value: 1,
-  },
-  {
-    name: 'euismod',
-    value: 1,
-  },
-  {
-    name: 'nunc',
-    value: 1,
-  },
-  {
-    name: 'condimentum',
-    value: 1,
-  },
-  {
-    name: 'sit',
-    value: 1,
-  },
-  {
-    name: 'amet',
-    value: 1,
-  },
-  {
-    name: 'ornare',
-    value: 1,
-  },
-  {
-    name: 'dui',
-    value: 1,
-  },
-  {
-    name: 'in',
-    value: 1,
-  },
-  {
-    name: 'quis',
-    value: 1,
-  },
-  {
-    name: 'viverra',
-    value: 1,
-  },
-  {
-    name: 'elementum',
-    value: 1,
-  },
-  {
-    name: 'donec',
-    value: 1,
-  },
-  {
-    name: 'diam',
-    value: 1,
-  },
-  {
-    name: 'cras',
-    value: 1,
-  },
-  {
-    name: 'mollis',
-    value: 1,
-  },
-  
-])
+const generateWordCloudList = (text: string): WordCloudDataSetItem[] => {
+  const list: WordCloudDataSetItem[] = []
+  const segmenter: {
+    segment: string
+    index: number
+    input: string
+    isWordLike: Boolean
+  }[] = Array.from(
+    // @ts-ignore
+    new Intl.Segmenter('cn', { granularity: 'word' }).segment(text)
+  )
+  const wordCounts = _.countBy(
+    segmenter.filter(item => item.segment.length > 1),
+    'segment'
+  )
+
+  for (const key in wordCounts) {
+    list.push({
+      name: key,
+      value: wordCounts[key],
+    })
+  }
+  return list
+}
+const BASE_WAIT_TIME = 50
+const getWaitTime = (index: number) => {
+  return (index + 1) * BASE_WAIT_TIME
+}
+const paneNames = {
+  wordCloudText: '讨论主题一览',
+  innerGroupAnalysis: '组内分析',
+}
+const handleGetWordCloudContent = (name: string) => {
+  console.log('点击le', name)
+  if (
+    name === paneNames.wordCloudText &&
+    props.wordCloudTextList.length === 0
+  ) {
+    getCloudWordData && getCloudWordData()
+  }
+}
 </script>
 
 <template>
@@ -343,8 +115,8 @@ const dataset = ref([
         学习分析仪表盘详情
       </n-gradient-text>
     </header>
-    <n-tabs type="segment" animated>
-      <n-tab-pane name="组内分析">
+    <n-tabs type="segment" animated @update:value="handleGetWordCloudContent">
+      <n-tab-pane :name="paneNames.innerGroupAnalysis">
         <section class="card-container">
           <!-- timeline -->
           <el-card style="margin-bottom: 10px">
@@ -377,9 +149,17 @@ const dataset = ref([
           </div>
         </section>
       </n-tab-pane>
-      <n-tab-pane name="讨论主题一览">
-        <div style="width: 500px; max-width: 500px">
-          <WordCloudUI :dataset="dataset" />
+      <n-tab-pane :name="paneNames.wordCloudText">
+        <div
+          style="width: 500px; max-width: 500px"
+          v-for="(item, index) in wordCloudTextList"
+          :key="item.group_name"
+        >
+          <WordCloudUI
+            :dataset="generateWordCloudList(item.text)"
+            :wait-time="getWaitTime(index)"
+            :title="item.group_name"
+          />
         </div>
       </n-tab-pane>
     </n-tabs>

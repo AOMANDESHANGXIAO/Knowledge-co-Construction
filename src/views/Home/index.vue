@@ -27,7 +27,11 @@ import type {
   RadarSeriesOption,
   GraphSeriesOption,
 } from 'echarts/charts'
-import { queryDashBoard } from '@/apis/flow'
+import {
+  queryDashBoard,
+  queryWordCloudApi,
+  QueryWordCloudResult,
+} from '@/apis/flow'
 import { QueryDashBoardResponse, TimeLineItem } from '@/apis/flow/type'
 import useEvaluation from './hooks/useEvaluation'
 import _ from 'lodash'
@@ -577,6 +581,17 @@ watch(
     ]
   }
 )
+// 词云图查询
+const cloudWordData = ref<QueryWordCloudResult['list']>([])
+const { run: getCloudWordData } = useRequest({
+  apiFn: async () => {
+    return queryWordCloudApi({ topic_id: topicId.value })
+  },
+  onSuccess(data) {
+    cloudWordData.value = data.list
+  },
+})
+provide('getCloudWordData', getCloudWordData)
 </script>
 
 <template>
@@ -719,6 +734,7 @@ watch(
       :dashBoardRenderList="dashBoardRenderList"
       :alerts="alertList"
       :time-line-list="timeLineList"
+      :word-cloud-text-list="cloudWordData"
     />
   </el-dialog>
 </template>

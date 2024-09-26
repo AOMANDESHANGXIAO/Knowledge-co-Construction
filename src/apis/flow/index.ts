@@ -49,7 +49,6 @@ const queryGroupNodeContentApi = (
   })
 }
 
-
 const proposeIdeaApi = (params: CreateNewIdeaArgs): Promise<Response> => {
   return Service.post('/flow/propose_idea', params)
 }
@@ -94,6 +93,24 @@ const queryDashBoard = async (params: {
   return Service.get('/flow/dashboard', { params })
 }
 
+type QueryWordCloudResult = {
+  list: {
+    group_name: string
+    text: string
+  }[]
+}
+export type { QueryWordCloudResult }
+
+const queryWordCloudApi = async (params: {
+  topic_id: number
+}): Promise<Response<QueryWordCloudResult>> => {
+  return Service({
+    method: 'get',
+    url: '/flow/wordCloud',
+    params,
+  })
+}
+
 // const reviseSelfIdeaApi = (params: ReviseSelfIdeaParams): Promise<Response> => {
 //   return Service.post('/flow/revise_self_idea', params)
 // }
@@ -108,6 +125,7 @@ export {
   proposeGroupConclusionApi,
   modifyGroupConclusionApi,
   queryDashBoard,
-  queryGroupNodeContentApi
+  queryGroupNodeContentApi,
+  queryWordCloudApi
   // reviseSelfIdeaApi,
 }

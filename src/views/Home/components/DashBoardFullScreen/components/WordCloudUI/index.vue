@@ -100,12 +100,14 @@ onMounted(() => {
     style="width: 100%; min-width: 300px; min-height: 300px"
     class="container flex-center"
   >
+    <!-- loading UI -->
     <div
       v-if="renderLoading"
       style="position: absolute; width: 50px; height: 50px"
       class="flex-center"
       :class="loaderClassName"
     ></div>
+    <!-- WordCloud UI -->
     <VueDataUi
       v-else
       component="VueUiWordCloud"
