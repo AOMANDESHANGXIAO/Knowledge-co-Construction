@@ -11,6 +11,7 @@ import {
   ElementPlusResolver,
   NaiveUiResolver,
 } from 'unplugin-vue-components/resolvers'
+import { spaLoading } from 'vite-plugin-spa-loading'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -27,6 +28,7 @@ export default defineConfig({
       dts: 'src/type.ts/components.d.ts',
       resolvers: [ElementPlusResolver(), NaiveUiResolver()],
     }),
+    spaLoading('text', { tipText: '正在加载...' }),
   ],
   resolve: {
     alias: {

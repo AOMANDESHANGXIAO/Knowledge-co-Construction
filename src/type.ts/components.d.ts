@@ -46,6 +46,8 @@ declare module 'vue' {
     MyButton: typeof import('./../components/ElementPlusPackage/MyButton.vue')['default']
     NGradientText: typeof import('naive-ui')['NGradientText']
     NodePopover: typeof import('./../components/NodePopover/index.vue')['default']
+    NTabPane: typeof import('naive-ui')['NTabPane']
+    NTabs: typeof import('naive-ui')['NTabs']
     NText: typeof import('naive-ui')['NText']
     NTimeline: typeof import('naive-ui')['NTimeline']
     NTimelineItem: typeof import('naive-ui')['NTimelineItem']
@@ -57,5 +59,6 @@ declare module 'vue' {
     TopicNode: typeof import('./../components/vueFlow/components/topicNode/index.vue')['default']
     VueFlow: typeof import('./../components/vueFlow/index.vue')['default']
     WaveAnimation: typeof import('./../components/common/waveAnimation/index.vue')['default']
+    WordCloud: typeof import('./../components/common/wordCloud/index.vue')['default']
   }
 }

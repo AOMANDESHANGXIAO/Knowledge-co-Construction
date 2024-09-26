@@ -10,7 +10,7 @@ import type {
   RadarSeriesOption,
   GraphSeriesOption,
 } from 'echarts/charts'
-import WordCloudUI from './components/WordCloudUI/index.vue'
+import WordCloud from '@/components/common/wordCloud/index.vue'
 defineOptions({
   name: 'dash-board-full-screen',
 })
@@ -54,286 +54,128 @@ withDefaults(
     ],
   }
 )
-
-const dataset = ref([
+const wordList = [
   {
-    name: 'vel',
-    value: 4,
+    name: '十九大精神',
+    id: '123',
+    value: 15000,
   },
   {
-    name: 'et',
-    value: 4,
+    name: '两学一做',
+    id: '123',
+    value: 10081,
   },
   {
-    name: 'tortor',
-    value: 3,
+    name: '中华民族',
+    id: '123',
+    value: 9386,
   },
   {
-    name: 'ex',
-    value: 3,
+    name: '马克思主义',
+    id: '123',
+    value: 7500,
   },
   {
-    name: 'a',
-    value: 3,
+    name: '民族复兴',
+    id: '123',
+    value: 7500,
   },
   {
-    name: 'vitae',
-    value: 3,
+    name: '社会主义制度',
+    id: '123',
+    value: 6500,
   },
   {
-    name: 'efficitur',
-    value: 3,
+    name: '国防白皮书',
+    id: '123',
+    value: 6500,
   },
   {
-    name: 'neque',
-    value: 3,
+    name: '创新',
+    id: '123',
+    value: 6000,
   },
   {
-    name: 'non',
-    value: 2,
+    name: '民主革命',
+    id: '123',
+    value: 4500,
   },
   {
-    name: 'mauris',
-    value: 2,
+    name: '文化强国',
+    id: '123',
+    value: 3800,
   },
   {
-    name: 'volutpat',
-    value: 2,
+    name: '国家主权',
+    id: '123',
+    value: 3000,
   },
   {
-    name: 'nulla',
-    value: 2,
+    name: '武装颠覆',
+    id: '123',
+    value: 2500,
   },
   {
-    name: 'purus',
-    value: 2,
+    name: '领土完整',
+    id: '123',
+    value: 2300,
   },
   {
-    name: 'leo',
-    value: 2,
+    name: '安全',
+    id: '123',
+    value: 2000,
   },
   {
-    name: 'urna',
-    value: 2,
+    name: '从严治党',
+    id: '123',
+    value: 1900,
   },
   {
-    name: 'dictum',
-    value: 2,
+    name: '现代化经济体系',
+    id: '123',
+    value: 1800,
   },
   {
-    name: 'iaculis',
-    value: 2,
+    name: '国防动员',
+    id: '123',
+    value: 1700,
   },
   {
-    name: 'eget',
-    value: 2,
+    name: '信息化战争',
+    id: '123',
+    value: 1600,
   },
   {
-    name: 'gravida',
-    value: 2,
+    name: '局部战争',
+    id: '123',
+    value: 1500,
   },
   {
-    name: 'phasellus',
-    value: 2,
+    name: '教育',
+    id: '123',
+    value: 1200,
   },
   {
-    name: 'ipsum',
-    value: 2,
+    name: '职业教育',
+    id: '123',
+    value: 1100,
   },
   {
-    name: 'lectus',
-    value: 2,
+    name: '兵法',
+    id: '123',
+    value: 900,
   },
   {
-    name: 'eu',
-    value: 2,
+    name: '一国两制',
+    id: '123',
+    value: 800,
   },
   {
-    name: 'curabitur',
-    value: 1,
+    name: '特色社会主义思想',
+    id: '123',
+    value: 700,
   },
-  {
-    name: 'rhoncus',
-    value: 1,
-  },
-  {
-    name: 'quam',
-    value: 1,
-  },
-  {
-    name: 'tempor',
-    value: 1,
-  },
-  {
-    name: 'placerat',
-    value: 1,
-  },
-  {
-    name: 'metus',
-    value: 1,
-  },
-  {
-    name: 'aliquet',
-    value: 1,
-  },
-  {
-    name: 'morbi',
-    value: 1,
-  },
-  {
-    name: 'malesuada',
-    value: 1,
-  },
-  {
-    name: 'id',
-    value: 1,
-  },
-  {
-    name: 'pellentesque',
-    value: 1,
-  },
-  {
-    name: 'nam',
-    value: 1,
-  },
-  {
-    name: 'consectetur',
-    value: 1,
-  },
-  {
-    name: 'molestie',
-    value: 1,
-  },
-  {
-    name: 'aliquam',
-    value: 1,
-  },
-  {
-    name: 'ac',
-    value: 1,
-  },
-  {
-    name: 'cursus',
-    value: 1,
-  },
-  {
-    name: 'nullam',
-    value: 1,
-  },
-  {
-    name: 'accumsan',
-    value: 1,
-  },
-  {
-    name: 'nisi',
-    value: 1,
-  },
-  {
-    name: 'vehicula',
-    value: 1,
-  },
-  {
-    name: 'integer',
-    value: 1,
-  },
-  {
-    name: 'rutrum',
-    value: 1,
-  },
-  {
-    name: 'magna',
-    value: 1,
-  },
-  {
-    name: 'proin',
-    value: 1,
-  },
-  {
-    name: 'velit',
-    value: 1,
-  },
-  {
-    name: 'nulla',
-    value: 1,
-  },
-  {
-    name: 'suscipit',
-    value: 1,
-  },
-  {
-    name: 'tempus',
-    value: 1,
-  },
-  {
-    name: 'sodales',
-    value: 1,
-  },
-  {
-    name: 'lacinia',
-    value: 1,
-  },
-  {
-    name: 'euismod',
-    value: 1,
-  },
-  {
-    name: 'nunc',
-    value: 1,
-  },
-  {
-    name: 'condimentum',
-    value: 1,
-  },
-  {
-    name: 'sit',
-    value: 1,
-  },
-  {
-    name: 'amet',
-    value: 1,
-  },
-  {
-    name: 'ornare',
-    value: 1,
-  },
-  {
-    name: 'dui',
-    value: 1,
-  },
-  {
-    name: 'in',
-    value: 1,
-  },
-  {
-    name: 'quis',
-    value: 1,
-  },
-  {
-    name: 'viverra',
-    value: 1,
-  },
-  {
-    name: 'elementum',
-    value: 1,
-  },
-  {
-    name: 'donec',
-    value: 1,
-  },
-  {
-    name: 'diam',
-    value: 1,
-  },
-  {
-    name: 'cras',
-    value: 1,
-  },
-  {
-    name: 'mollis',
-    value: 1,
-  },
-  
-])
+]
 </script>
 
 <template>
@@ -377,10 +219,15 @@ const dataset = ref([
           </div>
         </section>
       </n-tab-pane>
-      <n-tab-pane name="讨论主题一览">
-        <div style="width: 500px; max-width: 500px">
-          <WordCloudUI :dataset="dataset" />
-        </div>
+      <n-tab-pane name="组间分析">
+        <WordCloud :word-list="wordList">
+          <template #header>
+            词云
+          </template>
+          <template #footer>
+            来自小组: 牛魔
+          </template>
+        </WordCloud>
       </n-tab-pane>
     </n-tabs>
   </div>

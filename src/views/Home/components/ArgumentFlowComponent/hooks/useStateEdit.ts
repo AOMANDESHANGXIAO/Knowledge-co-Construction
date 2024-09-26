@@ -187,46 +187,24 @@ export default function useStateEdit({
         break
       }
       case ArgumentType.Rebuttal: {
-        /**
-         * FIXME: 修改时会有BUG，导致新增的反驳和限定词不能正确连接 ✅
-         * 添加反驳
-         */
         const qualifierNodeId = getQualifierNodeId(nodesValue)
-        // console.log('qualifierNodeId', qualifierNodeId)
         if (!qualifierNodeId) {
-          // console.log('no qualifier node')
           onNotQualifierReadyTrigger && onNotQualifierReadyTrigger()
           return
         }
 
         const rebuttalNodeId = getRebuttalNodeId(nodesValue)
-        // console.log('rebuttalNodeId', rebuttalNodeId)
         if (rebuttalNodeId) {
-          // console.log('already have a rebuttal node')
           onRebuttalReadyTrigger && onRebuttalReadyTrigger()
           return
         }
 
         const { id: rebuttalId, newNode } = createNode(ArgumentType.Rebuttal)
-        // console.log('rebuttalId', rebuttalId)
-        // 将限定词节点指向反驳节点
-        // 原先限定词是指向Claim节点的
-        // for (let i = 0; i < edges.value.length; i++) {
-        //   if (
-        //     edgesValue[i]._type ===
-        //     `${ArgumentType.Qualifier}_${ArgumentType.Claim}`
-        //   ) {
-        //     edgesValue[i].target = rebuttalId
-        //     break
-        //   }
-        // }
-        // console.log('edgesValue before filter', edgesValue)
         edgesValue = edgesValue.filter(edge => {
           return (
             edge._type !== `${ArgumentType.Qualifier}_${ArgumentType.Claim}`
           )
         })
-        // console.log('edgesValue after filter', edgesValue)
         // 限定指向反驳
         const edgeOfQualifierToRebuttal = createEdge({
           source: qualifierNodeId,
@@ -254,11 +232,8 @@ export default function useStateEdit({
       }
       case ArgumentType.Data:
     }
-
     onAddNodeTrigger && onAddNodeTrigger()
-    console.log('before Clear', nodes.value, edges.value)
     setEdges(clearNotRealatedEdges(nodes.value, edges.value))
-    console.log('after Clear', nodes.value, edges.value)
   }
 
   /**
