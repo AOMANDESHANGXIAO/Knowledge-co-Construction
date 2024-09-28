@@ -64,7 +64,7 @@ const props = withDefaults(
   }
 )
 const getCloudWordData = inject('getCloudWordData') as () => void
-
+const SHOW_WORD_COUNT = 15
 const generateWordCloudList = (text: string): WordCloudDataSetItem[] => {
   const list: WordCloudDataSetItem[] = []
   const segmenter: {
@@ -87,7 +87,7 @@ const generateWordCloudList = (text: string): WordCloudDataSetItem[] => {
       value: wordCounts[key],
     })
   }
-  return list
+  return _.orderBy(list, ['value'], ['desc']).slice(0, SHOW_WORD_COUNT)
 }
 const BASE_WAIT_TIME = 50
 const getWaitTime = (index: number) => {
@@ -151,7 +151,7 @@ const handleGetWordCloudContent = (name: string) => {
       </n-tab-pane>
       <n-tab-pane :name="paneNames.wordCloudText">
         <div
-          style="width: 500px; max-width: 500px"
+          style="width: 500px; max-width: 500px; margin-top: 10px"
           v-for="(item, index) in wordCloudTextList"
           :key="item.group_name"
         >
@@ -192,5 +192,10 @@ $dash-board-full-screen-width: 100%;
     justify-content: space-around;
     gap: 10px;
   }
+}
+:deep(.n-tab-pane) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 </style>

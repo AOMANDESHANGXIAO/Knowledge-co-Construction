@@ -49,7 +49,7 @@ const defaultConfig: VueUiWordCloudConfig = {
         fontSize: 20,
         bold: true,
         subtitle: {
-          text: props.subTitle,
+          // text: props.subTitle,
           color: '#CCCCCC',
           fontSize: 16,
           bold: false,
