@@ -14,6 +14,7 @@
     "@types/lodash": "^4.17.7",
     "@types/node": "^22.6.1",
     "@v-anything/directives": "^0.0.4",
+    "@vicons/ionicons5": "^0.12.0",
     "@vue-flow/background": "^1.3.0",
     "@vue-flow/controls": "^1.1.2",
     "@vue-flow/core": "^1.35.0",

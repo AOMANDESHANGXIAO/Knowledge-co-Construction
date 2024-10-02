@@ -6,4 +6,5 @@ export enum IconName {
   Setting = "setting",
   Summary = "summary",
   Refresh = "refresh",
+  File = "file",
 }

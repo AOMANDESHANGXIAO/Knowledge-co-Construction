@@ -36,6 +36,9 @@ import { QueryDashBoardResponse, TimeLineItem } from '@/apis/flow/type'
 import useEvaluation from './hooks/useEvaluation'
 import _ from 'lodash'
 import router from '@/router/index.ts'
+import { NButton } from 'naive-ui'
+import { ArchiveOutline as ArchiveIcon } from '@vicons/ionicons5'
+import type { UploadFileInfo } from 'naive-ui'
 
 const { getOneUserInfo } = useUserStore()
 
@@ -592,9 +595,161 @@ const { run: getCloudWordData } = useRequest({
   },
 })
 provide('getCloudWordData', getCloudWordData)
+
+// 处理文件
+const [fileDialogVisible, setFileDialogVisible] = useState(false)
+const fileColumns = [
+  {
+    title: '文件名',
+    key: 'name',
+  },
+  {
+    title: '上传者',
+    key: 'uploader',
+  },
+  {
+    title: '上传时间',
+    key: 'uploadedTime',
+  },
+  {
+    title: '操作',
+    key: 'action',
+    render() {
+      return h(
+        NButton,
+        {
+          strong: true,
+          type: 'info',
+          size: 'small',
+          onClick: () => {
+            console.log('点击了')
+          },
+        },
+        { default: () => '下载' }
+      )
+    },
+  },
+]
+const fileData = [
+  {
+    name: '文件1',
+    uploader: '张三',
+    uploadedTime: '2022-12-12 12:12:12',
+  },
+  {
+    name: '文件2',
+    uploader: '李四',
+    uploadedTime: '2022-12-12 12:12:12',
+  },
+]
+const filePagination = reactive({
+  pageSize: 10,
+  page: 10,
+  pageSizes: [10, 20, 30],
+  // showSizePicker: true,
+  onChange(page: number) {
+    console.log('请求page', page)
+  },
+  onUpdatePageSize(pageSize: number) {
+    console.log('请求pageSize', pageSize)
+  },
+})
+const handleClickGroupFileBtn = () => {
+  console.log('处理小组文件!')
+  setFileDialogVisible(true)
+}
+const fileList = ref<UploadFileInfo[]>([])
+const handleUpload = () => {
+  console.log('上传文件啦!',fileList.value)
+}
+const handleUploadChange = (data: { fileList: UploadFileInfo[] }) => {
+  fileList.value = data.fileList
+}
+const handleFileListChange = () => {
+  console.log('changed')
+}
 </script>
 
 <template>
+  <!-- 知识建构图谱 -->
+  <div class="vue-flow-container">
+    <flow-component
+      ref="vueFlowRef"
+      :update-vue-flow-effects="
+        () => {
+          getDashBoardData()
+        }
+      "
+      @onClickGroupNode="onClickGroupNode"
+      @onClickIdeaNode="onClickIdeaNode"
+    >
+      <!-- 右上角插槽放一些控制按钮 -->
+      <template #top-right>
+        <div class="layout-panel">
+          <button title="小组文件" @click="handleClickGroupFileBtn">
+            <Icon :name="IconName.File"></Icon>
+          </button>
+          <button title="发表观点" @click="handleClickProposeIdeaBtn">
+            <Icon :name="IconName.Idea" />
+          </button>
+          <button title="总结观点" @click="handleClickConclusionBtn">
+            <Icon :name="IconName.Summary" />
+          </button>
+          <button
+            title="刷新"
+            @click="
+              () => {
+                // 更新VueFlow的Data
+                handleRereshFlowData()
+              }
+            "
+          >
+            <Icon :name="IconName.Refresh" />
+          </button>
+          <button
+            title="返回首页"
+            @click="
+              () => {
+                // 返回首页
+                router.push({ path: '/' })
+              }
+            "
+          >
+            <Icon :name="IconName.Home" />
+          </button>
+          <button
+            title="垂直排列"
+            @click="
+              () => {
+                handleLayout(LayoutDirection.Vertical)
+              }
+            "
+          >
+            <Icon :name="IconName.Vertical" />
+          </button>
+          <button
+            title="水平排列"
+            @click="
+              () => {
+                handleLayout(LayoutDirection.Horizontal)
+              }
+            "
+          >
+            <Icon :name="IconName.Horizontal" />
+          </button>
+        </div>
+      </template>
+      <!-- 左上角插槽放dashboard显示小组的互动等 -->
+      <template #top-left>
+        <mini-dash-board
+          @checkDetail="onCheckDetail"
+          :list="alertList"
+          :title="progressText"
+        />
+      </template>
+    </flow-component>
+  </div>
+
   <!-- 论点编辑器dialog -->
   <section class="dialog-container" v-show="dialogVisible">
     <el-dialog v-model="dialogVisible" width="1200" :append-to-body="true">
@@ -644,85 +799,6 @@ provide('getCloudWordData', getCloudWordData)
     </el-dialog>
   </section>
 
-  <!-- 知识建构图谱 -->
-  <div class="vue-flow-container">
-    <flow-component
-      ref="vueFlowRef"
-      :update-vue-flow-effects="
-        () => {
-          getDashBoardData()
-        }
-      "
-      @onClickGroupNode="onClickGroupNode"
-      @onClickIdeaNode="onClickIdeaNode"
-    >
-      <!-- 右上角插槽放一些控制按钮 -->
-      <template #top-right>
-        <div class="layout-panel">
-          <button title="发表观点" @click="handleClickProposeIdeaBtn">
-            <Icon :name="IconName.Idea" />
-          </button>
-          <button title="总结观点" @click="handleClickConclusionBtn">
-            <Icon :name="IconName.Summary" />
-          </button>
-          <button
-            title="刷新"
-            @click="
-              () => {
-                // 更新VueFlow的Data
-                handleRereshFlowData()
-              }
-            "
-          >
-            <Icon :name="IconName.Refresh" />
-          </button>
-          <button
-            title="返回首页"
-            @click="
-              () => {
-                // 返回首页
-                router.push({ path: '/' })
-              }
-            "
-          >
-            <Icon :name="IconName.Home" />
-          </button>
-          <!-- <button title="设置" @click="">
-            <Icon :name="IconName.Setting" />
-          </button> -->
-          <button
-            title="垂直排列"
-            @click="
-              () => {
-                handleLayout(LayoutDirection.Vertical)
-              }
-            "
-          >
-            <Icon :name="IconName.Vertical" />
-          </button>
-          <button
-            title="水平排列"
-            @click="
-              () => {
-                handleLayout(LayoutDirection.Horizontal)
-              }
-            "
-          >
-            <Icon :name="IconName.Horizontal" />
-          </button>
-        </div>
-      </template>
-      <!-- 左上角插槽放dashboard显示小组的互动等 -->
-      <template #top-left>
-        <mini-dash-board
-          @checkDetail="onCheckDetail"
-          :list="alertList"
-          :title="progressText"
-        />
-      </template>
-    </flow-component>
-  </div>
-
   <!-- 学习仪表盘dialog -->
   <el-dialog
     v-model="dashBoardVisible"
@@ -736,6 +812,57 @@ provide('getCloudWordData', getCloudWordData)
       :time-line-list="timeLineList"
       :word-cloud-text-list="cloudWordData"
     />
+  </el-dialog>
+
+  <!-- 小组文件管理dialog -->
+  <el-dialog v-model="fileDialogVisible" :append-to-body="true" width="1200px">
+    <n-tabs type="segment" animated>
+      <n-tab-pane name="group-resources" tab="小组资源">
+        <!-- 文件下载列表 -->
+        <n-list bordered>
+          <template #header>
+            <n-text>文件下载</n-text>
+          </template>
+          <n-list-item>
+            <n-data-table
+              :columns="fileColumns"
+              :data="fileData"
+              :pagination="filePagination"
+            ></n-data-table>
+          </n-list-item>
+          <template #footer>
+            <n-upload
+              multiple
+              directory-dnd
+              action="https://www.mocky.io/v2/5e4bafc63100007100d8b70f"
+              :default-upload="false"
+              :max="5"
+              @change="handleUploadChange"
+              @update:file-list="handleFileListChange"
+            >
+              <n-upload-dragger>
+                <div style="margin-bottom: 12px">
+                  <n-icon size="48" :depth="3">
+                    <ArchiveIcon />
+                  </n-icon>
+                </div>
+                <n-text style="font-size: 16px">
+                  点击或者拖动文件到该区域来上传
+                </n-text>
+                <n-p depth="3" style="margin: 8px 0 0 0">
+                  请不要上传敏感数据，比如你的银行卡号和密码，信用卡号有效期和安全码
+                </n-p>
+              </n-upload-dragger>
+            </n-upload>
+            <n-button type="primary" @click="handleUpload" style="width: 100%;margin-top:10px">上 传</n-button>
+          </template>
+        </n-list>
+      </n-tab-pane>
+      <n-tab-pane name="communistic-resources" tab="共享的资源">
+        全体共享的资源
+      </n-tab-pane>
+      <n-tab-pane name="course-works" tab="课堂作业"></n-tab-pane>
+    </n-tabs>
   </el-dialog>
 </template>
 
