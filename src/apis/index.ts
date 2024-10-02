@@ -15,9 +15,9 @@ const Service = axios.create({
 Service.interceptors.request.use(
   config => {
     // 获取token
-    const user = localStorage.getItem('user')
+    const user = localStorage.getItem('userInfo')
     if (user) {
-      config.headers.Authorization = JSON.parse(user)?.userInfo.token
+      config.headers.Authorization = JSON.parse(user).token
       console.log('设置了请求头', config.headers.Authorization)
     }
     if (config.data) {

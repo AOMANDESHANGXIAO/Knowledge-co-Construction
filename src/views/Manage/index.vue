@@ -2,7 +2,8 @@
 import Icon from '@/components/Icons/ManagePageIcon/index.vue'
 import { Name } from '@/components/Icons/ManagePageIcon/type.ts'
 import { useRouter, useRoute } from 'vue-router'
-
+import LogOutButton from '@/components/LogOutButton/index.vue'
+import {useUserStore} from '@/store/modules/user/index.ts'
 // 根据当前的路由确定el-menu-item的激活状态
 const router = useRouter()
 
@@ -12,6 +13,11 @@ const defaultActive = computed(() => {
 })
 
 const route = useRoute()
+const userStore = useUserStore()
+const handleLogOut = () => {
+  console.log('loyOut')
+  userStore.logout()
+}
 </script>
 
 <template>
@@ -21,7 +27,7 @@ const route = useRoute()
         <h2>Stream of Thoughts</h2>
         <el-menu
           mode="vertical"
-          style="height: calc(100% - 60px)"
+          style="height: calc(100% - 60px); position: relative"
           background-color="#222d3c"
           text-color="#fff"
           router
@@ -45,10 +51,15 @@ const route = useRoute()
               <span>个人管理</span>
             </section>
           </el-menu-item>
+          <el-menu-item class="bottom-box">
+            <section class="menu-item flex-center">
+              <LogOutButton @click="handleLogOut"></LogOutButton>
+            </section>
+          </el-menu-item>
         </el-menu>
       </el-col>
       <el-col :span="21" style="height: 100%">
-        <router-view :key="route.path"/>
+        <router-view :key="route.path" />
       </el-col>
     </el-row>
   </div>
@@ -75,7 +86,7 @@ const route = useRoute()
     }
   }
 
-  &:deep(.el-menu-item) {
+  &:deep(.el-menu-item:not(.bottom-box)) {
     &:hover {
       background-color: var(--theme-color);
     }
@@ -93,6 +104,20 @@ const route = useRoute()
     height: 100%;
     gap: 10px;
     padding-left: 20px;
+    &.flex-center {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding-left: -20px;
+    }
+  }
+  .bottom-box {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background-color: #222d3c;
   }
 }
 </style>

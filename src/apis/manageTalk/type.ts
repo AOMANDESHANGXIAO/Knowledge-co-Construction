@@ -12,9 +12,10 @@ interface TopicListData {
 
 interface ListItem {
   created_time: string;
-  created_user_name: string;
+  nickname: string;
   id: number;
   topic_content: string;
+  status: string
   [property: string]: any;
 }
 

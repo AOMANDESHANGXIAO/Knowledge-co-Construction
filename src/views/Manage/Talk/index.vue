@@ -105,13 +105,14 @@ const handleSearch = () => {
       <el-divider></el-divider>
       <section class="talk-card-list-container">
         <talk-card
+          style="width:calc(50% - 10px);margin-bottom: 10px;"
           @click="handleClick"
           v-for="item in talkCardList"
           :key="item.id"
           :id="item.id"
           :created-time="item.created_time"
           :title="item.topic_content"
-          :created-user="item.created_user_name"
+          :created-user="item.nickname"
         ></talk-card>
       </section>
     </main>
