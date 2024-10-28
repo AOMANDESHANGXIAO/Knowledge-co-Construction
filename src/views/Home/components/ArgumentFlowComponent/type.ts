@@ -84,7 +84,7 @@ export enum Status {
 }
 
 export type Condition =
-  | 'chechIdea'
+  | 'checkIdea'
   | 'checkConclusion'
   | 'modifyIdea'
   | 'modifyConclusion'

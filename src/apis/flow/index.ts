@@ -1,5 +1,5 @@
 import Service from '@/apis/index.ts'
-import { Response } from '../libcommon/index.ts'
+import { Response } from '@/apis/libcommon'
 import type {
   CreateNewIdeaArgs,
   ReplyIdeaParams,

@@ -53,6 +53,7 @@ declare module 'vue' {
     NListItem: typeof import('naive-ui')['NListItem']
     NodePopover: typeof import('./../components/NodePopover/index.vue')['default']
     NP: typeof import('naive-ui')['NP']
+    NSwitch: typeof import('naive-ui')['NSwitch']
     NTabPane: typeof import('naive-ui')['NTabPane']
     NTabs: typeof import('naive-ui')['NTabs']
     NText: typeof import('naive-ui')['NText']
