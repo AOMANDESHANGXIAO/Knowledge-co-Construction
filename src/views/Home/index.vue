@@ -39,8 +39,9 @@ import router from '@/router/index.ts'
 import {NButton} from 'naive-ui'
 import {ArchiveOutline as ArchiveIcon} from '@vicons/ionicons5'
 import {uploadFilesApi} from '@/apis/upload/index.ts'
-import {queryGroupFilesApi} from '@/apis/files/index.ts'
 import useTable from '@/hooks/Async/useTable.ts'
+import MyTable from '@/components/table/index.vue'
+import UploadField from '@/components/UploadField/index.vue'
 
 const {getOneUserInfo} = useUserStore()
 
@@ -603,73 +604,63 @@ type FileListItem = {
   "upload_time": string,
   "nickname": string
 }
-const fileColumns = [
+const groupFilesColumns = [
   {
-    title: '文件名',
-    key: 'filename',
+    prop: 'filename',
+    label: '文件名',
+    minWidth: 200,
   },
   {
-    title: '上传者',
-    key: 'nickname',
+    prop: 'nickname',
+    label: '上传者',
+    minWidth: 200,
   },
   {
-    title: '上传时间',
-    key: 'upload_time',
-  },
-  {
-    title: '操作',
-    key: 'action',
-    render() {
-      return h(
-          NButton,
-          {
-            strong: true,
-            type: 'info',
-            size: 'small',
-            onClick: () => {
-              console.log('点击了')
-            },
-          },
-          {default: () => '下载'}
-      )
-    },
+    prop: 'upload_time',
+    label: '上传时间',
+    minWidth: 200,
   },
 ]
 const queryGroupFilesParams = ref({
-  page: 1,
-  pageSize: 5,
   topic_id: topicId.value,
   group_id: getOneUserInfo('group_id'),
 })
-const {pageSize, currentPage, data:fileData} = useTable<typeof queryGroupFilesParams.value, FileListItem>({
+const {
+  pageSize,
+  currentPage,
+  data: groupFileData,
+  totalNum
+} = useTable<typeof queryGroupFilesParams.value, FileListItem>({
   url: '/files/group',
   queryParams: queryGroupFilesParams,
   immediate: true
 })
-const filePagination = reactive({
-  pageSize: pageSize,
-  page: currentPage,
-  pageSizes: [10, 20, 30],
-  // showSizePicker: true,
-  onChange(page: number) {
-    console.log('请求page', page)
-  },
-  onUpdatePageSize(pageSize: number) {
-    console.log('请求pageSize', pageSize)
-  },
-})
-
+const handleDownLoadFile = (file: FileListItem) => {
+  console.log('handleDownLoadFile', file)
+}
+const handleRemoveFile = (file: FileListItem) => {
+  console.log('handleRemoveFile', file)
+}
 const handleClickGroupFileBtn = () => {
   setFileDialogVisible(true)
 }
-const {run: uploadFileRequest, loading: uploadButtonLoading} = useRequest({
+const uploadGroupFieldRef = ref<InstanceType<typeof UploadField>|null>(null)
+const uploadGroupFile = () => {
+  uploadGroupFieldRef.value?.goFile()
+}
+const clearSelectedGroupFile = () => {
+  uploadGroupFieldRef?.value?.clearFileList()
+}
+const {run: uploadFileRequest, loading: UploadFieldLoading} = useRequest({
   apiFn: async () => {
     const uploadInput = {
       student_id: +studentId,
       topic_id: topicId.value,
       is_public: isPrivate.value ? 0 : 1,
     }
-    const fileList = (fileInputRef.value as HTMLInputElement).files as FileList
+    // mod here
+    // 使用组件来替代
+    const fileList = uploadGroupFieldRef.value!.getFileList()
     return uploadFilesApi(uploadInput, fileList)
   },
   onSuccess() {
@@ -679,7 +670,7 @@ const {run: uploadFileRequest, loading: uploadButtonLoading} = useRequest({
       type: 'success',
       position: 'bottom-right',
     })
-    clearFileInput()
+    uploadGroupFieldRef.value!.clearFileList()
   },
   onError() {
     ElNotification({
@@ -701,8 +692,8 @@ const {run: uploadFileRequest, loading: uploadButtonLoading} = useRequest({
 /**
  * 这个方法用来上传文件，点击提交时上传
  */
-const handleClickUploadBtn = () => {
-  const fileList = (fileInputRef.value as HTMLInputElement).files as FileList
+const handleClickUploadField = () => {
+ const fileList = uploadGroupFieldRef.value?.getFileList()
   if (!fileList || !fileList.length) {
     ElNotification({
       title: 'Error',
@@ -715,20 +706,6 @@ const handleClickUploadBtn = () => {
   uploadFileRequest()
 }
 const isPrivate = ref<boolean>(true)
-const clearFileInput = () => {
-  if (fileInputRef.value) {
-    fileInputRef.value.value = ''
-    uploadFileListInfo.value = null
-  }
-}
-const uploadFileListInfo = ref<FileList | null>(null)
-const handleFileChange = (event: Event) => {
-  uploadFileListInfo.value = (event.target as HTMLInputElement).files as FileList
-}
-const fileInputRef = ref<HTMLInputElement | null>(null)
-const goFile = () => {
-  fileInputRef.value?.click()
-}
 </script>
 
 <template>
@@ -886,31 +863,33 @@ const goFile = () => {
             <n-text>文件下载</n-text>
           </template>
           <n-list-item>
-            <n-data-table
-                :columns="fileColumns"
-                :data="fileData"
-                :pagination="filePagination"
-            ></n-data-table>
+            <my-table :columns="groupFilesColumns" :total-num="totalNum" :page-size="pageSize"
+                      :current-page="currentPage"
+                      :data="groupFileData">
+              <el-table-column type="index" width="50"/>
+              <el-table-column v-for="(item,index) in groupFilesColumns" :prop="item.prop" :label="item.label"
+                               :min-width="item.minWidth" :key="index"></el-table-column>
+              <el-table-column align="center" label="操作" :width="200">
+                <template #default="scope">
+                  <n-button type="info" @click="()=>{handleDownLoadFile(scope.row)}">下载</n-button>
+                  <n-button type="error" @click="()=>{handleRemoveFile(scope.row)}" style="margin-left: 10px">移除
+                  </n-button>
+                </template>
+              </el-table-column>
+            </my-table>
           </n-list-item>
           <template #footer>
             <div style="display: flex;align-content: center;align-items: center;gap:10px">
-              <n-button @click="goFile" secondary type="primary">
+              <n-button @click="uploadGroupFile" secondary type="primary">
                 <ArchiveIcon/>
                 上 传 文 件
               </n-button>
-              <n-button @click="clearFileInput">清 空 文 件</n-button>
+              <n-button @click="clearSelectedGroupFile">清 空 文 件</n-button>
               <n-text>小组私有</n-text>
               <n-switch v-model:value="isPrivate"/>
             </div>
-            <input ref="fileInputRef" style="margin-left:10px;display: none" type="file" :multiple="true"
-                   @change="handleFileChange"/>
-            <ul class="upload-list">
-              <li v-for="(item,index) in uploadFileListInfo" :key="item.name">
-                <n-text>{{ index + 1 }}. {{ item.name }}</n-text>
-              </li>
-            </ul>
-            <n-text>已选择{{ uploadFileListInfo?.length || 0 }}个文件</n-text>
-            <n-button :loading="uploadButtonLoading" type="primary" @click="handleClickUploadBtn"
+            <UploadField ref="uploadGroupFieldRef"/>
+            <n-button :loading="UploadFieldLoading" type="primary" @click="handleClickUploadField"
                       style="width: 100%;margin-top:10px">上 传
             </n-button>
           </template>
