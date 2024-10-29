@@ -597,6 +597,21 @@ const {run: getCloudWordData} = useRequest({
 })
 provide('getCloudWordData', getCloudWordData)
 
+const handleChangeTabs = (tabName:string) => {
+  switch (tabName) {
+    case 'communistic-resources':{
+      // 调用接口查询共享的资源
+      if(CommunisticFileData.value.length) return
+      getCommunisticFileData()
+      break
+    } case 'group-resources':{
+      // 调用接口查询小组的资源
+      if(groupFileData.value.length) return
+      getGroupFileData()
+      break
+    }
+  }
+}
 // 处理文件
 const [fileDialogVisible, setFileDialogVisible] = useState(false)
 type FileListItem = {
@@ -640,8 +655,8 @@ const {
 const handleDownLoadFile = (file: FileListItem) => {
   console.log('handleDownLoadFile', file)
   downloadFileApi({
-    filename:file.filename,
-    filepath:file.file_path
+    filename: file.filename,
+    filepath: file.file_path
   })
 }
 const handleRemoveFile = (file: FileListItem) => {
@@ -715,6 +730,99 @@ const handleClickUploadField = () => {
   uploadFileRequest()
 }
 const isPrivate = ref<boolean>(true)
+
+/**
+ * 共享文件 tab-pane
+ */
+
+const communisticFilesColumns = [
+  {
+    prop: 'filename',
+    label: '文件名',
+    minWidth: 200,
+  },
+  {
+    prop: 'nickname',
+    label: '上传者',
+    minWidth: 200,
+  },
+  {
+    prop: 'upload_time',
+    label: '上传时间',
+    minWidth: 200,
+  }
+]
+const queryCommunisticFilesParams = ref({
+  topic_id: topicId.value,
+})
+const {
+  pageSize: CommunisticPageSize,
+  currentPage: CommunisticCurrentPage,
+  totalNum: CommunisticTotalNum,
+  data: CommunisticFileData,
+  getData: getCommunisticFileData,
+} = useTable({
+  url: '/files/community',
+  queryParams: queryCommunisticFilesParams,
+  immediate: false,
+})
+const uploadCommunisticFieldRef = ref<InstanceType<typeof UploadField> | null>(null)
+const openCommunisticField = () => {
+  uploadCommunisticFieldRef.value?.goFile()
+}
+const clearCommunisticField = () => {
+  uploadCommunisticFieldRef.value?.clearFileList()
+}
+const handleSubmitCommunisticField = () => {
+  const fileList = uploadCommunisticFieldRef.value?.getFileList()
+  if (!fileList || !fileList.length) {
+    ElNotification({
+      title: 'Error',
+      message: '请选择文件',
+      type: 'error',
+      position: 'bottom-right',
+    })
+    return
+  }
+  uploadCommunisticFilesApi()
+}
+const {run: uploadCommunisticFilesApi, loading: uploadCommunisticLoading} = useRequest({
+  apiFn: async () => {
+    const fileList = uploadCommunisticFieldRef.value?.getFileList() as FileList
+    return uploadFilesApi({
+      topic_id: topicId.value,
+      is_public: 1,
+      student_id: +studentId,
+    }, fileList)
+  },
+  onSuccess() {
+    ElNotification({
+      title: 'Success',
+      message: '上传成功',
+      type: 'success',
+      position: 'bottom-right',
+    })
+    clearCommunisticField()
+    // getGroupFileData()
+  },
+  onFail() {
+    ElNotification({
+      title: 'Error',
+      message: '上传失败',
+      type: 'error',
+      position: 'bottom-right',
+    })
+  },
+  onError() {
+    ElNotification({
+      title: 'Error',
+      message: '上传失败',
+      type: 'error',
+      position: 'bottom-right',
+    })
+  }
+})
+
 </script>
 
 <template>
@@ -864,12 +972,12 @@ const isPrivate = ref<boolean>(true)
 
   <!-- 小组文件管理dialog -->
   <el-dialog v-model="fileDialogVisible" :append-to-body="true" width="1200px">
-    <n-tabs type="segment" animated>
+    <n-tabs type="segment" animated @update:value="handleChangeTabs">
       <n-tab-pane name="group-resources" tab="小组资源">
         <!-- 文件下载列表 -->
         <n-list bordered>
           <template #header>
-            <n-text>文件下载</n-text>
+            <n-text>小组资源</n-text>
           </template>
           <n-list-item>
             <my-table :columns="groupFilesColumns" v-model:total-num="totalNum" v-model:page-size="pageSize"
@@ -905,7 +1013,39 @@ const isPrivate = ref<boolean>(true)
         </n-list>
       </n-tab-pane>
       <n-tab-pane name="communistic-resources" tab="共享的资源">
-        全体共享的资源
+        <n-list bordered>
+          <template #header>
+            <n-text>共享资源</n-text>
+          </template>
+          <n-list-item>
+            <my-table :columns="communisticFilesColumns" v-model:total-num="CommunisticTotalNum"
+                      v-model:page-size="CommunisticPageSize"
+                      v-model:current-page="CommunisticCurrentPage"
+                      :data="CommunisticFileData">
+              <el-table-column type="index" width="50" align="center"/>
+              <el-table-column v-for="(item,index) in groupFilesColumns" :prop="item.prop" :label="item.label"
+                               :min-width="item.minWidth" :key="index" align="center"></el-table-column>
+              <el-table-column align="center" label="操作" :width="200">
+                <template #default="scope">
+                  <n-button type="info" @click="()=>{handleDownLoadFile(scope.row)}">下载</n-button>
+                </template>
+              </el-table-column>
+            </my-table>
+          </n-list-item>
+          <template #footer>
+            <div style="display: flex;align-content: center;align-items: center;gap:10px">
+              <n-button @click="openCommunisticField" secondary type="primary">
+                <ArchiveIcon/>
+                上 传 文 件
+              </n-button>
+              <n-button @click="clearCommunisticField">清 空 文 件</n-button>
+            </div>
+            <UploadField ref="uploadCommunisticFieldRef"/>
+            <n-button :loading="uploadCommunisticLoading" type="primary" @click="handleSubmitCommunisticField"
+                      style="width: 100%;margin-top:10px">上 传
+            </n-button>
+          </template>
+        </n-list>
       </n-tab-pane>
       <n-tab-pane name="course-works" tab="课堂作业"></n-tab-pane>
     </n-tabs>
