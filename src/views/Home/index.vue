@@ -42,6 +42,7 @@ import {uploadFilesApi} from '@/apis/upload/index.ts'
 import useTable from '@/hooks/Async/useTable.ts'
 import MyTable from '@/components/table/index.vue'
 import UploadField from '@/components/UploadField/index.vue'
+import {downloadFileApi} from '@/apis/files/index.ts'
 
 const {getOneUserInfo} = useUserStore()
 
@@ -629,7 +630,8 @@ const {
   pageSize,
   currentPage,
   data: groupFileData,
-  totalNum
+  totalNum,
+  getData: getGroupFileData,
 } = useTable<typeof queryGroupFilesParams.value, FileListItem>({
   url: '/files/group',
   queryParams: queryGroupFilesParams,
@@ -637,6 +639,10 @@ const {
 })
 const handleDownLoadFile = (file: FileListItem) => {
   console.log('handleDownLoadFile', file)
+  downloadFileApi({
+    filename:file.filename,
+    filepath:file.file_path
+  })
 }
 const handleRemoveFile = (file: FileListItem) => {
   console.log('handleRemoveFile', file)
@@ -644,7 +650,7 @@ const handleRemoveFile = (file: FileListItem) => {
 const handleClickGroupFileBtn = () => {
   setFileDialogVisible(true)
 }
-const uploadGroupFieldRef = ref<InstanceType<typeof UploadField>|null>(null)
+const uploadGroupFieldRef = ref<InstanceType<typeof UploadField> | null>(null)
 const uploadGroupFile = () => {
   uploadGroupFieldRef.value?.goFile()
 }
@@ -660,7 +666,7 @@ const {run: uploadFileRequest, loading: UploadFieldLoading} = useRequest({
     }
     // mod here
     // 使用组件来替代
-    const fileList = uploadGroupFieldRef.value!.getFileList()
+    const fileList = uploadGroupFieldRef.value!.getFileList() as FileList
     return uploadFilesApi(uploadInput, fileList)
   },
   onSuccess() {
@@ -670,7 +676,10 @@ const {run: uploadFileRequest, loading: UploadFieldLoading} = useRequest({
       type: 'success',
       position: 'bottom-right',
     })
+    // 清空已上传的文件
     uploadGroupFieldRef.value!.clearFileList()
+    // 成功上传后更新列表
+    getGroupFileData()
   },
   onError() {
     ElNotification({
@@ -693,7 +702,7 @@ const {run: uploadFileRequest, loading: UploadFieldLoading} = useRequest({
  * 这个方法用来上传文件，点击提交时上传
  */
 const handleClickUploadField = () => {
- const fileList = uploadGroupFieldRef.value?.getFileList()
+  const fileList = uploadGroupFieldRef.value?.getFileList()
   if (!fileList || !fileList.length) {
     ElNotification({
       title: 'Error',
@@ -863,12 +872,12 @@ const isPrivate = ref<boolean>(true)
             <n-text>文件下载</n-text>
           </template>
           <n-list-item>
-            <my-table :columns="groupFilesColumns" :total-num="totalNum" :page-size="pageSize"
-                      :current-page="currentPage"
+            <my-table :columns="groupFilesColumns" v-model:total-num="totalNum" v-model:page-size="pageSize"
+                      v-model:current-page="currentPage"
                       :data="groupFileData">
-              <el-table-column type="index" width="50"/>
+              <el-table-column type="index" width="50" align="center"/>
               <el-table-column v-for="(item,index) in groupFilesColumns" :prop="item.prop" :label="item.label"
-                               :min-width="item.minWidth" :key="index"></el-table-column>
+                               :min-width="item.minWidth" :key="index" align="center"></el-table-column>
               <el-table-column align="center" label="操作" :width="200">
                 <template #default="scope">
                   <n-button type="info" @click="()=>{handleDownLoadFile(scope.row)}">下载</n-button>
