@@ -1,73 +1,74 @@
 <script setup lang="ts">
 import manageHeader from '@/components/common/manageHeader/index.vue'
-import { useUserStore } from '@/store/modules/user'
+import {useUserStore} from '@/store/modules/user'
 import talkCard from '@/components/common/talkCard/index.vue'
-import type { ListItem } from './type.ts'
-import { queryTopicListApi } from '@/apis/manageTalk/index.ts'
-import { Search } from '@element-plus/icons-vue'
+import type {ListItem} from './type.ts'
+import {queryTopicListApi} from '@/apis/manageTalk/index.ts'
+import {Search} from '@element-plus/icons-vue'
 import router from '@/router/index.ts'
+import useRequest from "@/hooks/Async/useRequest.ts";
 
 const userStore = useUserStore()
 
-const { userInfo } = userStore
+const {userInfo} = userStore
 
 const talkCardList = ref<ListItem[]>([])
 
 const inputValue = ref('')
 
+/* 设置默认值 */
+const DESC = 0 // 正向
+const ASC = 1 // 逆向
+const selectValue = ref(ASC)
+
 const options = [
   {
-    value: '0',
+    value: DESC,
     label: '正向时间排序',
   },
   {
-    value: '1',
+    value: ASC,
     label: '逆向时间排序',
   },
 ]
 
-/* 设置默认值 */
-const selectValue = ref(options[0].value)
-
-const queryTopicList = () => {
-  const class_id = userStore.userInfo.class_id
-  const content = inputValue.value
-  const sort = selectValue.value
-  queryTopicListApi(class_id, content, +sort)
-    .then(res => {
-      const data = res
-
-      if (data.success) {
-        talkCardList.value = data.data.list
-      } else {
-        ElNotification({
-          title: '查询失败',
-          dangerouslyUseHTMLString: false,
-          message: data.message,
-          type: 'error',
-          duration: 2000,
-        })
-      }
+const {run: getTopicList} = useRequest({
+  apiFn: async () => {
+    const class_id = userStore.userInfo.class_id
+    const content = inputValue.value
+    const sort = selectValue.value
+    return queryTopicListApi(class_id, content, +sort)
+  },
+  immediate: true,
+  onSuccess(res: { list: ListItem[] }) {
+    talkCardList.value = res.list
+  },
+  onError() {
+    ElNotification({
+      title: '查询失败',
+      dangerouslyUseHTMLString: false,
+      message: '服务器有点累~',
+      type: 'error',
+      duration: 2000,
     })
-    .catch(() => {
-      ElNotification({
-        title: '查询失败',
-        dangerouslyUseHTMLString: false,
-        message: '服务器有点累~',
-        type: 'error',
-        duration: 2000,
-      })
+  },
+  onFail() {
+    ElNotification({
+      title: '查询失败',
+      dangerouslyUseHTMLString: false,
+      message: '服务器有点累~',
+      type: 'error',
+      duration: 2000,
     })
-}
-queryTopicList()
+  }
+})
 
 const handleClick = (topic_id: number) => {
-  router.push({ path: '/home', query: { topic_id: topic_id } })
-  // router.go(0)
-}
+  router.push({path: '/home', query: {topic_id: topic_id}})
 
+}
 const handleSearch = () => {
-  queryTopicList()
+  getTopicList()
 }
 </script>
 
@@ -79,25 +80,25 @@ const handleSearch = () => {
         <span>加入讨论!</span>
         <div class="input-container">
           <el-select
-            v-model="selectValue"
-            placeholder="时间排序"  
-            style="width: 200px;"
+              v-model="selectValue"
+              placeholder="时间排序"
+              style="width: 200px;"
           >
             <el-option
-              v-for="item in options"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
+                v-for="item in options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
             />
           </el-select>
           <el-input
-            v-model="inputValue"
-            placeholder="搜索讨论..."
-            @keyup.enter="handleSearch"
-            style="width: 200px"
+              v-model="inputValue"
+              placeholder="搜索讨论..."
+              @keyup.enter="handleSearch"
+              style="width: 200px"
           >
             <template #append>
-              <el-button :icon="Search" @click="handleSearch" />
+              <el-button :icon="Search" @click="handleSearch"/>
             </template>
           </el-input>
         </div>
@@ -105,14 +106,14 @@ const handleSearch = () => {
       <el-divider></el-divider>
       <section class="talk-card-list-container">
         <talk-card
-          style="width:calc(50% - 10px);margin-bottom: 10px;"
-          @click="handleClick"
-          v-for="item in talkCardList"
-          :key="item.id"
-          :id="item.id"
-          :created-time="item.created_time"
-          :title="item.topic_content"
-          :created-user="item.nickname"
+            style="width:calc(50% - 10px);margin-bottom: 10px;"
+            @click="handleClick"
+            v-for="item in talkCardList"
+            :key="item.id"
+            :id="item.id"
+            :created-time="item.created_time"
+            :title="item.topic_content"
+            :created-user="item.nickname"
         ></talk-card>
       </section>
     </main>
@@ -142,9 +143,11 @@ const handleSearch = () => {
     header {
       @include banner-title;
     }
+
     .input-container {
       display: flex;
       gap: 10px;
+
       &:deep(.el-select__wrapper) {
         height: 28px;
         // box-sizing: border-box;
@@ -155,6 +158,7 @@ const handleSearch = () => {
         box-shadow: 0 0 0 1px var(--theme-color);
       }
     }
+
     .title-container {
       display: flex;
       height: 32px;
