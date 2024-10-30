@@ -597,16 +597,17 @@ const {run: getCloudWordData} = useRequest({
 })
 provide('getCloudWordData', getCloudWordData)
 
-const handleChangeTabs = (tabName:string) => {
+const handleChangeTabs = (tabName: string) => {
   switch (tabName) {
-    case 'communistic-resources':{
+    case 'communistic-resources': {
       // 调用接口查询共享的资源
-      if(CommunisticFileData.value.length) return
+      if (CommunisticFileData.value.length) return
       getCommunisticFileData()
       break
-    } case 'group-resources':{
+    }
+    case 'group-resources': {
       // 调用接口查询小组的资源
-      if(groupFileData.value.length) return
+      if (groupFileData.value.length) return
       getGroupFileData()
       break
     }
@@ -640,6 +641,7 @@ const groupFilesColumns = [
 const queryGroupFilesParams = ref({
   topic_id: topicId.value,
   group_id: getOneUserInfo('group_id'),
+  keyword: ''
 })
 const {
   pageSize,
@@ -647,13 +649,39 @@ const {
   data: groupFileData,
   totalNum,
   getData: getGroupFileData,
+  sort: groupFileSort,
+  loading: groupFileLoading,
 } = useTable<typeof queryGroupFilesParams.value, FileListItem>({
   url: '/files/group',
   queryParams: queryGroupFilesParams,
-  immediate: true
+  immediate: true,
+  defaultSort: 'DESC',
+  throttle: 100,
+  onSuccess() {
+    ElMessage({
+      message: '查询成功',
+      type: 'success',
+    })
+  },
+  onError() {
+    ElMessage({
+      message: '查询失败',
+      type: 'error',
+    })
+  },
+  onFailure() {
+    ElMessage({
+      message: '查询失败',
+      type: 'error',
+    })
+  }
 })
+const handleResetSearchGroupFile = () => {
+  queryGroupFilesParams.value.keyword = ''
+  groupFileSort.value = 'DESC'
+  getGroupFileData()
+}
 const handleDownLoadFile = (file: FileListItem) => {
-  console.log('handleDownLoadFile', file)
   downloadFileApi({
     filename: file.filename,
     filepath: file.file_path
@@ -754,17 +782,45 @@ const communisticFilesColumns = [
 ]
 const queryCommunisticFilesParams = ref({
   topic_id: topicId.value,
+  keyword: ''
 })
+const handleResetCommunisticParams = () => {
+  queryCommunisticFilesParams.value.keyword = ''
+  CommunisticSort.value = 'DESC'
+  getCommunisticFileData()
+}
 const {
   pageSize: CommunisticPageSize,
   currentPage: CommunisticCurrentPage,
   totalNum: CommunisticTotalNum,
   data: CommunisticFileData,
   getData: getCommunisticFileData,
+  sort: CommunisticSort,
+  loading: CommunisticLoading,
 } = useTable({
   url: '/files/community',
   queryParams: queryCommunisticFilesParams,
   immediate: false,
+  defaultSort: 'DESC',
+  throttle: 100,
+  onSuccess() {
+    ElMessage({
+      message: '查询成功',
+      type: 'success',
+    })
+  },
+  onFailure() {
+    ElMessage({
+      message: '查询失败',
+      type: 'error',
+    })
+  },
+  onError() {
+    ElMessage({
+      message: '查询失败',
+      type: 'error',
+    })
+  }
 })
 const uploadCommunisticFieldRef = ref<InstanceType<typeof UploadField> | null>(null)
 const openCommunisticField = () => {
@@ -822,6 +878,19 @@ const {run: uploadCommunisticFilesApi, loading: uploadCommunisticLoading} = useR
     })
   }
 })
+/**
+ * 小组资源搜索
+ */
+const sortByOptions = [
+  {
+    label: '正向',
+    value: 'ASC',
+  },
+  {
+    label: '逆向',
+    value: 'DESC',
+  },
+]
 
 </script>
 
@@ -978,6 +1047,21 @@ const {run: uploadCommunisticFilesApi, loading: uploadCommunisticLoading} = useR
         <n-list bordered>
           <template #header>
             <n-text>小组资源</n-text>
+            <div class="search-box">
+              <n-text>关键词:</n-text>
+              <el-input v-model="queryGroupFilesParams.keyword" placeholder="请输入检索关键词" style="width: 200px"
+                        @keydown.enter="getGroupFileData"/>
+              <n-text>时间排序:</n-text>
+              <el-select v-model="groupFileSort" style="width: 200px">
+                <el-option
+                    v-for="item in sortByOptions"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value">
+                </el-option>
+              </el-select>
+              <n-button type="primary" @click="getGroupFileData" :loading="groupFileLoading">检 索</n-button>
+            </div>
           </template>
           <n-list-item>
             <my-table :columns="groupFilesColumns" v-model:total-num="totalNum" v-model:page-size="pageSize"
@@ -1005,7 +1089,7 @@ const {run: uploadCommunisticFilesApi, loading: uploadCommunisticLoading} = useR
               <n-text>小组私有</n-text>
               <n-switch v-model:value="isPrivate"/>
             </div>
-            <UploadField ref="uploadGroupFieldRef"/>
+            <UploadField ref="uploadGroupFieldRef" :multiple="true"/>
             <n-button :loading="UploadFieldLoading" type="primary" @click="handleClickUploadField"
                       style="width: 100%;margin-top:10px">上 传
             </n-button>
@@ -1016,6 +1100,22 @@ const {run: uploadCommunisticFilesApi, loading: uploadCommunisticLoading} = useR
         <n-list bordered>
           <template #header>
             <n-text>共享资源</n-text>
+            <div class="search-box">
+              <n-text>关键词:</n-text>
+              <el-input v-model="queryCommunisticFilesParams.keyword" placeholder="请输入检索关键词"
+                        style="width: 200px" @keydown.enter="getCommunisticFileData"/>
+              <n-text>时间排序:</n-text>
+              <el-select v-model="CommunisticSort" style="width: 200px">
+                <el-option
+                    v-for="item in sortByOptions"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value">
+                </el-option>
+              </el-select>
+              <n-button type="primary" tertiary @click="handleResetCommunisticParams">重 置</n-button>
+              <n-button type="primary" @click="getCommunisticFileData" :loading="CommunisticLoading">检 索</n-button>
+            </div>
           </template>
           <n-list-item>
             <my-table :columns="communisticFilesColumns" v-model:total-num="CommunisticTotalNum"
@@ -1040,7 +1140,7 @@ const {run: uploadCommunisticFilesApi, loading: uploadCommunisticLoading} = useR
               </n-button>
               <n-button @click="clearCommunisticField">清 空 文 件</n-button>
             </div>
-            <UploadField ref="uploadCommunisticFieldRef"/>
+            <UploadField ref="uploadCommunisticFieldRef" :multiple="true"/>
             <n-button :loading="uploadCommunisticLoading" type="primary" @click="handleSubmitCommunisticField"
                       style="width: 100%;margin-top:10px">上 传
             </n-button>
@@ -1203,5 +1303,24 @@ $dashboard-height: 300px;
   li {
     list-style: none;
   }
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  //justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #ccc;
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+$naive-green: #18a058;
+:deep(.el-select__wrapper.is-focused ) {
+  box-shadow: 0 0 0 1px $naive-green inset !important;
+}
+
+:deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px $naive-green inset !important;
 }
 </style>

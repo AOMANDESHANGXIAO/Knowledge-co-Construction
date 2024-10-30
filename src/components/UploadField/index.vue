@@ -9,6 +9,10 @@ const props = defineProps({
   maxCount: {
     type: Number,
     default: 5
+  },
+  multiple: {
+    type: Boolean,
+    default: false
   }
 })
 const emits = defineEmits(['onFilesChange'])
@@ -18,7 +22,7 @@ const realUploadFileList = computed(() => {
   /* 过滤掉被删除的文件；剔除体积过大的文件；对纳入的文件数量进行限制 */
   return uploadFileListInfo.value.filter((file: File) => {
     return !removedFileList.value.includes(file) && file.size < props.maxSize
-  }).slice(0, props.maxCount)
+  }).slice(0, props.maxCount) as File[]
 })
 const handleFileChange = () => {
   emits('onFilesChange')
@@ -38,7 +42,7 @@ const handleFileChange = () => {
     }
   }
   // 判断文件数量是否超标
-  const isOverMaxCount = uploadFileListInfo.value.filter((file:File)=>{
+  const isOverMaxCount = uploadFileListInfo.value.filter((file: File) => {
     return file.size < props.maxSize && !removedFileList.value.includes(file)
   }).length > props.maxCount
 
@@ -50,7 +54,7 @@ const goFile = () => {
   if (!fileInputRef.value) return
   fileInputRef.value.click()
 }
-const getFileList = () => {
+const getFileList = (): void | FileList | null | File[] => {
   if (!fileInputRef.value) return
   const files = fileInputRef.value.files
   if (files !== null) {
@@ -80,7 +84,7 @@ defineExpose({
 </script>
 
 <template>
-  <input ref="fileInputRef" style="margin-left:10px;display: none" type="file" :multiple="true"
+  <input ref="fileInputRef" style="margin-left:10px;display: none" type="file" :multiple="props.multiple"
          @change="handleFileChange"/>
   <ul class="upload-list">
     <li v-for="(item,index) in realUploadFileList" :key="item.name">

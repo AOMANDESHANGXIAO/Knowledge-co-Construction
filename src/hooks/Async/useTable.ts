@@ -8,6 +8,7 @@ import {Ref} from 'vue'
  */
 interface Option<T = any, D = any> {
     url: string
+
     queryParams?: Ref<T>
 
     onSuccess?(res: Result<D>): void
@@ -19,6 +20,12 @@ interface Option<T = any, D = any> {
     onFinally?(): void
 
     immediate?: boolean
+
+    defaultSort ?:'ASC' | 'DESC'
+
+    debounce?: number
+
+    throttle?: number
 }
 
 interface Result<T> {
@@ -41,10 +48,13 @@ function useTable<T, D>(props: Option<T>) {
         onError,
         onFinally,
         immediate,
+        defaultSort,
+        throttle,
+        debounce,
     } = props
     const [currentPage, setCurrentPage] = useState(1)
     const [pageSize, setPageSize] = useState(10)
-    const [sort, setSort] = useState<'DESC' | 'ASC'>('ASC')
+    const [sort, setSort] = useState<'DESC' | 'ASC'>(defaultSort?defaultSort:'ASC')
     const data = ref<D[]>([])
     const setData = (list: D[]) => {
         // @ts-ignore
@@ -90,6 +100,8 @@ function useTable<T, D>(props: Option<T>) {
             onFinally && onFinally()
         },
         immediate: immediate,
+        throttle: throttle,
+        debounce: debounce,
     })
 
     watch(currentPage, () => {
@@ -97,6 +109,10 @@ function useTable<T, D>(props: Option<T>) {
     })
 
     watch(pageSize, () => {
+        run()
+    })
+
+    watch(sort, () => {
         run()
     })
 
