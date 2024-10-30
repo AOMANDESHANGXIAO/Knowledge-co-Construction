@@ -803,7 +803,7 @@ const {run: uploadCommunisticFilesApi, loading: uploadCommunisticLoading} = useR
       position: 'bottom-right',
     })
     clearCommunisticField()
-    // getGroupFileData()
+    getCommunisticFileData()
   },
   onFail() {
     ElNotification({
