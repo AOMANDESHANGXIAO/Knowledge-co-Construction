@@ -621,11 +621,32 @@ type FileListItem = {
   "upload_time": string,
   "nickname": string
 }
+const formatDate = (timeString: string) => {
+  const date = new Date(timeString)
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始，所以要加1
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+const tableFormatter = (row: {
+  [key: string]: any
+  upload_time: string
+}, column: any) => {
+  if(column.property === 'upload_time') {
+    return formatDate(row.upload_time)
+  } else {
+    return row[column.property]
+  }
+}
 const groupFilesColumns = [
   {
     prop: 'filename',
     label: '文件名',
-    minWidth: 200,
+    minWidth: 200
   },
   {
     prop: 'nickname',
@@ -676,6 +697,8 @@ const {
     })
   }
 })
+
+
 const handleResetSearchGroupFile = () => {
   queryGroupFilesParams.value.keyword = ''
   groupFileSort.value = 'DESC'
@@ -1060,6 +1083,7 @@ const sortByOptions = [
                     :value="item.value">
                 </el-option>
               </el-select>
+              <n-button type="primary" tertiary @click="handleResetSearchGroupFile">重 置</n-button>
               <n-button type="primary" @click="getGroupFileData" :loading="groupFileLoading">检 索</n-button>
             </div>
           </template>
@@ -1069,7 +1093,9 @@ const sortByOptions = [
                       :data="groupFileData">
               <el-table-column type="index" width="50" align="center"/>
               <el-table-column v-for="(item,index) in groupFilesColumns" :prop="item.prop" :label="item.label"
-                               :min-width="item.minWidth" :key="index" align="center"></el-table-column>
+                               :min-width="item.minWidth" :key="index" align="center" :formatter="tableFormatter"
+
+              ></el-table-column>
               <el-table-column align="center" label="操作" :width="200">
                 <template #default="scope">
                   <n-button type="info" @click="()=>{handleDownLoadFile(scope.row)}">下载</n-button>
@@ -1124,7 +1150,7 @@ const sortByOptions = [
                       :data="CommunisticFileData">
               <el-table-column type="index" width="50" align="center"/>
               <el-table-column v-for="(item,index) in groupFilesColumns" :prop="item.prop" :label="item.label"
-                               :min-width="item.minWidth" :key="index" align="center"></el-table-column>
+                               :min-width="item.minWidth" :key="index" align="center" :formatter="tableFormatter"></el-table-column>
               <el-table-column align="center" label="操作" :width="200">
                 <template #default="scope">
                   <n-button type="info" @click="()=>{handleDownLoadFile(scope.row)}">下载</n-button>
