@@ -38,11 +38,12 @@ import _ from 'lodash'
 import router from '@/router/index.ts'
 import {NButton} from 'naive-ui'
 import {ArchiveOutline as ArchiveIcon} from '@vicons/ionicons5'
-import {uploadFilesApi} from '@/apis/upload/index.ts'
+import {uploadFilesApi, uploadCourseWorkApi} from '@/apis/upload/index.ts'
 import useTable from '@/hooks/Async/useTable.ts'
 import MyTable from '@/components/table/index.vue'
 import UploadField from '@/components/UploadField/index.vue'
 import {downloadFileApi} from '@/apis/files/index.ts'
+import CourseWorkAPI from "@/apis/courseWork";
 
 const {getOneUserInfo} = useUserStore()
 
@@ -611,6 +612,12 @@ const handleChangeTabs = (tabName: string) => {
       getGroupFileData()
       break
     }
+    case 'course-works': {
+      // 查询小组的作业
+      if (courseWorkContent.value) return
+      queryCourseWorkUpload()
+      getTopicCourseWork()
+    }
   }
 }
 // 处理文件
@@ -636,7 +643,7 @@ const tableFormatter = (row: {
   [key: string]: any
   upload_time: string
 }, column: any) => {
-  if(column.property === 'upload_time') {
+  if (column.property === 'upload_time') {
     return formatDate(row.upload_time)
   } else {
     return row[column.property]
@@ -785,7 +792,6 @@ const isPrivate = ref<boolean>(true)
 /**
  * 共享文件 tab-pane
  */
-
 const communisticFilesColumns = [
   {
     prop: 'filename',
@@ -914,7 +920,97 @@ const sortByOptions = [
     value: 'DESC',
   },
 ]
+/**
+ * 交作业模块
+ */
+const isFinished = ref<boolean>(false)
+const {run: queryCourseWorkUpload} = useRequest({
+  apiFn: async () => {
+    return CourseWorkAPI.findCourseWorkUpload({
+      topic_id: topicId.value,
+      student_id: +studentId,
+    })
+  },
+  onSuccess(res:any) {
+    isFinished.value = Object.keys(res).length !== 0;
+  }
+})
+// 查询是否提交了作业
 
+
+
+
+const courseWorkContent = ref('')
+const isNotPublishWork = computed(() => {
+  return courseWorkContent.value === ''
+})
+const {run: getTopicCourseWork} = useRequest({
+  apiFn: async () => {
+    return CourseWorkAPI.findOne(topicId.value)
+  },
+  onSuccess(res: { courseWork: string|null }) {
+    if(res.courseWork === null) {
+      courseWorkContent.value = ''
+    } else {
+      courseWorkContent.value = res.courseWork
+    }
+    console.log('courseWorkContent', courseWorkContent.value)
+  }
+})
+const courseWorkUploadFiledRef = ref<InstanceType<typeof UploadField> | null>(null)
+const {run: uploadCourseWork} = useRequest({
+  apiFn: async () => {
+    const fileList = courseWorkUploadFiledRef.value?.getFileList() as FileList
+    const file = fileList[0]
+    return uploadCourseWorkApi({
+      topic_id: topicId.value,
+      student_id: +studentId,
+    }, file)
+  },
+  onSuccess() {
+    ElNotification({
+      title: 'Success',
+      message: '上传成功',
+      type: 'success',
+      position: 'bottom-right',
+    })
+    courseWorkUploadFiledRef.value?.clearFileList()
+    // getTopicCourseWork()
+  },
+  onFail() {
+    ElNotification({
+      title: 'Error',
+      message: '上传失败',
+      type: 'error',
+      position: 'bottom-right',
+    })
+  },
+  onError() {
+    ElNotification({
+      title: 'Error',
+      message: '上传失败',
+      type: 'error',
+      position: 'bottom-right',
+    })
+  }
+})
+const handleOpenCourseWorkUpload = () => {
+  if (!courseWorkUploadFiledRef.value) return
+  courseWorkUploadFiledRef.value.goFile()
+}
+const handleSubmitCourseWork = () => {
+  const fileList = courseWorkUploadFiledRef.value?.getFileList()
+  if (!fileList || !fileList.length) {
+    ElNotification({
+      title: 'Error',
+      message: '请选择文件',
+      type: 'error',
+      position: 'bottom-right',
+    })
+    return
+  }
+  uploadCourseWork()
+}
 </script>
 
 <template>
@@ -1150,7 +1246,8 @@ const sortByOptions = [
                       :data="CommunisticFileData">
               <el-table-column type="index" width="50" align="center"/>
               <el-table-column v-for="(item,index) in groupFilesColumns" :prop="item.prop" :label="item.label"
-                               :min-width="item.minWidth" :key="index" align="center" :formatter="tableFormatter"></el-table-column>
+                               :min-width="item.minWidth" :key="index" align="center"
+                               :formatter="tableFormatter"></el-table-column>
               <el-table-column align="center" label="操作" :width="200">
                 <template #default="scope">
                   <n-button type="info" @click="()=>{handleDownLoadFile(scope.row)}">下载</n-button>
@@ -1173,7 +1270,30 @@ const sortByOptions = [
           </template>
         </n-list>
       </n-tab-pane>
-      <n-tab-pane name="course-works" tab="课堂作业"></n-tab-pane>
+      <n-tab-pane name="course-works" tab="课堂作业">
+        <!--        TODO: 提交课程作业，以文件的形式。-->
+        <div v-if="!isNotPublishWork">
+          <n-gradient-text type="info" size="30">
+            已发布的作业：
+          </n-gradient-text>
+          <div class="work-content-box">
+            <n-gradient-text size="18">{{ courseWorkContent }}</n-gradient-text>
+          </div>
+          <n-alert v-if="isFinished" title="Success" type="success" style="margin-bottom: 10px">
+            你已经完成了作业! Great Job!
+          </n-alert>
+          <div>
+            <n-button type="primary" @click="handleOpenCourseWorkUpload" tertiary>选择文件</n-button>
+            <UploadField :multiple="false" ref="courseWorkUploadFiledRef"></UploadField>
+            <div style="margin-top: 10px">
+              <n-button type="primary" @click="handleSubmitCourseWork">提交作业</n-button>
+            </div>
+          </div>
+        </div>
+        <div v-else>
+          <n-empty description="尚未发布作业"></n-empty>
+        </div>
+      </n-tab-pane>
     </n-tabs>
   </el-dialog>
 </template>
@@ -1348,5 +1468,12 @@ $naive-green: #18a058;
 
 :deep(.el-input__wrapper.is-focus) {
   box-shadow: 0 0 0 1px $naive-green inset !important;
+}
+
+.work-content-box {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  margin-bottom: 10px;
 }
 </style>
