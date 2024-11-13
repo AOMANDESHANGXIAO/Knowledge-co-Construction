@@ -39,9 +39,11 @@ Service.interceptors.request.use(
 Service.interceptors.response.use(
   async function (response) {
     // console.log('response >>>>', response)
+    console.log('response.status ===>', response.status)
     if (response.status == 200) {
       return response.data
     } else if (response.status == 401) {
+      console.log('身份过期')
       ElNotification({
         type: 'error',
         message: '登录已过期, 请重新登录',
@@ -70,7 +72,19 @@ Service.interceptors.response.use(
       return response.data
     }
   },
+  // FIXME: token过期
   async function (error) {
+    console.log('ererror.response.statusror', error.response.status)
+    if (error.response.status === 401) {
+      ElNotification({
+        type: 'error',
+        message: '登录已过期, 请重新登录',
+        title: 'error',
+        duration: 2000,
+      })
+      router.push('/login')
+      return Promise.reject(error)
+    }
     ElMessage({
       type: 'error',
       message: `请求出错。错误代码`,

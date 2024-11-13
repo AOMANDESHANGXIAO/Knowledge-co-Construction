@@ -49,7 +49,7 @@ const props = withDefaults(
     replyEdges: EdgeType[]
   }>(),
   {
-    condition: 'chechIdea',
+    condition: 'checkIdea',
     InSelfGroup: false,
     InSelfIdea: false,
     role: Role.Idea,
@@ -223,7 +223,7 @@ function proposeConclusion() {
 onMounted(() => {
   const { condition } = props
   switch (condition) {
-    case 'chechIdea': {
+    case 'checkIdea': {
       whenCheckIdea()
       break
     }
@@ -271,7 +271,7 @@ const handleTextualized = (): {
       nodes: ref(replyNodes),
       edges: ref(replyEdges),
     }
-  } else if (condition === 'chechIdea' || condition === 'checkConclusion') {
+  } else if (condition === 'checkIdea' || condition === 'checkConclusion') {
     return {
       nodes: nodes,
       edges: edges,
@@ -575,7 +575,7 @@ defineExpose({
     <Panel
       position="top-right"
       class="button-group-container"
-      v-if="condition === 'chechIdea'"
+      v-if="condition === 'checkIdea'"
     >
       <!-- 不能支持或者反对自己的观点 -->
       <el-popconfirm

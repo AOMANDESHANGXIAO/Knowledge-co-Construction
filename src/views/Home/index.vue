@@ -1,26 +1,26 @@
 <script setup lang="ts">
 import flowComponent from '@/components/vueFlow/index.vue'
-import {LayoutDirection} from '@/components/vueFlow/type.ts'
+import { LayoutDirection } from '@/components/vueFlow/type.ts'
 import Icon from '@/components/Icons/HomePageIcon/index.vue'
-import {IconName} from '@/components/Icons/HomePageIcon/type.ts'
+import { IconName } from '@/components/Icons/HomePageIcon/type.ts'
 import argumentFlowComponent from './components/ArgumentFlowComponent/refactor.vue'
-import {useUserStore} from '@/store/modules/user'
+import { useUserStore } from '@/store/modules/user'
 import useQueryParam from '@/hooks/router/useQueryParam'
 import useRefresh from '../../hooks/Element/useRefresh'
-import {Role, Action} from './components/ArgumentFlowComponent/type.ts'
+import { Role, Action } from './components/ArgumentFlowComponent/type.ts'
 import useState from '@/hooks/State/useState.ts'
 import useRequest from '@/hooks/Async/useRequest'
-import {queryTopicContentApi} from '@/apis/manageTalk'
-import {TopicContent} from '@/apis/manageTalk/type'
+import { queryTopicContentApi } from '@/apis/manageTalk'
+import { TopicContent } from '@/apis/manageTalk/type'
 import useSubmit from './useSubmit.ts'
-import {GroupNodeProps} from '@/components/vueFlow/components/groupNode/type.ts'
+import { GroupNodeProps } from '@/components/vueFlow/components/groupNode/type.ts'
 import type {
   NodeType,
   EdgeType,
 } from './components/ArgumentFlowComponent/type.ts'
 import miniDashBoard from './components/DashBoardMini/index.vue'
 import fullScreenDashBoard from './components/DashBoardFullScreen/index.vue'
-import type {ComposeOption} from 'echarts/core'
+import type { ComposeOption } from 'echarts/core'
 import type {
   // 系列类型的定义后缀都为 SeriesOption
   BarSeriesOption,
@@ -32,24 +32,25 @@ import {
   queryWordCloudApi,
   QueryWordCloudResult,
 } from '@/apis/flow'
-import {QueryDashBoardResponse, TimeLineItem} from '@/apis/flow/type'
+import { QueryDashBoardResponse, TimeLineItem } from '@/apis/flow/type'
 import useEvaluation from './hooks/useEvaluation'
 import _ from 'lodash'
 import router from '@/router/index.ts'
-import {NButton} from 'naive-ui'
-import {ArchiveOutline as ArchiveIcon} from '@vicons/ionicons5'
-import {uploadFilesApi, uploadCourseWorkApi} from '@/apis/upload/index.ts'
+import { NButton } from 'naive-ui'
+import { ArchiveOutline as ArchiveIcon } from '@vicons/ionicons5'
+import { uploadFilesApi, uploadCourseWorkApi } from '@/apis/upload/index.ts'
 import useTable from '@/hooks/Async/useTable.ts'
 import MyTable from '@/components/table/index.vue'
 import UploadField from '@/components/UploadField/index.vue'
-import {downloadFileApi} from '@/apis/files/index.ts'
-import CourseWorkAPI from "@/apis/courseWork";
+import { downloadFileApi } from '@/apis/files/index.ts'
+import CourseWorkAPI from '@/apis/courseWork'
+import ChatGptComponent from './components/ChatGptComponent/index.vue'
 
-const {getOneUserInfo} = useUserStore()
+const { getOneUserInfo } = useUserStore()
 
 const [dialogVisible, setDialogVisible] = useState(false)
 
-const {key, refresh} = useRefresh()
+const { key, refresh } = useRefresh()
 
 /**
  * 这个方法用来打开论证图编辑器
@@ -91,11 +92,11 @@ const controller = ref<{
 })
 
 const setControllerState = (
-    role: Role,
-    action: Action,
-    InSelfGroup?: boolean,
-    InSelfIdea?: boolean,
-    reply?: 'none' | 'reject' | 'approve'
+  role: Role,
+  action: Action,
+  InSelfGroup?: boolean,
+  InSelfIdea?: boolean,
+  reply?: 'none' | 'reject' | 'approve'
 ) => {
   controller.value.role = role
   controller.value.action = action
@@ -112,13 +113,13 @@ const setControllerState = (
  * 控制论证图编辑器渲染状态的参数
  */
 const [condition, setCondition] = useState<
-    | 'checkIdea'
-    | 'checkConclusion'
-    | 'modifyIdea'
-    | 'modifyConclusion'
-    | 'replyIdea'
-    | 'proposeIdea'
-    | 'proposeConclusion'
+  | 'checkIdea'
+  | 'checkConclusion'
+  | 'modifyIdea'
+  | 'modifyConclusion'
+  | 'replyIdea'
+  | 'proposeIdea'
+  | 'proposeConclusion'
 >('checkIdea')
 
 const onClickGroupNode = (payload: {
@@ -126,7 +127,7 @@ const onClickGroupNode = (payload: {
   nodeId: string
   groupConclusion: string
 }) => {
-  setRequestParams({focusNodeId: payload.nodeId})
+  setRequestParams({ focusNodeId: payload.nodeId })
   // 打开论证图编辑器
   // 判断是否在本组
   const selfGroupId = getOneUserInfo('group_id') as string
@@ -137,14 +138,12 @@ const onClickGroupNode = (payload: {
 }
 
 const onClickIdeaNode = (payload: { nodeId: string; studentId: string }) => {
-  setRequestParams({focusNodeId: payload.nodeId})
-  // console.log('被选中节点的NodeId', payload.nodeId)
-  // console.log('被选中节点的studentId', payload.studentId)
-  // console.log('用户的id', getOneUserInfo('id'))
+  setRequestParams({ focusNodeId: payload.nodeId })
   const selfStudentId = getOneUserInfo('id') as string
   const isSelfIdea = payload.studentId === String(selfStudentId)
   setControllerState(Role.Idea, Action.Check, false, isSelfIdea)
   setCondition('checkIdea') // 点击观点节点时，论证图编辑器渲染为查看观点
+  console.log('click idea node', payload)
   openArgumentEditor()
 }
 
@@ -152,7 +151,7 @@ const handleClickProposeIdeaBtn = () => {
   const inSelfGroup = false
   const inSelfIdea = true
   // 设置论证图编辑器请求的参数，为空字符串表示不需要查询
-  setRequestParams({focusNodeId: ''})
+  setRequestParams({ focusNodeId: '' })
   setControllerState(Role.Idea, Action.Modify, inSelfGroup, inSelfIdea)
   setCondition('proposeIdea') // 点击发表观点按钮时，论证图编辑器渲染为发表观点
   openArgumentEditor()
@@ -184,7 +183,7 @@ useRequest({
  */
 
 const argumentFlowRef = ref<InstanceType<typeof argumentFlowComponent> | null>(
-    null
+  null
 )
 const vueFlowRef = ref<InstanceType<typeof flowComponent> | null>(null)
 
@@ -194,7 +193,7 @@ const group_id = getOneUserInfo('group_id') as string
  * @returns
  */
 const getGroupNode = () => {
-  const {nodes} = vueFlowRef.value!.getState()
+  const { nodes } = vueFlowRef.value!.getState()
 
   return nodes.find(node => {
     if (node.type !== 'group') return false
@@ -326,7 +325,7 @@ const {
 })
 
 const handleSubmit = () => {
-  const {nodes, edges} = argumentFlowRef.value!.getArgumentState()
+  const { nodes, edges } = argumentFlowRef.value!.getArgumentState()
 
   const nodesValue = nodes.value
   const edgesValue = edges.value
@@ -408,8 +407,8 @@ const handleRereshFlowData = () => {
  */
 const handleOK = () => {
   if (
-      condition.value === 'checkIdea' ||
-      condition.value === 'checkConclusion'
+    condition.value === 'checkIdea' ||
+    condition.value === 'checkConclusion'
   ) {
     // 关闭弹窗
     setDialogVisible(false)
@@ -438,12 +437,12 @@ const actionWeightMap = {
   propose: 1,
 }
 const timeLineList = ref<
-    {
-      type: 'success' | 'info' | 'warning' | 'error'
-      title: string
-      content: string
-      time: string
-    }[]
+  {
+    type: 'success' | 'info' | 'warning' | 'error'
+    title: string
+    content: string
+    time: string
+  }[]
 >([])
 
 const onCheckDetail = () => {
@@ -453,7 +452,7 @@ const onCheckDetail = () => {
 /**
  * 查询仪表盘
  */
-const {run: getDashBoardData} = useRequest({
+const { run: getDashBoardData } = useRequest({
   apiFn: async () => {
     return await queryDashBoard({
       topic_id: topicId.value,
@@ -475,20 +474,20 @@ const {run: getDashBoardData} = useRequest({
     })
     // console.log('timeLineList =>', response.timeLineList)
     const sortedTimeLineList = _.orderBy(
-        response.timeLineList,
-        item => actionWeightMap[item.action],
-        ['asc']
+      response.timeLineList,
+      item => actionWeightMap[item.action],
+      ['asc']
     )
     currentProgress.value =
-        sortedTimeLineList[sortedTimeLineList.length - 1]?.action || 'close'
+      sortedTimeLineList[sortedTimeLineList.length - 1]?.action || 'close'
     timeLineList.value = sortedTimeLineList.map(item => {
       return {
         type: item.action === 'close' ? 'success' : 'info',
         title: item.action,
         content:
-            item.action === currentProgress.value
-                ? `当前阶段: ${progressTextMap[item.action]}`
-                : progressTextMap[item.action],
+          item.action === currentProgress.value
+            ? `当前阶段: ${progressTextMap[item.action]}`
+            : progressTextMap[item.action],
         time: item.created_time,
       }
     })
@@ -523,38 +522,38 @@ const {
 } = useEvaluation(evaluationData)
 
 const dashBoardRenderList = ref<
-    {
-      title: string
-      option:
-          | ComposeOption<BarSeriesOption>
-          | ComposeOption<GraphSeriesOption>
-          | ComposeOption<RadarSeriesOption>
-      type: 'radar' | 'graph' | 'bar'
-    }[]
+  {
+    title: string
+    option:
+      | ComposeOption<BarSeriesOption>
+      | ComposeOption<GraphSeriesOption>
+      | ComposeOption<RadarSeriesOption>
+    type: 'radar' | 'graph' | 'bar'
+  }[]
 >([])
 
 watch(
-    () => dashBoardData.value,
-    (newVal, oldVal) => {
-      if (_.isEqual(newVal, oldVal)) return
-      dashBoardRenderList.value = [
-        {
-          title: '论证元素',
-          option: dashBoardData.value.radar,
-          type: 'radar',
-        },
-        {
-          title: '互动',
-          option: dashBoardData.value.graph,
-          type: 'graph',
-        },
-        {
-          title: '团队',
-          option: dashBoardData.value.bar,
-          type: 'bar',
-        },
-      ]
-    }
+  () => dashBoardData.value,
+  (newVal, oldVal) => {
+    if (_.isEqual(newVal, oldVal)) return
+    dashBoardRenderList.value = [
+      {
+        title: '论证元素',
+        option: dashBoardData.value.radar,
+        type: 'radar',
+      },
+      {
+        title: '互动',
+        option: dashBoardData.value.graph,
+        type: 'graph',
+      },
+      {
+        title: '团队',
+        option: dashBoardData.value.bar,
+        type: 'bar',
+      },
+    ]
+  }
 )
 type AlertType = {
   title: string
@@ -564,33 +563,33 @@ type AlertType = {
 const alertList = ref<AlertType[]>([])
 
 watch(
-    () => dashBoardData.value,
-    (newVal, oldVal) => {
-      if (_.isEqual(newVal, oldVal)) return
-      alertList.value = [
-        getEvaluatedArgument() || {
-          title: '论证元素',
-          type: 'info',
-          suggestions: ['加载中...'],
-        },
-        getEvaluatedInteraction() || {
-          title: '论证元素',
-          type: 'info',
-          suggestions: ['加载中...'],
-        },
-        getEvaluatedGroupContribution() || {
-          title: '论证元素',
-          type: 'info',
-          suggestions: ['加载中...'],
-        },
-      ]
-    }
+  () => dashBoardData.value,
+  (newVal, oldVal) => {
+    if (_.isEqual(newVal, oldVal)) return
+    alertList.value = [
+      getEvaluatedArgument() || {
+        title: '论证元素',
+        type: 'info',
+        suggestions: ['加载中...'],
+      },
+      getEvaluatedInteraction() || {
+        title: '论证元素',
+        type: 'info',
+        suggestions: ['加载中...'],
+      },
+      getEvaluatedGroupContribution() || {
+        title: '论证元素',
+        type: 'info',
+        suggestions: ['加载中...'],
+      },
+    ]
+  }
 )
 // 词云图查询
 const cloudWordData = ref<QueryWordCloudResult['list']>([])
-const {run: getCloudWordData} = useRequest({
+const { run: getCloudWordData } = useRequest({
   apiFn: async () => {
-    return queryWordCloudApi({topic_id: topicId.value})
+    return queryWordCloudApi({ topic_id: topicId.value })
   },
   onSuccess(data) {
     cloudWordData.value = data.list
@@ -623,26 +622,29 @@ const handleChangeTabs = (tabName: string) => {
 // 处理文件
 const [fileDialogVisible, setFileDialogVisible] = useState(false)
 type FileListItem = {
-  "filename": string,
-  "file_path": string,
-  "upload_time": string,
-  "nickname": string
+  filename: string
+  file_path: string
+  upload_time: string
+  nickname: string
 }
 const formatDate = (timeString: string) => {
   const date = new Date(timeString)
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始，所以要加1
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0') // 月份从0开始，所以要加1
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const seconds = String(date.getSeconds()).padStart(2, '0')
 
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
-const tableFormatter = (row: {
-  [key: string]: any
-  upload_time: string
-}, column: any) => {
+const tableFormatter = (
+  row: {
+    [key: string]: any
+    upload_time: string
+  },
+  column: any
+) => {
   if (column.property === 'upload_time') {
     return formatDate(row.upload_time)
   } else {
@@ -653,7 +655,7 @@ const groupFilesColumns = [
   {
     prop: 'filename',
     label: '文件名',
-    minWidth: 200
+    minWidth: 200,
   },
   {
     prop: 'nickname',
@@ -669,7 +671,7 @@ const groupFilesColumns = [
 const queryGroupFilesParams = ref({
   topic_id: topicId.value,
   group_id: getOneUserInfo('group_id'),
-  keyword: ''
+  keyword: '',
 })
 const {
   pageSize,
@@ -702,9 +704,8 @@ const {
       message: '查询失败',
       type: 'error',
     })
-  }
+  },
 })
-
 
 const handleResetSearchGroupFile = () => {
   queryGroupFilesParams.value.keyword = ''
@@ -714,7 +715,7 @@ const handleResetSearchGroupFile = () => {
 const handleDownLoadFile = (file: FileListItem) => {
   downloadFileApi({
     filename: file.filename,
-    filepath: file.file_path
+    filepath: file.file_path,
   })
 }
 const handleRemoveFile = (file: FileListItem) => {
@@ -730,7 +731,7 @@ const uploadGroupFile = () => {
 const clearSelectedGroupFile = () => {
   uploadGroupFieldRef?.value?.clearFileList()
 }
-const {run: uploadFileRequest, loading: UploadFieldLoading} = useRequest({
+const { run: uploadFileRequest, loading: UploadFieldLoading } = useRequest({
   apiFn: async () => {
     const uploadInput = {
       student_id: +studentId,
@@ -769,7 +770,7 @@ const {run: uploadFileRequest, loading: UploadFieldLoading} = useRequest({
       type: 'error',
       position: 'bottom-right',
     })
-  }
+  },
 })
 /**
  * 这个方法用来上传文件，点击提交时上传
@@ -807,11 +808,11 @@ const communisticFilesColumns = [
     prop: 'upload_time',
     label: '上传时间',
     minWidth: 200,
-  }
+  },
 ]
 const queryCommunisticFilesParams = ref({
   topic_id: topicId.value,
-  keyword: ''
+  keyword: '',
 })
 const handleResetCommunisticParams = () => {
   queryCommunisticFilesParams.value.keyword = ''
@@ -849,9 +850,11 @@ const {
       message: '查询失败',
       type: 'error',
     })
-  }
+  },
 })
-const uploadCommunisticFieldRef = ref<InstanceType<typeof UploadField> | null>(null)
+const uploadCommunisticFieldRef = ref<InstanceType<typeof UploadField> | null>(
+  null
+)
 const openCommunisticField = () => {
   uploadCommunisticFieldRef.value?.goFile()
 }
@@ -871,42 +874,47 @@ const handleSubmitCommunisticField = () => {
   }
   uploadCommunisticFilesApi()
 }
-const {run: uploadCommunisticFilesApi, loading: uploadCommunisticLoading} = useRequest({
-  apiFn: async () => {
-    const fileList = uploadCommunisticFieldRef.value?.getFileList() as FileList
-    return uploadFilesApi({
-      topic_id: topicId.value,
-      is_public: 1,
-      student_id: +studentId,
-    }, fileList)
-  },
-  onSuccess() {
-    ElNotification({
-      title: 'Success',
-      message: '上传成功',
-      type: 'success',
-      position: 'bottom-right',
-    })
-    clearCommunisticField()
-    getCommunisticFileData()
-  },
-  onFail() {
-    ElNotification({
-      title: 'Error',
-      message: '上传失败',
-      type: 'error',
-      position: 'bottom-right',
-    })
-  },
-  onError() {
-    ElNotification({
-      title: 'Error',
-      message: '上传失败',
-      type: 'error',
-      position: 'bottom-right',
-    })
-  }
-})
+const { run: uploadCommunisticFilesApi, loading: uploadCommunisticLoading } =
+  useRequest({
+    apiFn: async () => {
+      const fileList =
+        uploadCommunisticFieldRef.value?.getFileList() as FileList
+      return uploadFilesApi(
+        {
+          topic_id: topicId.value,
+          is_public: 1,
+          student_id: +studentId,
+        },
+        fileList
+      )
+    },
+    onSuccess() {
+      ElNotification({
+        title: 'Success',
+        message: '上传成功',
+        type: 'success',
+        position: 'bottom-right',
+      })
+      clearCommunisticField()
+      getCommunisticFileData()
+    },
+    onFail() {
+      ElNotification({
+        title: 'Error',
+        message: '上传失败',
+        type: 'error',
+        position: 'bottom-right',
+      })
+    },
+    onError() {
+      ElNotification({
+        title: 'Error',
+        message: '上传失败',
+        type: 'error',
+        position: 'bottom-right',
+      })
+    },
+  })
 /**
  * 小组资源搜索
  */
@@ -924,48 +932,49 @@ const sortByOptions = [
  * 交作业模块
  */
 const isFinished = ref<boolean>(false)
-const {run: queryCourseWorkUpload} = useRequest({
+const { run: queryCourseWorkUpload } = useRequest({
   apiFn: async () => {
     return CourseWorkAPI.findCourseWorkUpload({
       topic_id: topicId.value,
       student_id: +studentId,
     })
   },
-  onSuccess(res:any) {
-    isFinished.value = Object.keys(res).length !== 0;
-  }
+  onSuccess(res: any) {
+    isFinished.value = Object.keys(res).length !== 0
+  },
 })
 // 查询是否提交了作业
-
-
-
-
 const courseWorkContent = ref('')
 const isNotPublishWork = computed(() => {
   return courseWorkContent.value === ''
 })
-const {run: getTopicCourseWork} = useRequest({
+const { run: getTopicCourseWork } = useRequest({
   apiFn: async () => {
     return CourseWorkAPI.findOne(topicId.value)
   },
-  onSuccess(res: { courseWork: string|null }) {
-    if(res.courseWork === null) {
+  onSuccess(res: { courseWork: string | null }) {
+    if (res.courseWork === null) {
       courseWorkContent.value = ''
     } else {
       courseWorkContent.value = res.courseWork
     }
     console.log('courseWorkContent', courseWorkContent.value)
-  }
+  },
 })
-const courseWorkUploadFiledRef = ref<InstanceType<typeof UploadField> | null>(null)
-const {run: uploadCourseWork} = useRequest({
+const courseWorkUploadFiledRef = ref<InstanceType<typeof UploadField> | null>(
+  null
+)
+const { run: uploadCourseWork } = useRequest({
   apiFn: async () => {
     const fileList = courseWorkUploadFiledRef.value?.getFileList() as FileList
     const file = fileList[0]
-    return uploadCourseWorkApi({
-      topic_id: topicId.value,
-      student_id: +studentId,
-    }, file)
+    return uploadCourseWorkApi(
+      {
+        topic_id: topicId.value,
+        student_id: +studentId,
+      },
+      file
+    )
   },
   onSuccess() {
     ElNotification({
@@ -992,7 +1001,7 @@ const {run: uploadCourseWork} = useRequest({
       type: 'error',
       position: 'bottom-right',
     })
-  }
+  },
 })
 const handleOpenCourseWorkUpload = () => {
   if (!courseWorkUploadFiledRef.value) return
@@ -1017,14 +1026,14 @@ const handleSubmitCourseWork = () => {
   <!-- 知识建构图谱 -->
   <div class="vue-flow-container">
     <flow-component
-        ref="vueFlowRef"
-        :update-vue-flow-effects="
+      ref="vueFlowRef"
+      :update-vue-flow-effects="
         () => {
           getDashBoardData()
         }
       "
-        @onClickGroupNode="onClickGroupNode"
-        @onClickIdeaNode="onClickIdeaNode"
+      @onClickGroupNode="onClickGroupNode"
+      @onClickIdeaNode="onClickIdeaNode"
     >
       <!-- 右上角插槽放一些控制按钮 -->
       <template #top-right>
@@ -1033,61 +1042,61 @@ const handleSubmitCourseWork = () => {
             <Icon :name="IconName.File"></Icon>
           </button>
           <button title="发表观点" @click="handleClickProposeIdeaBtn">
-            <Icon :name="IconName.Idea"/>
+            <Icon :name="IconName.Idea" />
           </button>
           <button title="总结观点" @click="handleClickConclusionBtn">
-            <Icon :name="IconName.Summary"/>
+            <Icon :name="IconName.Summary" />
           </button>
           <button
-              title="刷新"
-              @click="
+            title="刷新"
+            @click="
               () => {
                 // 更新VueFlow的Data
                 handleRereshFlowData()
               }
             "
           >
-            <Icon :name="IconName.Refresh"/>
+            <Icon :name="IconName.Refresh" />
           </button>
           <button
-              title="返回首页"
-              @click="
+            title="返回首页"
+            @click="
               () => {
                 // 返回首页
                 router.push({ path: '/' })
               }
             "
           >
-            <Icon :name="IconName.Home"/>
+            <Icon :name="IconName.Home" />
           </button>
           <button
-              title="垂直排列"
-              @click="
+            title="垂直排列"
+            @click="
               () => {
                 handleLayout(LayoutDirection.Vertical)
               }
             "
           >
-            <Icon :name="IconName.Vertical"/>
+            <Icon :name="IconName.Vertical" />
           </button>
           <button
-              title="水平排列"
-              @click="
+            title="水平排列"
+            @click="
               () => {
                 handleLayout(LayoutDirection.Horizontal)
               }
             "
           >
-            <Icon :name="IconName.Horizontal"/>
+            <Icon :name="IconName.Horizontal" />
           </button>
         </div>
       </template>
       <!-- 左上角插槽放dashboard显示小组的互动等 -->
       <template #top-left>
         <mini-dash-board
-            @checkDetail="onCheckDetail"
-            :list="alertList"
-            :title="progressText"
+          @checkDetail="onCheckDetail"
+          :list="alertList"
+          :title="progressText"
         />
       </template>
     </flow-component>
@@ -1096,65 +1105,74 @@ const handleSubmitCourseWork = () => {
   <!-- 论点编辑器dialog -->
   <section class="dialog-container" v-show="dialogVisible">
     <el-dialog v-model="dialogVisible" width="1200" :append-to-body="true">
-      <div class="argument-flow-container">
-        <argumentFlowComponent
-            :modified-edges="modifiedEdges"
-            :modified-nodes="modifiedNodes"
-            :reply-edges="replyEdges"
-            :reply-nodes="replyNodes"
-            :key="key"
-            ref="argumentFlowRef"
-            :condition="condition"
-            :role="controller.role"
-            :action="controller.action"
-            :InSelfGroup="controller.InSelfGroup"
-            :InSelfIdea="controller.InSelfIdea"
-            :reply="controller.reply"
-            :focus-node-id="requestParams.focusNodeId"
-            :show-feed-back="true"
-            :topic-content="topicContent"
-            @on-click-accept-btn="onClickApproveBtn"
-            @on-click-reject-btn="onClickRejectBtn"
-            @on-click-modify-idea-btn="onClickModifyIdeaBtn"
-            @on-click-modify-conclusion-btn="onClickModifyConclusionBtn"
-        ></argumentFlowComponent>
-      </div>
-      <div class="button-footer-container">
-        <el-button
-            @click="
-            () => {
-              setDialogVisible(false)
-            }
-          "
-            plain
-            color="#FF8225"
-            style="margin-left: 10px"
-        >
-          取消
-        </el-button>
-        <el-button
-            style="margin-left: 10px"
-            color="#FF8225"
-            @click="handleOK"
-        >{{ '确定' }}
-        </el-button
-        >
-      </div>
+      <el-row :gutter="20">
+        <el-col :span="18">
+          <div class="argument-flow-container">
+            <argumentFlowComponent
+              :modified-edges="modifiedEdges"
+              :modified-nodes="modifiedNodes"
+              :reply-edges="replyEdges"
+              :reply-nodes="replyNodes"
+              :key="key"
+              ref="argumentFlowRef"
+              :condition="condition"
+              :role="controller.role"
+              :action="controller.action"
+              :InSelfGroup="controller.InSelfGroup"
+              :InSelfIdea="controller.InSelfIdea"
+              :reply="controller.reply"
+              :focus-node-id="requestParams.focusNodeId"
+              :show-feed-back="true"
+              :topic-content="topicContent"
+              @on-click-accept-btn="onClickApproveBtn"
+              @on-click-reject-btn="onClickRejectBtn"
+              @on-click-modify-idea-btn="onClickModifyIdeaBtn"
+              @on-click-modify-conclusion-btn="onClickModifyConclusionBtn"
+            ></argumentFlowComponent>
+          </div>
+          <div class="button-footer-container">
+            <el-button
+              @click="
+                () => {
+                  setDialogVisible(false)
+                }
+              "
+              plain
+              color="#FF8225"
+              style="margin-left: 10px"
+            >
+              取消
+            </el-button>
+            <el-button
+              style="margin-left: 10px"
+              color="#FF8225"
+              @click="handleOK"
+              >{{ '确定' }}
+            </el-button>
+          </div>
+        </el-col>
+        <el-col :span="6">
+          <!-- TODO: 增添ChatGpt对话功能 -->
+          <div class="chatgpt-container">
+            <ChatGptComponent></ChatGptComponent>
+          </div>
+        </el-col>
+      </el-row>
     </el-dialog>
   </section>
 
   <!-- 学习仪表盘dialog -->
   <el-dialog
-      v-model="dashBoardVisible"
-      width="1200px"
-      height="80vh"
-      :append-to-body="true"
+    v-model="dashBoardVisible"
+    width="1200px"
+    height="80vh"
+    :append-to-body="true"
   >
     <fullScreenDashBoard
-        :dashBoardRenderList="dashBoardRenderList"
-        :alerts="alertList"
-        :time-line-list="timeLineList"
-        :word-cloud-text-list="cloudWordData"
+      :dashBoardRenderList="dashBoardRenderList"
+      :alerts="alertList"
+      :time-line-list="timeLineList"
+      :word-cloud-text-list="cloudWordData"
     />
   </el-dialog>
 
@@ -1168,52 +1186,103 @@ const handleSubmitCourseWork = () => {
             <n-text>小组资源</n-text>
             <div class="search-box">
               <n-text>关键词:</n-text>
-              <el-input v-model="queryGroupFilesParams.keyword" placeholder="请输入检索关键词" style="width: 200px"
-                        @keydown.enter="getGroupFileData"/>
+              <el-input
+                v-model="queryGroupFilesParams.keyword"
+                placeholder="请输入检索关键词"
+                style="width: 200px"
+                @keydown.enter="getGroupFileData"
+              />
               <n-text>时间排序:</n-text>
               <el-select v-model="groupFileSort" style="width: 200px">
                 <el-option
-                    v-for="item in sortByOptions"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value">
+                  v-for="item in sortByOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                >
                 </el-option>
               </el-select>
-              <n-button type="primary" tertiary @click="handleResetSearchGroupFile">重 置</n-button>
-              <n-button type="primary" @click="getGroupFileData" :loading="groupFileLoading">检 索</n-button>
+              <n-button
+                type="primary"
+                tertiary
+                @click="handleResetSearchGroupFile"
+                >重 置</n-button
+              >
+              <n-button
+                type="primary"
+                @click="getGroupFileData"
+                :loading="groupFileLoading"
+                >检 索</n-button
+              >
             </div>
           </template>
           <n-list-item>
-            <my-table :columns="groupFilesColumns" v-model:total-num="totalNum" v-model:page-size="pageSize"
-                      v-model:current-page="currentPage"
-                      :data="groupFileData">
-              <el-table-column type="index" width="50" align="center"/>
-              <el-table-column v-for="(item,index) in groupFilesColumns" :prop="item.prop" :label="item.label"
-                               :min-width="item.minWidth" :key="index" align="center" :formatter="tableFormatter"
-
+            <my-table
+              :columns="groupFilesColumns"
+              v-model:total-num="totalNum"
+              v-model:page-size="pageSize"
+              v-model:current-page="currentPage"
+              :data="groupFileData"
+            >
+              <el-table-column type="index" width="50" align="center" />
+              <el-table-column
+                v-for="(item, index) in groupFilesColumns"
+                :prop="item.prop"
+                :label="item.label"
+                :min-width="item.minWidth"
+                :key="index"
+                align="center"
+                :formatter="tableFormatter"
               ></el-table-column>
               <el-table-column align="center" label="操作" :width="200">
                 <template #default="scope">
-                  <n-button type="info" @click="()=>{handleDownLoadFile(scope.row)}">下载</n-button>
-                  <n-button type="error" @click="()=>{handleRemoveFile(scope.row)}" style="margin-left: 10px">移除
+                  <n-button
+                    type="info"
+                    @click="
+                      () => {
+                        handleDownLoadFile(scope.row)
+                      }
+                    "
+                    >下载</n-button
+                  >
+                  <n-button
+                    type="error"
+                    @click="
+                      () => {
+                        handleRemoveFile(scope.row)
+                      }
+                    "
+                    style="margin-left: 10px"
+                    >移除
                   </n-button>
                 </template>
               </el-table-column>
             </my-table>
           </n-list-item>
           <template #footer>
-            <div style="display: flex;align-content: center;align-items: center;gap:10px">
+            <div
+              style="
+                display: flex;
+                align-content: center;
+                align-items: center;
+                gap: 10px;
+              "
+            >
               <n-button @click="uploadGroupFile" secondary type="primary">
-                <ArchiveIcon/>
+                <ArchiveIcon />
                 上 传 文 件
               </n-button>
               <n-button @click="clearSelectedGroupFile">清 空 文 件</n-button>
               <n-text>小组私有</n-text>
-              <n-switch v-model:value="isPrivate"/>
+              <n-switch v-model:value="isPrivate" />
             </div>
-            <UploadField ref="uploadGroupFieldRef" :multiple="true"/>
-            <n-button :loading="UploadFieldLoading" type="primary" @click="handleClickUploadField"
-                      style="width: 100%;margin-top:10px">上 传
+            <UploadField ref="uploadGroupFieldRef" :multiple="true" />
+            <n-button
+              :loading="UploadFieldLoading"
+              type="primary"
+              @click="handleClickUploadField"
+              style="width: 100%; margin-top: 10px"
+              >上 传
             </n-button>
           </template>
         </n-list>
@@ -1224,48 +1293,91 @@ const handleSubmitCourseWork = () => {
             <n-text>共享资源</n-text>
             <div class="search-box">
               <n-text>关键词:</n-text>
-              <el-input v-model="queryCommunisticFilesParams.keyword" placeholder="请输入检索关键词"
-                        style="width: 200px" @keydown.enter="getCommunisticFileData"/>
+              <el-input
+                v-model="queryCommunisticFilesParams.keyword"
+                placeholder="请输入检索关键词"
+                style="width: 200px"
+                @keydown.enter="getCommunisticFileData"
+              />
               <n-text>时间排序:</n-text>
               <el-select v-model="CommunisticSort" style="width: 200px">
                 <el-option
-                    v-for="item in sortByOptions"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value">
+                  v-for="item in sortByOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                >
                 </el-option>
               </el-select>
-              <n-button type="primary" tertiary @click="handleResetCommunisticParams">重 置</n-button>
-              <n-button type="primary" @click="getCommunisticFileData" :loading="CommunisticLoading">检 索</n-button>
+              <n-button
+                type="primary"
+                tertiary
+                @click="handleResetCommunisticParams"
+                >重 置</n-button
+              >
+              <n-button
+                type="primary"
+                @click="getCommunisticFileData"
+                :loading="CommunisticLoading"
+                >检 索</n-button
+              >
             </div>
           </template>
           <n-list-item>
-            <my-table :columns="communisticFilesColumns" v-model:total-num="CommunisticTotalNum"
-                      v-model:page-size="CommunisticPageSize"
-                      v-model:current-page="CommunisticCurrentPage"
-                      :data="CommunisticFileData">
-              <el-table-column type="index" width="50" align="center"/>
-              <el-table-column v-for="(item,index) in groupFilesColumns" :prop="item.prop" :label="item.label"
-                               :min-width="item.minWidth" :key="index" align="center"
-                               :formatter="tableFormatter"></el-table-column>
+            <my-table
+              :columns="communisticFilesColumns"
+              v-model:total-num="CommunisticTotalNum"
+              v-model:page-size="CommunisticPageSize"
+              v-model:current-page="CommunisticCurrentPage"
+              :data="CommunisticFileData"
+            >
+              <el-table-column type="index" width="50" align="center" />
+              <el-table-column
+                v-for="(item, index) in groupFilesColumns"
+                :prop="item.prop"
+                :label="item.label"
+                :min-width="item.minWidth"
+                :key="index"
+                align="center"
+                :formatter="tableFormatter"
+              ></el-table-column>
               <el-table-column align="center" label="操作" :width="200">
                 <template #default="scope">
-                  <n-button type="info" @click="()=>{handleDownLoadFile(scope.row)}">下载</n-button>
+                  <n-button
+                    type="info"
+                    @click="
+                      () => {
+                        handleDownLoadFile(scope.row)
+                      }
+                    "
+                    >下载</n-button
+                  >
                 </template>
               </el-table-column>
             </my-table>
           </n-list-item>
           <template #footer>
-            <div style="display: flex;align-content: center;align-items: center;gap:10px">
+            <div
+              style="
+                display: flex;
+                align-content: center;
+                align-items: center;
+                gap: 10px;
+              "
+            >
               <n-button @click="openCommunisticField" secondary type="primary">
-                <ArchiveIcon/>
+                <ArchiveIcon />
                 上 传 文 件
               </n-button>
               <n-button @click="clearCommunisticField">清 空 文 件</n-button>
             </div>
-            <UploadField ref="uploadCommunisticFieldRef" :multiple="true"/>
-            <n-button :loading="uploadCommunisticLoading" type="primary" @click="handleSubmitCommunisticField"
-                      style="width: 100%;margin-top:10px">上 传
+            <UploadField ref="uploadCommunisticFieldRef" :multiple="true" />
+            <n-button
+              :loading="uploadCommunisticLoading"
+              type="primary"
+              @click="handleSubmitCommunisticField"
+              style="width: 100%; margin-top: 10px"
+              >上 传
             </n-button>
           </template>
         </n-list>
@@ -1279,14 +1391,29 @@ const handleSubmitCourseWork = () => {
           <div class="work-content-box">
             <n-gradient-text size="18">{{ courseWorkContent }}</n-gradient-text>
           </div>
-          <n-alert v-if="isFinished" title="Success" type="success" style="margin-bottom: 10px">
+          <n-alert
+            v-if="isFinished"
+            title="Success"
+            type="success"
+            style="margin-bottom: 10px"
+          >
             你已经完成了作业! Great Job!
           </n-alert>
           <div>
-            <n-button type="primary" @click="handleOpenCourseWorkUpload" tertiary>选择文件</n-button>
-            <UploadField :multiple="false" ref="courseWorkUploadFiledRef"></UploadField>
+            <n-button
+              type="primary"
+              @click="handleOpenCourseWorkUpload"
+              tertiary
+              >选择文件</n-button
+            >
+            <UploadField
+              :multiple="false"
+              ref="courseWorkUploadFiledRef"
+            ></UploadField>
             <div style="margin-top: 10px">
-              <n-button type="primary" @click="handleSubmitCourseWork">提交作业</n-button>
+              <n-button type="primary" @click="handleSubmitCourseWork"
+                >提交作业</n-button
+              >
             </div>
           </div>
         </div>
@@ -1309,6 +1436,11 @@ const handleSubmitCourseWork = () => {
 .dialog-container {
   width: 100%;
   height: 100%;
+}
+.chatgpt-container {
+  width: 100%;
+  height: 100%;
+  background-color: pink;
 }
 
 :deep(.el-dialog) {
@@ -1462,7 +1594,7 @@ $dashboard-height: 300px;
 }
 
 $naive-green: #18a058;
-:deep(.el-select__wrapper.is-focused ) {
+:deep(.el-select__wrapper.is-focused) {
   box-shadow: 0 0 0 1px $naive-green inset !important;
 }
 
