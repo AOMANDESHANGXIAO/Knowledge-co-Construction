@@ -4,6 +4,7 @@ import { streamChat } from '@/apis/gpt'
 import { marked } from 'marked'
 import 'highlight.js/styles/github.css'
 import useLocalStorageMessage from './useLocalStorageMessage'
+import useScaffold from './useScaffold'
 // 定义接口
 interface ChatMessage {
   role: 'user' | 'assistant'
@@ -144,70 +145,89 @@ const onSaveChatTitle = () => {
   updateCurrentChatTitle()
   setChatHistoryList()
 }
+
+// 快速提示
+const { scaffolds, setValidate } = useScaffold()
+const showScaffoldsList = computed(()=>{
+  return scaffolds.value.filter(item => {
+    return item.ShowInQuickPrompt
+  })
+})
 </script>
 
 <template>
   <div class="chat-container">
-    <!-- 交互按钮 -->
-    <div class="interaction-buttons">
-      <el-popover
-        placement="bottom"
-        trigger="hover"
-        content="新对话"
-        effect="dark"
-      >
-        <template #reference>
-          <!-- 新建 -->
-          <el-icon class="icon-btn" @click="createNewChat"><Plus /></el-icon>
-        </template>
-      </el-popover>
-      <el-popover
-        placement="bottom"
-        trigger="hover"
-        content="清空当前对话"
-        effect="dark"
-      >
-        <template #reference>
-          <!-- 清空 -->
-          <el-popconfirm title="确定要清空当前对话吗？" @confirm="clearHistory">
+    <div class="header-bar">
+      <div class="left">
+        <!-- 交互按钮 -->
+        <div class="interaction-buttons">
+          <el-popover
+            placement="bottom"
+            trigger="hover"
+            content="新对话"
+            effect="dark"
+          >
             <template #reference>
-              <el-icon class="icon-btn"><Delete /></el-icon>
+              <!-- 新建 -->
+              <el-icon class="icon-btn" @click="createNewChat"
+                ><Plus
+              /></el-icon>
             </template>
-          </el-popconfirm>
-        </template>
-      </el-popover>
-      <el-dropdown>
-        <el-icon class="icon-btn"><ChatDotSquare /></el-icon>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item
-              v-for="(item, index) in chatHistoryList"
-              :key="index"
-              :value="item.id"
-              @click="selectChatHistory(item.id)"
-            >
-              <div class="chat-history-item">
-                <span>{{ item.title }}</span>
-                <el-icon
-                  class="icon-btn"
-                  @click.stop="onDeleteChatHistory(item.id)"
-                  ><Close
-                /></el-icon>
-              </div>
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
-    </div>
-    <div class="chat-title" @dblclick="() => (isEditChatTitle = true)">
-      <span v-if="!isEditChatTitle">{{ currentChatTitle }}</span>
-      <el-input
-        v-else
-        v-model="currentChatTitle"
-        @blur="onSaveChatTitle"
-        @keyup.enter="onSaveChatTitle"
-        size="small"
-      />
+          </el-popover>
+          <el-popover
+            placement="bottom"
+            trigger="hover"
+            content="清空当前对话"
+            effect="dark"
+          >
+            <template #reference>
+              <!-- 清空 -->
+              <el-popconfirm
+                title="确定要清空当前对话吗？"
+                @confirm="clearHistory"
+              >
+                <template #reference>
+                  <el-icon class="icon-btn"><Delete /></el-icon>
+                </template>
+              </el-popconfirm>
+            </template>
+          </el-popover>
+          <el-dropdown>
+            <el-icon class="icon-btn"><ChatDotSquare /></el-icon>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item
+                  v-for="(item, index) in chatHistoryList"
+                  :key="index"
+                  :value="item.id"
+                  @click="selectChatHistory(item.id)"
+                >
+                  <div class="chat-history-item">
+                    <span>{{ item.title }}</span>
+                    <el-icon
+                      class="icon-btn"
+                      @click.stop="onDeleteChatHistory(item.id)"
+                      ><Close
+                    /></el-icon>
+                  </div>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
+      </div>
+      <div class="right">
+        <!-- 聊天标题 -->
+        <div class="chat-title" @dblclick="() => (isEditChatTitle = true)">
+          <span v-if="!isEditChatTitle">{{ currentChatTitle }}</span>
+          <el-input
+            v-else
+            v-model="currentChatTitle"
+            @blur="onSaveChatTitle"
+            @keyup.enter="onSaveChatTitle"
+          />
+        </div>
+      </div>
     </div>
     <!-- 聊天历史记录 -->
     <div class="chat-history" ref="chatHistory">
@@ -230,6 +250,20 @@ const onSaveChatTitle = () => {
         <div class="empty-message-content">
           <p>Hey, {{ nickname }}</p>
           <p>让我们一起完成论证!</p>
+        </div>
+        <!-- 空消息时会给快速提示 -->
+        <div class="question-scaffolds">
+          <n-card
+            v-for="scaffold in showScaffoldsList"
+            :key="scaffold.key"
+            :title="scaffold.title"
+            size="small"
+            hoverable
+            embedded
+            :bordered="false"
+          >
+            <n-text>{{ scaffold.description }}</n-text>
+          </n-card>
         </div>
       </div>
     </div>
@@ -271,15 +305,27 @@ const onSaveChatTitle = () => {
   background-color: #f5f5f5;
   --user-message-color: #95ec69;
   --assistant-message-color: #e6f4ff;
-  .interaction-buttons {
+  overflow: hidden;
+  .header-bar {
     position: absolute;
     top: 10px;
-    left: 10px;
+    // left: 0;
+    display: flex;
+    justify-content: space-between;
+    width: calc(100% - 20px);
+    // height: 30px;
+    padding: 10px;
+    background-color: #fff;
+    // background-color: white;
+    border-radius: 8px 8px 0 0;
+    // z-index: 10;
+  }
+  .interaction-buttons {
     display: flex;
     justify-content: flex-start;
-    margin-bottom: 20px;
+    // margin-bottom: 20px;
     gap: 10px;
-    padding: 10px;
+    // padding: 10px;
     .icon-btn {
       font-size: 16px;
       cursor: pointer;
@@ -288,10 +334,8 @@ const onSaveChatTitle = () => {
     }
   }
   .chat-title {
-    position: absolute;
-    top: 10px;
-    right: 30px;
     font-size: 16px;
+    text-decoration: underline;
   }
 }
 .chat-history-item {
@@ -304,10 +348,10 @@ const onSaveChatTitle = () => {
   max-height: 500px;
   overflow-y: auto;
   padding: 20px;
-  padding-top: 30px;
+  padding-top: 40px;
+  margin-bottom: 20px;
   background-color: white;
   border-radius: 8px;
-  margin-bottom: 20px;
 }
 
 .message {
@@ -335,6 +379,13 @@ const onSaveChatTitle = () => {
     p {
       font-size: 18px;
     }
+  }
+  .question-scaffolds {
+    width: 100%;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 }
 
