@@ -7,10 +7,16 @@ import { BASE_URL } from '@/apis'
 export async function streamChat({
   messages,
   onMessage,
+  params,
   onError,
   onFinish,
 }: {
   messages: Message[]
+  params: {
+    student_id: string
+    topic_id: string
+    new_message: string // 前端发送时带上这一次的信息
+  }
   onMessage?: (content: string) => void
   onError?: (error: string) => void
   onFinish?: () => void
@@ -22,13 +28,14 @@ export async function streamChat({
     if (user) {
       token = JSON.parse(user).token
     }
+    const { student_id, topic_id, new_message } = params
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `${token}`,
       },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({ messages, student_id, topic_id, new_message }),
     })
 
     const reader = response.body?.getReader()

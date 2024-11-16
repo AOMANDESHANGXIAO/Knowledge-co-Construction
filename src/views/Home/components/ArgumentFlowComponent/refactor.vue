@@ -64,9 +64,19 @@ const props = withDefaults(
     reply: 'none',
   }
 )
-
-const [nodes, setNodesValue] = useState<NodeType[]>([])
-const [edges, setEdgesValue] = useState<EdgeType[]>([])
+/**
+ * 更新nodes和edges时，需要更新ChatGpt的nodes和edges
+ */
+const [nodes, setNodesValue] = useState<NodeType[]>([], {
+  onUpdate: () => {
+    emit('onUpdateArgumentFlowState')
+  },
+})
+const [edges, setEdgesValue] = useState<EdgeType[]>([], {
+  onUpdate: () => {
+    emit('onUpdateArgumentFlowState')
+  },
+})
 
 const setDefaultValue = () => {
   setNodesValue(DEFAULT_ARGUMENT_STATE.nodes)
@@ -423,6 +433,7 @@ const emit = defineEmits<{
     e: 'onClickModifyConclusionBtn',
     payload: { modifiedNodes: NodeType[]; modifiedEdges: EdgeType[] }
   ): void
+  (e: 'onUpdateArgumentFlowState'): void
 }>()
 
 const handleClickRejectBtn = () => {

@@ -4,13 +4,45 @@ import { streamChat } from '@/apis/gpt'
 import { marked } from 'marked'
 import 'highlight.js/styles/github.css'
 import useLocalStorageMessage from './useLocalStorageMessage'
-import useScaffold from './useScaffold'
+import useQueryParam from '@/hooks/router/useQueryParam'
+import { useUserStore } from '@/store/modules/user'
+import Icon from './icon.vue'
+import { useClipboard } from '@vueuse/core'
+import type { NodeType, EdgeType } from '../ArgumentFlowComponent/type'
+import { ArgumentType } from '../ArgumentFlowComponent/type'
+const props = withDefaults(
+  defineProps<{
+    // 话题
+    topic: string
+    // 当前的论证
+    currentArgument: string
+    getArgumentState: () => {
+      nodes: NodeType[]
+      edges: EdgeType[]
+      [key: string]: any
+    }
+    nodes: NodeType[]
+    edges: EdgeType[]
+  }>(),
+  {
+    topic: '',
+    currentArgument: '',
+    getArgumentState: () => ({
+      nodes: [],
+      edges: [],
+    }),
+    nodes: () => [] as NodeType[],
+    edges: () => [] as EdgeType[],
+  }
+)
+
 // 定义接口
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
   timestamp: number
 }
+
 const {
   getCurrentChatMessages,
   saveChatHistory,
@@ -36,7 +68,19 @@ const userInput = ref<string>('')
 const chatHistory = ref<HTMLDivElement | null>(null)
 
 const isReceiving = ref(false)
-
+// 准备参数
+const { getOneUserInfo } = useUserStore()
+const studentId = computed(() => {
+  return getOneUserInfo('id')
+})
+const topicId = useQueryParam('topic_id')
+const getParams = () => {
+  return {
+    student_id: studentId.value as string,
+    topic_id: topicId.value as string,
+    new_message: userInput.value,
+  }
+}
 const sendMessage = async (): Promise<void> => {
   if (!userInput.value.trim() || isReceiving.value) return
 
@@ -47,7 +91,8 @@ const sendMessage = async (): Promise<void> => {
   }
 
   chatMessages.value.push(newMessage)
-
+  // 获取请求参数
+  const params = getParams()
   userInput.value = ''
   scrollToBottom()
 
@@ -63,6 +108,7 @@ const sendMessage = async (): Promise<void> => {
   try {
     await streamChat({
       messages: chatMessages.value,
+      params,
       onMessage: (content: string) => {
         const lastMessage = chatMessages.value[chatMessages.value.length - 1]
         lastMessage.content += content
@@ -145,14 +191,192 @@ const onSaveChatTitle = () => {
   updateCurrentChatTitle()
   setChatHistoryList()
 }
-
+/**
+ * 将论点格式化后返回
+ */
+const argumentTypeChinese = {
+  [ArgumentType.Claim]: '论点',
+  [ArgumentType.Data]: '论据',
+  [ArgumentType.Warrant]: '辩护',
+  [ArgumentType.Rebuttal]: '反驳',
+  [ArgumentType.Backing]: '支持',
+  [ArgumentType.Qualifier]: '限定词',
+}
+const getFormattedNodes = (): string => {
+  return props.nodes
+    .map(node => {
+      return `${argumentTypeChinese[node._type]}: ${node.data.inputValue}`
+    })
+    .join('\n')
+}
+/**
+ * 检查props.nodes和props.edges的情况，只有nodes和edges中包含
+ * 前提、结论、辩护时才可以发送消息
+ */
+const checkNodesAndEdges = (
+  conditions: {
+    nodeType: NodeType['_type']
+    minWordCount: number
+  }[]
+) => {
+  let count = 0
+  for (const condition of conditions) {
+    const findNode = props.nodes.find(node => node._type === condition.nodeType)
+    console.log('findNode', findNode)
+    if (findNode && findNode.data.inputValue.length >= condition.minWordCount) {
+      count++
+    }
+  }
+  return count === conditions.length
+}
+const canSendMessage = computed(() => {
+  return checkNodesAndEdges([
+    { nodeType: ArgumentType.Claim, minWordCount: 10 },
+    { nodeType: ArgumentType.Data, minWordCount: 10 },
+    { nodeType: ArgumentType.Warrant, minWordCount: 10 },
+  ])
+})
 // 快速提示
-const { scaffolds, setValidate } = useScaffold()
-const showScaffoldsList = computed(()=>{
+interface Scaffold {
+  title: string
+  description: string
+  getPrompt: (...args: any[]) => string
+  ShowInQuickPrompt: boolean
+  key: 'argumentation' | 'defense' | 'limitation' | 'evidence'
+  validate: (...args: any[]) => boolean
+  onValidateError: () => void
+}
+const trimmedTopic = computed(() => {
+  return props.topic.trim()
+})
+const validateTopic = () => {
+  return props.topic.trim() !== ''
+}
+// 给ChatGpt的提示词支架
+const scaffolds = ref<Scaffold[]>([
+  {
+    title: '论证框架',
+    description: '分析我的论证框架。',
+    key: 'argumentation',
+    getPrompt: () => {
+      return `请你帮我分析我的论证,给出论证的基础、结论、论据以及论证的局限之处。\
+        请用中文回答。这是我正在论证的话题：${
+          trimmedTopic.value
+        }。这是我的论证：${getFormattedNodes()}`
+    },
+    ShowInQuickPrompt: true,
+    validate: () => {
+      return (
+        validateTopic() &&
+        getFormattedNodes().length > 0 &&
+        canSendMessage.value
+      )
+    },
+    onValidateError: () => {
+      ElMessage.error('请先输入话题和论证和辩护')
+    },
+  },
+  {
+    title: '辩护审查',
+    description: '审查论证的辩护。',
+    key: 'defense',
+    getPrompt: () => {
+      return `请你帮我审查一下论证的辩护，请用中文回答。这是我目前的论证：${getFormattedNodes()}`
+    },
+    ShowInQuickPrompt: true,
+    validate: () => {
+      return getFormattedNodes().length > 0 && canSendMessage.value
+    },
+    onValidateError: () => {
+      ElMessage.error('请先输入话题和辩护')
+    },
+  },
+  {
+    title: '局限检验',
+    description: '分析论证的局限性。',
+    key: 'limitation',
+    getPrompt: () => {
+      return `请你帮我分析一下论证的局限性，请用中文回答。这是我目前的论证：${getFormattedNodes()}`
+    },
+    ShowInQuickPrompt: true,
+    validate: () => {
+      return (
+        getFormattedNodes().length > 0 &&
+        checkNodesAndEdges([
+          { nodeType: ArgumentType.Qualifier, minWordCount: 2 },
+          {
+            nodeType: ArgumentType.Rebuttal,
+            minWordCount: 10,
+          },
+        ])
+      )
+    },
+    onValidateError: () => {
+      ElMessage.error('请先输入话题论证的反驳')
+    },
+  },
+  {
+    title: '证据审查',
+    description: '审查论证的证据。',
+    key: 'evidence',
+    getPrompt: () => {
+      return `请你帮我审查一下论证的证据，请用中文回答。这是我目前的论证：${getFormattedNodes()}`
+    },
+    ShowInQuickPrompt: true,
+    validate: () => {
+      return (
+        getFormattedNodes().length > 0 &&
+        checkNodesAndEdges([
+          { nodeType: ArgumentType.Backing, minWordCount: 10 },
+        ])
+      )
+    },
+    onValidateError: () => {
+      ElMessage.error('请先输入话题和论证的支持')
+    },
+  },
+])
+
+const showScaffoldsList = computed(() => {
   return scaffolds.value.filter(item => {
     return item.ShowInQuickPrompt
   })
 })
+const onClickScaffoldItem = (scaffold: Scaffold) => {
+  if (scaffold.validate()) {
+    userInput.value = scaffold.getPrompt()
+    sendMessage()
+  } else {
+    ElMessage.error('请先输入话题和论证')
+  }
+}
+const { copy } = useClipboard()
+const onClickCopy = (message: ChatMessage) => {
+  try {
+    copy(message.content)
+    ElMessage.success('复制成功')
+  } catch (error) {
+    ElMessage.error('复制失败')
+  }
+}
+const onClickRefresh = (message: ChatMessage, index: number) => {
+  // 重新生成，也就是重新发送请求
+  const originalPrompt = chatMessages.value[index - 1]?.content
+  // 删除当前的assistant消息和user消息
+  chatMessages.value = chatMessages.value.filter(
+    (_, i) => i !== index && i !== index - 1
+  )
+  nextTick(() => {
+    userInput.value = originalPrompt
+    sendMessage()
+  })
+}
+const onClickDisagree = (message: ChatMessage) => {
+  // console.log('点击不同意')
+  // 生成一个不同意的模板。
+  const disagreeUserInput = `我不同意你的这一观点,即"""${message.content}"""。我不同意的证据是: 1. 2. 3. `
+  userInput.value = disagreeUserInput
+}
 </script>
 
 <template>
@@ -244,7 +468,20 @@ const showScaffoldsList = computed(()=>{
           class="message-content"
           v-html="formatMessage(message.content)"
         ></div>
+        <div class="icon-btn" v-if="message.role === 'assistant'">
+          <Icon name="copy" :size="16" @click="onClickCopy(message)" />
+          <Icon
+            name="refresh"
+            :size="16"
+            @click="onClickRefresh(message, index)"
+          />
+          <Icon name="disagree" :size="16" @click="onClickDisagree(message)" />
+        </div>
       </div>
+      <!-- 空消息时不会显示 -->
+      <el-divider content-position="center" v-if="chatMessages.length > 0">
+        <span style="font-size: 8px">请仔细甄别</span>
+      </el-divider>
       <!-- 空消息 -->
       <div class="empty-message" v-if="chatMessages.length === 0">
         <div class="empty-message-content">
@@ -261,6 +498,7 @@ const showScaffoldsList = computed(()=>{
             hoverable
             embedded
             :bordered="false"
+            @click="onClickScaffoldItem(scaffold)"
           >
             <n-text>{{ scaffold.description }}</n-text>
           </n-card>
@@ -269,6 +507,9 @@ const showScaffoldsList = computed(()=>{
     </div>
     <!-- 输入区域 -->
     <div class="input-area">
+      <div v-if="!canSendMessage" class="mask">
+        请先构建一个包含前提、结论、辩护的论证图谱(每一个至少10个字)
+      </div>
       <el-row :gutter="10">
         <el-col :span="20">
           <el-input
@@ -279,6 +520,7 @@ const showScaffoldsList = computed(()=>{
             :rows="2"
             :autosize="{ minRows: 2, maxRows: 6 }"
             :disabled="isReceiving"
+            clearable
           />
         </el-col>
         <el-col :span="4">
@@ -352,10 +594,18 @@ const showScaffoldsList = computed(()=>{
   margin-bottom: 20px;
   background-color: white;
   border-radius: 8px;
+  .icon-btn {
+    display: flex;
+    gap: 10px;
+    background-color: white;
+    padding: 10px;
+    // border-radius: 4px;
+  }
 }
 
 .message {
   display: flex;
+  flex-direction: column;
   margin-bottom: 20px;
   width: 100%;
 }
@@ -419,9 +669,25 @@ const showScaffoldsList = computed(()=>{
 }
 
 .input-area {
+  position: relative;
   background-color: white;
   padding: 10px;
   border-radius: 8px;
+  .mask {
+    z-index: 100;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 12px;
+    cursor: not-allowed;
+  }
 }
 
 textarea {

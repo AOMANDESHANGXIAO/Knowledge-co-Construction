@@ -206,7 +206,7 @@ const handleClickConclusionBtn = () => {
   // 做一个判断，如果没有groupConclusion，则状态为提出小组结论
   // @ts-ignore
   const groupNode = getGroupNode()
-  console.log('groupNode', groupNode)
+  // console.log('groupNode', groupNode)
   const data = groupNode!.data as GroupNodeProps
   if (data.groupConclusion) {
     setCondition('modifyConclusion')
@@ -1020,6 +1020,30 @@ const handleSubmitCourseWork = () => {
   }
   uploadCourseWork()
 }
+
+// 要让ChatGpt的Component拿到论证图谱的nodes和edges
+const getArgumentFlowState = () => {
+  const res = argumentFlowRef.value?.getArgumentState()
+  console.log('getArgumentFlowState res', res)
+  if (!res) {
+    return {
+      nodes: [],
+      edges: [],
+    }
+  }
+  return {
+    nodes: res.nodes.value,
+    edges: res.edges.value,
+  }
+}
+const nodesForChatGpt = ref<NodeType[]>([])
+const edgesForChatGpt = ref<EdgeType[]>([])
+// 进行防抖，多次触发只更新一次
+const updateArgumentFlowState = _.debounce(() => {
+  const res = getArgumentFlowState()
+  nodesForChatGpt.value = res.nodes
+  edgesForChatGpt.value = res.edges
+}, 500)
 </script>
 
 <template>
@@ -1106,8 +1130,8 @@ const handleSubmitCourseWork = () => {
   <section class="dialog-container" v-show="dialogVisible">
     <el-dialog v-model="dialogVisible" width="1200" :append-to-body="true">
       <el-row :gutter="20">
-        <el-col :span="18">
-          <div class="argument-flow-container">
+        <el-col :span="18" style="padding: 10px; background-color: #f5f5f5">
+          <div class="argument-flow-container" style="background-color: #fff">
             <argumentFlowComponent
               :modified-edges="modifiedEdges"
               :modified-nodes="modifiedNodes"
@@ -1128,6 +1152,7 @@ const handleSubmitCourseWork = () => {
               @on-click-reject-btn="onClickRejectBtn"
               @on-click-modify-idea-btn="onClickModifyIdeaBtn"
               @on-click-modify-conclusion-btn="onClickModifyConclusionBtn"
+              @on-update-argument-flow-state="updateArgumentFlowState"
             ></argumentFlowComponent>
           </div>
           <div class="button-footer-container">
@@ -1151,10 +1176,16 @@ const handleSubmitCourseWork = () => {
             </el-button>
           </div>
         </el-col>
+        <!-- ChatGpt对话框 -->
         <el-col :span="6">
-          <!-- TODO: 增添ChatGpt对话功能 -->
           <div class="chatgpt-container">
-            <ChatGptComponent></ChatGptComponent>
+            <ChatGptComponent
+              :topic="topicContent"
+              current-argument="测试"
+              :get-argument-state="getArgumentFlowState"
+              :nodes="nodesForChatGpt"
+              :edges="edgesForChatGpt"
+            ></ChatGptComponent>
           </div>
         </el-col>
       </el-row>
