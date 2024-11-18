@@ -7,28 +7,31 @@ import { BASE_URL } from '@/apis'
 export async function streamChat({
   messages,
   onMessage,
-  params,
+  getParams,
+  onStart,
   onError,
   onFinish,
 }: {
   messages: Message[]
-  params: {
+  getParams: () => {
     student_id: string
     topic_id: string
-    new_message: string // 前端发送时带上这一次的信息
+    new_message: string
   }
+  onStart?: () => void
   onMessage?: (content: string) => void
   onError?: (error: string) => void
   onFinish?: () => void
 }) {
   try {
+    onStart?.()
     const url = `${BASE_URL}/gpt/stream-completion`
     const user = localStorage.getItem('userInfo')
     let token = ''
     if (user) {
       token = JSON.parse(user).token
     }
-    const { student_id, topic_id, new_message } = params
+    const { student_id, topic_id, new_message } = getParams()
     const response = await fetch(url, {
       method: 'POST',
       headers: {

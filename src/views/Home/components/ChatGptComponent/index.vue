@@ -40,6 +40,7 @@ const props = withDefaults(
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
+  showContent: string
   timestamp: number
 }
 
@@ -81,40 +82,63 @@ const getParams = () => {
     new_message: userInput.value,
   }
 }
-const sendMessage = async (): Promise<void> => {
-  if (!userInput.value.trim() || isReceiving.value) return
-
-  const newMessage: ChatMessage = {
-    role: 'user',
-    content: userInput.value,
+const createNewMessage = ({
+  content,
+  role = 'user',
+  showContent,
+}: {
+  content: string
+  role?: 'user' | 'assistant'
+  showContent?: string
+}): ChatMessage => {
+  return {
+    role,
+    content,
+    showContent: showContent || content,
     timestamp: Date.now(),
   }
-
+}
+const checkCanSendMessage = () => {
+  return userInput.value.trim() !== '' && !isReceiving.value
+}
+const pushNewMessageFromUserInputToChatMessages = () => {
+  // 创建来自用户的新消息
+  const newMessage = createNewMessage({
+    content: userInput.value,
+  })
   chatMessages.value.push(newMessage)
-  // 获取请求参数
-  const params = getParams()
   userInput.value = ''
-  scrollToBottom()
-
-  const assistantMessage: ChatMessage = {
+  // scrollToBottom()
+  // 创建来自助手的空消息
+  const assistantMessage = createNewMessage({
     role: 'assistant',
     content: '',
-    timestamp: Date.now(),
-  }
-
+    showContent: '',
+  })
   chatMessages.value.push(assistantMessage)
-  isReceiving.value = true
-
+}
+const sendMessage = async ({
+  pushNewMsg,
+}: {
+  pushNewMsg: () => void
+}): Promise<void> => {
+  if (!checkCanSendMessage()) return
+  pushNewMsg()
   try {
     await streamChat({
       messages: chatMessages.value,
-      params,
+      getParams: () => {
+        return getParams()
+      },
       onMessage: (content: string) => {
         const lastMessage = chatMessages.value[chatMessages.value.length - 1]
         lastMessage.content += content
         nextTick(() => {
           scrollToBottom()
         })
+      },
+      onStart: () => {
+        isReceiving.value = true
       },
       onFinish: () => {
         isReceiving.value = false
@@ -242,7 +266,13 @@ interface Scaffold {
   description: string
   getPrompt: (...args: any[]) => string
   ShowInQuickPrompt: boolean
-  key: 'argumentation' | 'defense' | 'limitation' | 'evidence'
+  key:
+    | 'argumentation'
+    | 'defense'
+    | 'limitation'
+    | 'evidence'
+    | 'effect'
+    | 'problemSelf'
   validate: (...args: any[]) => boolean
   onValidateError: () => void
 }
@@ -255,14 +285,30 @@ const validateTopic = () => {
 // 给ChatGpt的提示词支架
 const scaffolds = ref<Scaffold[]>([
   {
-    title: '论证框架',
-    description: '分析我的论证框架。',
+    title: '澄清概念',
+    description: '提一个澄清概念的问题',
     key: 'argumentation',
     getPrompt: () => {
-      return `请你帮我分析我的论证,给出论证的基础、结论、论据以及论证的局限之处。\
-        请用中文回答。这是我正在论证的话题：${
-          trimmedTopic.value
-        }。这是我的论证：${getFormattedNodes()}`
+      return `
+      <请求>
+        提一个
+        <问题类型>
+          概念澄清类的问题。
+        </问题类型>
+        的问题。
+      </请求>
+      <要求>
+        1. 请用中文回答。
+        2. 问题要清晰、明确、具体。
+        3. 问题要围绕我的论证和话题。
+      </要求>
+      <话题>
+        ${trimmedTopic.value}
+      </话题>
+      <论证>
+        ${getFormattedNodes()}
+      </论证>
+      `
     },
     ShowInQuickPrompt: true,
     validate: () => {
@@ -277,26 +323,60 @@ const scaffolds = ref<Scaffold[]>([
     },
   },
   {
-    title: '辩护审查',
-    description: '审查论证的辩护。',
+    title: '探究假设',
+    description: '提一个探究假设的问题',
     key: 'defense',
     getPrompt: () => {
-      return `请你帮我审查一下论证的辩护，请用中文回答。这是我目前的论证：${getFormattedNodes()}`
+      return `
+      <请求>
+        提一个
+        <问题类型>
+          探究假设类的问题。
+        </问题类型>
+        的问题。
+      </请求>
+      <要求>
+        1. 请用中文回答。
+        2. 问题要清晰、明确、具体。
+        3. 问题要围绕我的论证和话题。
+      </要求>
+      <话题>
+        ${trimmedTopic.value}
+      </话题>
+      <论证>
+        ${getFormattedNodes()}
+      </论证>
+      `
     },
     ShowInQuickPrompt: true,
     validate: () => {
       return getFormattedNodes().length > 0 && canSendMessage.value
     },
     onValidateError: () => {
-      ElMessage.error('请先输入话题和辩护')
+      ElMessage.error('请先输入论证的辩护')
     },
   },
   {
-    title: '局限检验',
-    description: '分析论证的局限性。',
+    title: '原理和证据',
+    description: '提一个原理和证据的问题',
     key: 'limitation',
     getPrompt: () => {
-      return `请你帮我分析一下论证的局限性，请用中文回答。这是我目前的论证：${getFormattedNodes()}`
+      return `
+      <请求>
+        提一个探究原理、理由和证据类的问题。
+      </请求>
+      <要求>
+        1. 请用中文回答。
+        2. 问题要清晰、明确、具体。
+        3. 问题要围绕我的论证和话题。
+      </要求>
+      <话题>
+        ${trimmedTopic.value}
+      </话题>
+      <论证>
+        ${getFormattedNodes()}
+      </论证>
+      `
     },
     ShowInQuickPrompt: true,
     validate: () => {
@@ -316,11 +396,30 @@ const scaffolds = ref<Scaffold[]>([
     },
   },
   {
-    title: '证据审查',
-    description: '审查论证的证据。',
+    title: '质疑观点和视角',
+    description: '提一个质疑观点和视角类的问题',
     key: 'evidence',
     getPrompt: () => {
-      return `请你帮我审查一下论证的证据，请用中文回答。这是我目前的论证：${getFormattedNodes()}`
+      return `
+      <请求>
+        提一个
+        <问题类型>
+          质疑观点和视角类的问题。
+        </问题类型>
+        的问题。
+      </请求>
+      <要求>
+        1. 请用中文回答。
+        2. 问题要清晰、明确、具体。
+        3. 问题要围绕我的论证和话题。
+      </要求>
+      <话题>
+        ${trimmedTopic.value}
+      </话题>
+      <论证>
+        ${getFormattedNodes()}
+      </论证>
+      `
     },
     ShowInQuickPrompt: true,
     validate: () => {
@@ -332,7 +431,75 @@ const scaffolds = ref<Scaffold[]>([
       )
     },
     onValidateError: () => {
-      ElMessage.error('请先输入话题和论证的支持')
+      ElMessage.error('请先输入论证的支撑')
+    },
+  },
+  {
+    title: '探究影响和后果类问题',
+    description: '提一个探究影响和后果类的问题',
+    key: 'effect',
+    getPrompt: () => {
+      return `
+      <请求>
+        提一个
+        <问题类型>
+          探究影响和后果类的问题。
+        </问题类型>
+        的问题。
+      </请求>
+      <要求>
+        1. 请用中文回答。
+        2. 问题要清晰、明确、具体。
+        3. 问题要围绕我的论证和话题。
+      </要求>
+      <话题>
+        ${trimmedTopic.value}
+      </话题>
+      <论证>
+        ${getFormattedNodes()}
+      </论证>
+      `
+    },
+    ShowInQuickPrompt: true,
+    validate: () => {
+      return true
+    },
+    onValidateError: () => {
+      ElMessage.error('请先输入论证的支撑')
+    },
+  },
+  {
+    title: '问题本身',
+    description: '提一个关于问题本身的问题类的问题',
+    key: 'problemSelf',
+    getPrompt: () => {
+      return `
+      <请求>
+        提一个关于
+        <问题类型>
+          问题本身的问题。
+        </问题类型>
+        的问题。
+      </请求>
+      <要求>
+        1. 请用中文回答。
+        2. 问题要清晰、明确、具体。
+        3. 问题要围绕我的论证和话题。
+      </要求>
+      <话题>
+        ${trimmedTopic.value}
+      </话题>
+      <论证>
+        ${getFormattedNodes()}
+      </论证>
+      `
+    },
+    ShowInQuickPrompt: true,
+    validate: () => {
+      return true
+    },
+    onValidateError: () => {
+      ElMessage.error('请先输入话题')
     },
   },
 ])
@@ -345,9 +512,9 @@ const showScaffoldsList = computed(() => {
 const onClickScaffoldItem = (scaffold: Scaffold) => {
   if (scaffold.validate()) {
     userInput.value = scaffold.getPrompt()
-    sendMessage()
+    sendMessage({ pushNewMsg: pushNewMessageFromUserInputToChatMessages })
   } else {
-    ElMessage.error('请先输入话题和论证')
+    scaffold.onValidateError()
   }
 }
 const { copy } = useClipboard()
@@ -368,7 +535,7 @@ const onClickRefresh = (message: ChatMessage, index: number) => {
   )
   nextTick(() => {
     userInput.value = originalPrompt
-    sendMessage()
+    sendMessage({ pushNewMsg: pushNewMessageFromUserInputToChatMessages })
   })
 }
 const onClickDisagree = (message: ChatMessage) => {
@@ -376,6 +543,25 @@ const onClickDisagree = (message: ChatMessage) => {
   // 生成一个不同意的模板。
   const disagreeUserInput = `我不同意你的这一观点,即"""${message.content}"""。我不同意的证据是: 1. 2. 3. `
   userInput.value = disagreeUserInput
+}
+// 手动解锁
+const handUnLock = ref(false)
+const onClickUnlock = () => {
+  const canUnlock = checkNodesAndEdges([
+    { nodeType: ArgumentType.Claim, minWordCount: 10 },
+    { nodeType: ArgumentType.Data, minWordCount: 10 },
+    { nodeType: ArgumentType.Warrant, minWordCount: 10 },
+  ])
+  if (canUnlock) {
+    handUnLock.value = true
+    console.log('可以解锁')
+  } else {
+    ElNotification({
+      title: '提示',
+      message: '请先构造一个包含论点、论据、辩护的论证。每个字数不少于10个字。',
+      type: 'info',
+    })
+  }
 }
 </script>
 
@@ -507,8 +693,16 @@ const onClickDisagree = (message: ChatMessage) => {
     </div>
     <!-- 输入区域 -->
     <div class="input-area">
-      <div v-if="!canSendMessage" class="mask">
-        请先构建一个包含前提、结论、辩护的论证图谱(每一个至少10个字)
+      <div v-if="!canSendMessage || handUnLock" class="mask">
+        <div class="mask-content">
+          <n-empty description="构造论证以解锁论证助手">
+            <template #extra>
+              <n-button type="primary" @click="onClickUnlock"
+                >尝试解锁</n-button
+              >
+            </template>
+          </n-empty>
+        </div>
       </div>
       <el-row :gutter="10">
         <el-col :span="20">
@@ -525,7 +719,11 @@ const onClickDisagree = (message: ChatMessage) => {
         </el-col>
         <el-col :span="4">
           <el-button
-            @click="sendMessage"
+            @click="
+              sendMessage({
+                pushNewMsg: pushNewMessageFromUserInputToChatMessages,
+              })
+            "
             circle
             :disabled="isReceiving"
             color="#2563eb"
@@ -680,13 +878,18 @@ const onClickDisagree = (message: ChatMessage) => {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
-    color: white;
-    font-size: 12px;
-    cursor: not-allowed;
+    background-color: #fff;
+    .mask-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform: scale(0.8);
+    }
   }
 }
 

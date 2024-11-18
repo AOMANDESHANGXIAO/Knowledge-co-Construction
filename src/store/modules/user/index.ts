@@ -21,8 +21,8 @@ export const useUserStore = defineStore(
 
     const setUserInfo = (params: User) => {
       userInfo.value = {
-       ...userInfo.value,
-       ...params,
+        ...userInfo.value,
+        ...params,
       }
       // 保存到localStorage
       localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
@@ -54,7 +54,10 @@ export const useUserStore = defineStore(
       userInfo,
       setUserInfo,
       getOneUserInfo,
-      logout
+      logout,
     }
   },
+  {
+    persist: true,
+  }
 )
