@@ -70,6 +70,9 @@ const handleClick = (topic_id: number) => {
 const handleSearch = () => {
   getTopicList()
 }
+watch(selectValue, () => {
+  getTopicList()
+})
 </script>
 
 <template>
@@ -96,6 +99,7 @@ const handleSearch = () => {
               placeholder="搜索讨论..."
               @keyup.enter="handleSearch"
               style="width: 200px"
+              @change="handleSearch"
           >
             <template #append>
               <el-button :icon="Search" @click="handleSearch"/>
@@ -116,6 +120,7 @@ const handleSearch = () => {
             :created-user="item.nickname"
         ></talk-card>
       </section>
+      <el-empty v-if="talkCardList.length === 0" description="暂无讨论"/>
     </main>
   </section>
 </template>
