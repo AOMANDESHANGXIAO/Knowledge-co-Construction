@@ -2,7 +2,7 @@
 defineOptions({
   name: 'peerIdeaContainer',
 })
-const props = withDefaults(
+withDefaults(
   defineProps<{
     name: string
     color: string

@@ -12,6 +12,9 @@ import {
   NaiveUiResolver,
 } from 'unplugin-vue-components/resolvers'
 import { spaLoading } from 'vite-plugin-spa-loading'
+// 在 vite.config.ts 中添加图标依赖
+import Icons from 'unplugin-icons/vite'
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -29,6 +32,7 @@ export default defineConfig({
       resolvers: [ElementPlusResolver(), NaiveUiResolver()],
     }),
     spaLoading('text', { tipText: '正在加载...' }),
+    Icons({ compiler: 'vue3' }),
   ],
   resolve: {
     alias: {

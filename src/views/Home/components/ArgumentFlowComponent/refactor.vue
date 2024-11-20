@@ -500,6 +500,7 @@ const { run: getOpinionList, loading: loadingMore } = useRequest({
 })
 
 const handleClickMore = () => {
+  if (noMore.value) return
   page.value += 1
   getOpinionList()
 }
@@ -719,7 +720,7 @@ defineExpose({
               :color="item.group_color"
               :name="item.nickname"
               :ideaContent="item.content"
-              showEllipsis
+              :showEllipsis="false"
             ></PeerIdeaContainer>
           </div>
           <div style="margin-bottom: 20px; text-align: center">
