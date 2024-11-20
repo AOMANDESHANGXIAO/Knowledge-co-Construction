@@ -351,11 +351,14 @@ function useEvaluation(
     // 遍历每个贡献类型
     sequence.forEach((contributionType, index) => {
       const ranking = studentRankings[index]
-      if (ranking === totalStudents || ranking === totalStudents - 1) {
+      const contributionTypeText =
+        contrubutionMap[contributionType as keyof typeof contrubutionMap]
+      if (
+        (ranking === totalStudents || ranking === totalStudents - 1) &&
+        contributionTypeText
+      ) {
         suggestions.push(
-          `你在${
-            contrubutionMap[contributionType as keyof typeof contrubutionMap]
-          }方面的排名较低，请积极参与相关活动！`
+          `你在${contributionTypeText}方面的排名较低，请积极参与相关活动！`
         )
       }
     })
@@ -363,9 +366,10 @@ function useEvaluation(
     const average = barSeries.reduce((a, b) => a + b.data[0], 0) / totalStudents
     // 遍历学生的数据
     studentData!.data.forEach((count, index) => {
-      if (count < average) {
+      const contributionTypeText = sequence[index]
+      if (count < average && contributionTypeText) {
         suggestions.push(
-          `你在本组中的${sequence[index]}表现不佳，请积极参与学习活动！`
+          `你在本组中的${contributionTypeText}表现不佳，请积极参与学习活动！`
         )
       }
     })
@@ -386,9 +390,9 @@ function useEvaluation(
       return res.alert
     }
 
-    const { suggestions, rankings } = formatGroupContribution()
-    console.log('rankings', rankings)
-    console.log('suggestions', suggestions)
+    const { suggestions } = formatGroupContribution()
+    // console.log('rankings', rankings)
+    // console.log('suggestions', suggestions)
 
     if (suggestions.length === 0) {
       _type = 'success'
