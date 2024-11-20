@@ -10,6 +10,7 @@ import Icon from './icon.vue'
 import { useClipboard } from '@vueuse/core'
 import type { NodeType, EdgeType } from '../ArgumentFlowComponent/type'
 import { ArgumentType } from '../ArgumentFlowComponent/type'
+// TODO: 修改代码，对话时不需要被检查
 const props = withDefaults(
   defineProps<{
     // 话题
@@ -75,11 +76,12 @@ const studentId = computed(() => {
   return getOneUserInfo('id')
 })
 const topicId = useQueryParam('topic_id')
+const newMessageParam = ref<string>('')
 const getParams = () => {
   return {
     student_id: studentId.value as string,
     topic_id: topicId.value as string,
-    new_message: userInput.value,
+    new_message: newMessageParam.value,
   }
 }
 const createNewMessage = ({
@@ -107,6 +109,7 @@ const pushNewMessageFromUserInputToChatMessages = () => {
     content: userInput.value,
   })
   chatMessages.value.push(newMessage)
+  newMessageParam.value = userInput.value
   userInput.value = ''
   // scrollToBottom()
   // 创建来自助手的空消息
@@ -128,6 +131,7 @@ const sendMessage = async ({
     await streamChat({
       messages: chatMessages.value,
       getParams: () => {
+        console.log('getParams', getParams())
         return getParams()
       },
       onMessage: (content: string) => {
@@ -285,29 +289,14 @@ const validateTopic = () => {
 // 给ChatGpt的提示词支架
 const scaffolds = ref<Scaffold[]>([
   {
-    title: '澄清概念',
-    description: '提一个澄清概念的问题',
+    title: '论证结构问题',
+    description: '检查论证的结构是否完整合理',
     key: 'argumentation',
     getPrompt: () => {
       return `
-      <请求>
-        提一个
-        <问题类型>
-          概念澄清类的问题。
-        </问题类型>
-        的问题。
-      </请求>
-      <要求>
-        1. 请用中文回答。
-        2. 问题要清晰、明确、具体。
-        3. 问题要围绕我的论证和话题。
-      </要求>
-      <话题>
-        ${trimmedTopic.value}
-      </话题>
-      <论证>
-        ${getFormattedNodes()}
-      </论证>
+        请分析我的论证结构是否存在问题。这是讨论的话题:${
+          trimmedTopic.value
+        }。这是我的论证:${getFormattedNodes()}
       `
     },
     ShowInQuickPrompt: true,
@@ -319,33 +308,18 @@ const scaffolds = ref<Scaffold[]>([
       )
     },
     onValidateError: () => {
-      ElMessage.error('请先输入话题和论证和辩护')
+      ElMessage.error('请先完整输入论证内容')
     },
   },
   {
-    title: '探究假设',
-    description: '提一个探究假设的问题',
+    title: '辩护逻辑合理性',
+    description: '分析论证的辩护逻辑是否合理',
     key: 'defense',
     getPrompt: () => {
       return `
-      <请求>
-        提一个
-        <问题类型>
-          探究假设类的问题。
-        </问题类型>
-        的问题。
-      </请求>
-      <要求>
-        1. 请用中文回答。
-        2. 问题要清晰、明确、具体。
-        3. 问题要围绕我的论证和话题。
-      </要求>
-      <话题>
-        ${trimmedTopic.value}
-      </话题>
-      <论证>
-        ${getFormattedNodes()}
-      </论证>
+        请分析我的论证辩护逻辑是否合理。这是讨论的话题:${
+          trimmedTopic.value
+        }。这是我的论证:${getFormattedNodes()}
       `
     },
     ShowInQuickPrompt: true,
@@ -353,72 +327,18 @@ const scaffolds = ref<Scaffold[]>([
       return getFormattedNodes().length > 0 && canSendMessage.value
     },
     onValidateError: () => {
-      ElMessage.error('请先输入论证的辩护')
+      ElMessage.error('请先输入完整的论证内容')
     },
   },
   {
-    title: '原理和证据',
-    description: '提一个原理和证据的问题',
-    key: 'limitation',
-    getPrompt: () => {
-      return `
-      <请求>
-        提一个探究原理、理由和证据类的问题。
-      </请求>
-      <要求>
-        1. 请用中文回答。
-        2. 问题要清晰、明确、具体。
-        3. 问题要围绕我的论证和话题。
-      </要求>
-      <话题>
-        ${trimmedTopic.value}
-      </话题>
-      <论证>
-        ${getFormattedNodes()}
-      </论证>
-      `
-    },
-    ShowInQuickPrompt: true,
-    validate: () => {
-      return (
-        getFormattedNodes().length > 0 &&
-        checkNodesAndEdges([
-          { nodeType: ArgumentType.Qualifier, minWordCount: 2 },
-          {
-            nodeType: ArgumentType.Rebuttal,
-            minWordCount: 10,
-          },
-        ])
-      )
-    },
-    onValidateError: () => {
-      ElMessage.error('请先输入话题论证的反驳')
-    },
-  },
-  {
-    title: '质疑观点和视角',
-    description: '提一个质疑观点和视角类的问题',
+    title: '论证支撑合理性',
+    description: '评估论证的支撑是否充分合理',
     key: 'evidence',
     getPrompt: () => {
       return `
-      <请求>
-        提一个
-        <问题类型>
-          质疑观点和视角类的问题。
-        </问题类型>
-        的问题。
-      </请求>
-      <要求>
-        1. 请用中文回答。
-        2. 问题要清晰、明确、具体。
-        3. 问题要围绕我的论证和话题。
-      </要求>
-      <话题>
-        ${trimmedTopic.value}
-      </话题>
-      <论证>
-        ${getFormattedNodes()}
-      </论证>
+        请评估我的论证辩护的支撑是否合理充分。这是讨论的话题:${
+          trimmedTopic.value
+        }。这是我的论证:${getFormattedNodes()}
       `
     },
     ShowInQuickPrompt: true,
@@ -431,75 +351,52 @@ const scaffolds = ref<Scaffold[]>([
       )
     },
     onValidateError: () => {
-      ElMessage.error('请先输入论证的支撑')
+      ElMessage.error('请先输入论证的支撑内容')
     },
   },
   {
-    title: '探究影响和后果类问题',
-    description: '提一个探究影响和后果类的问题',
-    key: 'effect',
+    title: '论证局限性',
+    description: '分析论证可能存在的局限',
+    key: 'limitation',
     getPrompt: () => {
       return `
       <请求>
-        提一个
-        <问题类型>
-          探究影响和后果类的问题。
-        </问题类型>
-        的问题。
-      </请求>
-      <要求>
-        1. 请用中文回答。
-        2. 问题要清晰、明确、具体。
-        3. 问题要围绕我的论证和话题。
-      </要求>
-      <话题>
-        ${trimmedTopic.value}
-      </话题>
-      <论证>
-        ${getFormattedNodes()}
-      </论证>
+        请分析我的论证可能存在的局限性。这是讨论的话题:${
+          trimmedTopic.value
+        }。这是我的论证:${getFormattedNodes()}
       `
     },
     ShowInQuickPrompt: true,
     validate: () => {
-      return true
+      return (
+        getFormattedNodes().length > 0 &&
+        checkNodesAndEdges([
+          { nodeType: ArgumentType.Qualifier, minWordCount: 2 },
+          { nodeType: ArgumentType.Rebuttal, minWordCount: 10 },
+        ])
+      )
     },
     onValidateError: () => {
-      ElMessage.error('请先输入论证的支撑')
+      ElMessage.error('请先输入论证的限定和反驳')
     },
   },
   {
-    title: '问题本身',
-    description: '提一个关于问题本身的问题类的问题',
+    title: '论证完整性',
+    description: '检查论证是否完整全面',
     key: 'problemSelf',
     getPrompt: () => {
       return `
-      <请求>
-        提一个关于
-        <问题类型>
-          问题本身的问题。
-        </问题类型>
-        的问题。
-      </请求>
-      <要求>
-        1. 请用中文回答。
-        2. 问题要清晰、明确、具体。
-        3. 问题要围绕我的论证和话题。
-      </要求>
-      <话题>
-        ${trimmedTopic.value}
-      </话题>
-      <论证>
-        ${getFormattedNodes()}
-      </论证>
+        请全面检查我的论证是否完整。这是讨论的话题:${
+          trimmedTopic.value
+        }。这是我的论证:${getFormattedNodes()}
       `
     },
     ShowInQuickPrompt: true,
     validate: () => {
-      return true
+      return validateTopic() && getFormattedNodes().length > 0
     },
     onValidateError: () => {
-      ElMessage.error('请先输入话题')
+      ElMessage.error('请先输入论证内容')
     },
   },
 ])
@@ -544,23 +441,76 @@ const onClickDisagree = (message: ChatMessage) => {
   const disagreeUserInput = `我不同意你的这一观点,即"""${message.content}"""。我不同意的证据是: 1. 2. 3. `
   userInput.value = disagreeUserInput
 }
-// 手动解锁
-const handUnLock = ref(false)
-const onClickUnlock = () => {
-  const canUnlock = checkNodesAndEdges([
-    { nodeType: ArgumentType.Claim, minWordCount: 10 },
-    { nodeType: ArgumentType.Data, minWordCount: 10 },
-    { nodeType: ArgumentType.Warrant, minWordCount: 10 },
-  ])
-  if (canUnlock) {
-    handUnLock.value = true
-    console.log('可以解锁')
-  } else {
-    ElNotification({
-      title: '提示',
-      message: '请先构造一个包含论点、论据、辩护的论证。每个字数不少于10个字。',
-      type: 'info',
-    })
+
+const currentQuestionTemplate = ref('')
+const options = ref([
+  {
+    label: '论证结构问题',
+    value: 'argumentation',
+    getPrompt: () => {
+      return `请分析我的论证结构是否存在问题。这是讨论的话题:${
+        trimmedTopic.value
+      }。这是我的论证:${getFormattedNodes()}`
+    },
+  },
+  {
+    label: '辩护逻辑合理性',
+    value: 'defense',
+    getPrompt: () => {
+      return `请分析我的论证辩护逻辑是否合理。这是讨论的话题:${
+        trimmedTopic.value
+      }。这是我的论证:${getFormattedNodes()}`
+    },
+  },
+  {
+    label: '论证支撑合理性',
+    value: 'evidence',
+    getPrompt: () => {
+      return `请评估我的论证辩护的支撑是否合理充分。这是讨论的话题:${
+        trimmedTopic.value
+      }。这是我的论证:${getFormattedNodes()}`
+    },
+  },
+  {
+    label: '论证局限性',
+    value: 'limitation',
+    getPrompt: () => {
+      return `请分析我的论证可能存在的局限性。这是讨论的话题:${
+        trimmedTopic.value
+      }。这是我的论证:${getFormattedNodes()}`
+    },
+  },
+  {
+    label: '论证完整性',
+    value: 'problemSelf',
+    getPrompt: () => {
+      return `请全面检查我的论证是否完整。这是讨论的话题:${
+        trimmedTopic.value
+      }。这是我的论证:${getFormattedNodes()}`
+    },
+  },
+  {
+    label: '插入论证',
+    value: 'insertClaim',
+    getPrompt: () => {
+      return `${getFormattedNodes()}`
+    },
+  },
+  {
+    label: '插入话题',
+    value: 'insertTopic',
+    getPrompt: () => {
+      return `${trimmedTopic.value}`
+    },
+  },
+])
+const onClickQuestionTemplate = () => {
+  console.log('点击提问模板')
+  const selectedOption = options.value.find(
+    option => option.value === currentQuestionTemplate.value
+  )
+  if (selectedOption) {
+    userInput.value += selectedOption.getPrompt()
   }
 }
 </script>
@@ -651,9 +601,11 @@ const onClickUnlock = () => {
         ]"
       >
         <div
+          v-if="message.role === 'assistant'"
           class="message-content"
           v-html="formatMessage(message.content)"
         ></div>
+        <div v-else class="message-content">{{ message.content }}</div>
         <div class="icon-btn" v-if="message.role === 'assistant'">
           <Icon name="copy" :size="16" @click="onClickCopy(message)" />
           <Icon
@@ -691,25 +643,42 @@ const onClickUnlock = () => {
         </div>
       </div>
     </div>
+    <!-- 插入提问模板的地方 -->
+    <div class="question-template">
+      <el-row :gutter="10">
+        <el-col :span="16">
+          <el-select
+            v-model="currentQuestionTemplate"
+            placeholder="请选择提问模板"
+          >
+            <el-option
+              v-for="item in options"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-col>
+        <el-col :span="4">
+          <el-button type="success" @click="onClickQuestionTemplate"
+            >插入</el-button
+          >
+        </el-col>
+      </el-row>
+    </div>
     <!-- 输入区域 -->
     <div class="input-area">
-      <div v-if="!canSendMessage || handUnLock" class="mask">
-        <div class="mask-content">
-          <n-empty description="构造论证以解锁论证助手">
-            <template #extra>
-              <n-button type="primary" @click="onClickUnlock"
-                >尝试解锁</n-button
-              >
-            </template>
-          </n-empty>
-        </div>
-      </div>
       <el-row :gutter="10">
         <el-col :span="20">
           <el-input
             v-model="userInput"
-            placeholder="请输入您的问题..."
-            @keyup.enter="sendMessage"
+            placeholder="和我一起论证吧..."
+            @keyup.enter="
+              () =>
+                sendMessage({
+                  pushNewMsg: pushNewMessageFromUserInputToChatMessages,
+                })
+            "
             type="textarea"
             :rows="2"
             :autosize="{ minRows: 2, maxRows: 6 }"
@@ -720,9 +689,11 @@ const onClickUnlock = () => {
         <el-col :span="4">
           <el-button
             @click="
-              sendMessage({
-                pushNewMsg: pushNewMessageFromUserInputToChatMessages,
-              })
+              () => {
+                sendMessage({
+                  pushNewMsg: pushNewMessageFromUserInputToChatMessages,
+                })
+              }
             "
             circle
             :disabled="isReceiving"
@@ -909,30 +880,38 @@ textarea {
   gap: 12px;
 }
 
-button {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
+// button {
+//   padding: 8px 16px;
+//   border: none;
+//   border-radius: 4px;
+//   cursor: pointer;
+//   transition: all 0.3s;
+// }
 
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+// button:disabled {
+//   opacity: 0.5;
+//   cursor: not-allowed;
+// }
 
-button:not(.clear-btn) {
-  background-color: #1890ff;
-  color: white;
-}
+// button:not(.clear-btn) {
+//   background-color: #1890ff;
+//   color: white;
+// }
 
-.clear-btn {
-  background-color: #ff4d4f;
-  color: white;
-}
+// .clear-btn {
+//   background-color: #ff4d4f;
+//   color: white;
+// }
 
-button:hover:not(:disabled) {
-  opacity: 0.8;
+// button:hover:not(:disabled) {
+//   opacity: 0.8;
+// }
+.question-template {
+  // padding: 10px;
+  // background-color: #1890ff;
+  border-radius: 8px;
+  width: 100%;
+  // height: 50px;
+  margin-bottom: 20px;
 }
 </style>
