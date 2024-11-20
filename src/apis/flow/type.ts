@@ -196,6 +196,16 @@ interface QueryDashBoardResponse {
   timeLineList: Array<TimeLineItem>
 }
 
+interface QueryGroupOptionResponse {
+  list: Array<{
+    id: number
+    content: string
+    nickname: string
+    group_color: string
+  }>
+  total: number
+}
+
 export type {
   ProposeIdeaParams,
   ReplyIdeaParams,
@@ -209,4 +219,5 @@ export type {
   ProposeGroupConclusionParams,
   ModifyGroupConclusionParams,
   QueryDashBoardResponse,
+  QueryGroupOptionResponse
 }

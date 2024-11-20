@@ -23,6 +23,10 @@ import Dialog from './components/dialog/index.vue'
 import { useDialog } from './hooks/dialog/index'
 import { Condition } from './type.ts'
 import { useUserStore } from '@/store/modules/user/index.ts'
+import PeerIdeaContainer from './components/peerIdeaContainer/index.vue'
+import { queryGroupOptionApi } from '@/apis/flow/index.ts'
+import { QueryGroupOptionResponse } from '@/apis/flow/type.ts'
+import useQueryParam from '@/hooks/router/useQueryParam.ts'
 // 组件一共几个状态
 // 1. chechIdea 查看观点，如果是自己的则显示修改按钮， 如果不是自己的则显示 支持 或者 反对 按钮
 // 2. checkConclusion 查看小组结论，如果是自己组的则可以修改，如果不是自己组的则只能查看
@@ -199,8 +203,7 @@ function whenCheckConclusion() {
  */
 function whenModifyIdea() {
   console.log('whenModifyIdea')
-  setNodesValue(props.modifiedNodes)
-  setEdgesValue(props.modifiedEdges)
+  queryArgumentState()
   setFitView()
 }
 
@@ -210,8 +213,7 @@ function whenModifyIdea() {
  */
 function whenModifyConclusion() {
   console.log('whenModifyConclusion')
-  setNodesValue(props.modifiedNodes)
-  setEdgesValue(props.modifiedEdges)
+  queryArgumentState()
   setFitView()
 }
 
@@ -229,39 +231,19 @@ function proposeConclusion() {
   console.log('proposeConclusion')
   setDefaultValue()
 }
+const onMountedFunctionMap = {
+  checkIdea: whenCheckIdea,
+  checkConclusion: whenCheckConclusion,
+  modifyIdea: whenModifyIdea,
+  modifyConclusion: whenModifyConclusion,
+  replyIdea: replyIdea,
+  proposeIdea: proposeIdea,
+  proposeConclusion: proposeConclusion,
+}
 
 onMounted(() => {
   const { condition } = props
-  switch (condition) {
-    case 'checkIdea': {
-      whenCheckIdea()
-      break
-    }
-    case 'checkConclusion': {
-      whenCheckConclusion()
-      break
-    }
-    case 'modifyIdea': {
-      whenModifyIdea()
-      break
-    }
-    case 'modifyConclusion': {
-      whenModifyConclusion()
-      break
-    }
-    case 'replyIdea': {
-      replyIdea()
-      break
-    }
-    case 'proposeIdea': {
-      proposeIdea()
-      break
-    }
-    case 'proposeConclusion': {
-      proposeConclusion()
-      break
-    }
-  }
+  onMountedFunctionMap[condition]()
 })
 
 const handleTextualized = (): {
@@ -471,6 +453,56 @@ const handleClickModifyConclusionBtn = () => {
     modifiedEdges: edges.value,
   })
 }
+const topicId = useQueryParam('topic_id')
+const getTopicId = () => {
+  return topicId.value
+}
+const getGroupId = () => {
+  return JSON.parse(localStorage.getItem('userInfo')!).group_id
+}
+
+const page = ref(1)
+const pageSize = ref(10)
+const peerIdeaList = ref<QueryGroupOptionResponse['list']>([])
+const total = ref(0)
+const noMore = ref(false)
+const { run: getOpinionList, loading: loadingMore } = useRequest({
+  apiFn: async () => {
+    return queryGroupOptionApi({
+      topic_id: getTopicId(),
+      group_id: getGroupId(),
+      page: page.value,
+      page_size: pageSize.value,
+    })
+  },
+  onSuccess(data: QueryGroupOptionResponse) {
+    console.log('onSuccess', data)
+    if(data.list.length === 0) {
+      ElNotification({
+        title: '提示',
+        message: '没有更多了',
+        duration: 1000,
+        type: 'warning',
+      })
+      noMore.value = true
+      return
+    }
+    peerIdeaList.value = [...peerIdeaList.value, ...data.list]
+    total.value = data.total
+  },
+  onFail(...args) {
+    console.log('onFail', args)
+  },
+  onError(...args) {
+    console.log('onError', args)
+  },
+  immediate: true,
+})
+
+const handleClickMore = () => {
+  page.value += 1
+  getOpinionList()
+}
 
 defineExpose({
   getArgumentState,
@@ -665,12 +697,43 @@ defineExpose({
             contentStyle.width === MAX_CONTENT_WIDTH ? 'arrow-up' : 'arrow-down'
           "
         ></ArrowIcon>
-        <el-scrollbar height="200px">
-          <h3 class="argument-text-title" :class="props.reply">
-            {{ title }}
-          </h3>
-          <div class="argument-text-content" v-html="content"></div>
-        </el-scrollbar>
+        <h3 class="argument-text-title" :class="props.reply">
+          {{ title }}
+        </h3>
+        <div class="argument-text-content" v-html="content"></div>
+        <section
+          class="show-peer-option-container"
+          v-if="
+            [
+              'checkConclusion',
+              'modifyConclusion',
+              'proposeConclusion',
+            ].includes(condition)
+          "
+        >
+          <h3 class="show-peer-option-title">其他小组成员观点</h3>
+          <div class="show-peer-option-content">
+            <PeerIdeaContainer
+              v-for="item in peerIdeaList"
+              :key="item.id"
+              :color="item.group_color"
+              :name="item.nickname"
+              :ideaContent="item.content"
+              showEllipsis
+            ></PeerIdeaContainer>
+          </div>
+          <div style="margin-bottom: 20px; text-align: center">
+            <el-button
+              type="primary"
+              plain
+              text
+              :loading="loadingMore"
+              :disabled="noMore"
+              @click="handleClickMore"
+              >{{ noMore ? '没有更多了' : '查看更多...' }}</el-button
+            >
+          </div>
+        </section>
       </section>
     </Panel>
   </VueFlow>
@@ -707,6 +770,7 @@ defineExpose({
   background-color: #fff;
   width: 400px;
   height: 200px;
+  overflow: auto;
   /* overflow: auto; */
 }
 .argument-text-content {

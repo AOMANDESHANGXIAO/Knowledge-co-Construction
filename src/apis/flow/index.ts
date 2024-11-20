@@ -10,6 +10,7 @@ import type {
   ProposeGroupConclusionParams,
   ModifyGroupConclusionParams,
   QueryDashBoardResponse,
+  QueryGroupOptionResponse,
 } from './type.ts'
 const queryFlowDataApi = (
   topic_id: number
@@ -111,9 +112,28 @@ const queryWordCloudApi = async (params: {
   })
 }
 
-// const reviseSelfIdeaApi = (params: ReviseSelfIdeaParams): Promise<Response> => {
-//   return Service.post('/flow/revise_self_idea', params)
-// }
+const queryGroupOptionApi = async ({
+  topic_id,
+  group_id,
+  page,
+  page_size,
+}: {
+  topic_id: number
+  group_id: number
+  page: number
+  page_size: number
+}): Promise<Response<QueryGroupOptionResponse>> => {
+  return Service({
+    method: 'get',
+    url: '/flow/group_opinion_list',
+    params: {
+      topic_id,
+      group_id,
+      page,
+      page_size,
+    },
+  })
+}
 
 export {
   queryFlowDataApi,
@@ -126,6 +146,7 @@ export {
   modifyGroupConclusionApi,
   queryDashBoard,
   queryGroupNodeContentApi,
-  queryWordCloudApi
+  queryWordCloudApi,
+  queryGroupOptionApi,
   // reviseSelfIdeaApi,
 }

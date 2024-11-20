@@ -423,21 +423,17 @@ const onClickCopy = (message: ChatMessage) => {
     ElMessage.error('复制失败')
   }
 }
-const onClickRefresh = (message: ChatMessage, index: number) => {
-  // 重新生成，也就是重新发送请求
+const onClickRefresh = (index: number) => {
   const originalPrompt = chatMessages.value[index - 1]?.content
-  // 删除当前的assistant消息和user消息
   chatMessages.value = chatMessages.value.filter(
     (_, i) => i !== index && i !== index - 1
-  )
+  )   
   nextTick(() => {
     userInput.value = originalPrompt
     sendMessage({ pushNewMsg: pushNewMessageFromUserInputToChatMessages })
   })
 }
 const onClickDisagree = (message: ChatMessage) => {
-  // console.log('点击不同意')
-  // 生成一个不同意的模板。
   const disagreeUserInput = `我不同意你的这一观点,即"""${message.content}"""。我不同意的证据是: 1. 2. 3. `
   userInput.value = disagreeUserInput
 }
@@ -505,7 +501,10 @@ const options = ref([
   },
 ])
 const onClickQuestionTemplate = () => {
-  console.log('点击提问模板')
+  if (!currentQuestionTemplate.value) {
+    ElMessage.error('请先选择提问模板')
+    return
+  }
   const selectedOption = options.value.find(
     option => option.value === currentQuestionTemplate.value
   )
@@ -611,7 +610,7 @@ const onClickQuestionTemplate = () => {
           <Icon
             name="refresh"
             :size="16"
-            @click="onClickRefresh(message, index)"
+            @click="onClickRefresh(index)"
           />
           <Icon name="disagree" :size="16" @click="onClickDisagree(message)" />
         </div>
