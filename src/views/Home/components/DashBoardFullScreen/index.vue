@@ -94,8 +94,8 @@ const getWaitTime = (index: number) => {
   return (index + 1) * BASE_WAIT_TIME
 }
 const paneNames = {
-  wordCloudText: '讨论主题一览',
-  innerGroupAnalysis: '组内分析',
+  wordCloudText: '🌤️词云分析🌤️',
+  innerGroupAnalysis: '👯组内分析👯',
 }
 const handleGetWordCloudContent = (name: string) => {
   console.log('点击le', name)

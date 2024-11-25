@@ -6,7 +6,10 @@ import { escapeData } from '@/utils/escapeHandler'
 
 axios.defaults.timeout = 10000 // 请求超时时间
 
+// 开发环境
 export const BASE_URL = 'http://127.0.0.1:3000'
+// 生产环境
+// export const BASE_URL = 'http://122.51.107.161:3000'
 
 const Service = axios.create({
   baseURL: BASE_URL,

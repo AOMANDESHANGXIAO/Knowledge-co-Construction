@@ -477,7 +477,7 @@ const { run: getOpinionList, loading: loadingMore } = useRequest({
   },
   onSuccess(data: QueryGroupOptionResponse) {
     console.log('onSuccess', data)
-    if(data.list.length === 0) {
+    if (data.list.length === 0) {
       ElNotification({
         title: '提示',
         message: '没有更多了',
@@ -496,7 +496,7 @@ const { run: getOpinionList, loading: loadingMore } = useRequest({
   onError(...args) {
     console.log('onError', args)
   },
-  immediate: true,
+  immediate: false,
 })
 
 const handleClickMore = () => {
@@ -504,6 +504,20 @@ const handleClickMore = () => {
   page.value += 1
   getOpinionList()
 }
+// 2024/11/25 新增功能
+// 显示当前Condition
+const ConditionChineseMap: Record<Condition, string> = {
+  checkIdea: '检查自己的观点',
+  checkConclusion: '检查自己的结论',
+  modifyIdea: '修改自己的观点',
+  modifyConclusion: '修改自己的结论',
+  replyIdea: '回复对方的观点',
+  proposeIdea: '提出自己的观点',
+  proposeConclusion: '提出自己的结论',
+}
+const conditionText = computed(() => {
+  return ConditionChineseMap[props.condition]
+})
 
 defineExpose({
   getArgumentState,
@@ -511,233 +525,246 @@ defineExpose({
 </script>
 
 <template>
-  <!-- :apply-default="false" -->
-  <VueFlow
-    :nodes="nodes"
-    :edges="edges"
-    ref="argumentVueFlowRef"
-    :apply-default="false"
-  >
-    <template #node-element="props">
-      <ElementComponent
-        :nodeId="props.id"
-        :_type="props.data._type"
-        :visible="true"
-        v-model="props.data.inputValue"
-        @addBacking="onAddBacking"
-      ></ElementComponent>
-    </template>
-
-    <Background
-      :variant="'lines'"
-      :size="200"
-      patternColor="#1a192b"
-      :gap="180"
-    />
-
-    <Dialog />
-
-    <Controls />
-
-    <!-- 当选择修改观点时，可以通过这些按钮来进行修改-->
-    <Panel
-      position="top-right"
-      class="button-group-container"
-      v-if="
-        condition === 'modifyConclusion' ||
-        condition === 'modifyIdea' ||
-        condition === 'replyIdea' ||
-        condition === 'proposeConclusion' ||
-        condition === 'proposeIdea'
-      "
+  <div class="vue-flow-layout">
+    <div class="vue-flow-layout-header">
+      <n-text type="primary" style="font-size: 16px"> 当前状态: </n-text>
+      <n-text type="primary" style="font-size: 16px">
+        {{ conditionText }}
+      </n-text>
+    </div>
+    <VueFlow
+      :nodes="nodes"
+      :edges="edges"
+      ref="argumentVueFlowRef"
+      :apply-default="false"
     >
-      <el-popconfirm
-        title="你确定要重置论证?"
-        @confirm="
-          () => {
-            resetState()
-          }
+      <template #node-element="props">
+        <ElementComponent
+          :nodeId="props.id"
+          :_type="props.data._type"
+          :visible="true"
+          v-model="props.data.inputValue"
+          @addBacking="onAddBacking"
+        ></ElementComponent>
+      </template>
+
+      <Background
+        :variant="'lines'"
+        :size="200"
+        patternColor="#1a192b"
+        :gap="180"
+      />
+
+      <Dialog />
+
+      <Controls />
+
+      <!-- 当选择修改观点时，可以通过这些按钮来进行修改-->
+      <Panel
+        position="top-right"
+        class="button-group-container"
+        v-if="
+          condition === 'modifyConclusion' ||
+          condition === 'modifyIdea' ||
+          condition === 'replyIdea' ||
+          condition === 'proposeConclusion' ||
+          condition === 'proposeIdea'
         "
       >
-        <template #reference>
-          <el-button plain style="margin-left: 0" color="#03346E">
-            重置论证
-          </el-button>
-        </template>
-      </el-popconfirm>
-
-      <el-button
-        plain
-        style="margin-left: 0"
-        color="#FF8225"
-        @click="
-          () => {
-            setFitView()
-          }
-        "
-        >自动布局</el-button
-      >
-
-      <el-button
-        plain
-        style="margin-left: 0"
-        color="#88D66C"
-        @click="
-          () => {
-            addNode(ArgumentType.Warrant)
-          }
-        "
-        >加入辩护</el-button
-      >
-
-      <el-button
-        plain
-        style="margin-left: 0"
-        color="#4535C1"
-        @click="
-          () => {
-            addNode(ArgumentType.Qualifier)
-          }
-        "
-        >加限定词</el-button
-      >
-
-      <el-button
-        plain
-        style="margin-left: 0"
-        color="#DC0083"
-        @click="
-          () => {
-            addNode(ArgumentType.Rebuttal)
-          }
-        "
-        >增加反驳</el-button
-      >
-    </Panel>
-
-    <!-- 在查看观点时可以选择支持观点或者反对观点, 如果是学生自己的观点，那么还可以修改观点 -->
-    <Panel
-      position="top-right"
-      class="button-group-container"
-      v-if="condition === 'checkIdea'"
-    >
-      <!-- 不能支持或者反对自己的观点 -->
-      <el-popconfirm
-        title="你确定要跳转至观点编辑页面吗?"
-        @confirm="handleClickAcceptBtn"
-        v-if="!InSelfIdea"
-      >
-        <template #reference>
-          <el-button plain style="margin-left: 0" type="success"
-            >支持观点</el-button
-          >
-        </template>
-      </el-popconfirm>
-      <el-popconfirm
-        title="你确定要跳转至观点编辑页面吗?"
-        @confirm="handleClickRejectBtn"
-        v-if="!InSelfIdea"
-      >
-        <template #reference>
-          <el-button plain style="margin-left: 0" type="danger"
-            >反对观点</el-button
-          >
-        </template>
-      </el-popconfirm>
-      <!-- 只能修改自己的观点 -->
-      <el-popconfirm
-        title="你确定要修改观点吗?"
-        @confirm="handleClickModifyIdeaBtn"
-        v-if="InSelfIdea"
-      >
-        <template #reference>
-          <el-button plain style="margin-left: 0" type="warning">
-            修改观点
-          </el-button>
-        </template>
-      </el-popconfirm>
-    </Panel>
-
-    <Panel
-      position="top-right"
-      class="button-group-container"
-      v-if="condition === 'checkConclusion' && InSelfGroup"
-    >
-      <el-popconfirm
-        title="确定要修改小组总结的观点吗?"
-        @confirm="handleClickModifyConclusionBtn"
-      >
-        <template #reference>
-          <el-button plain style="margin-left: 0" type="warning"
-            >修改总结</el-button
-          >
-        </template>
-      </el-popconfirm>
-    </Panel>
-
-    <!-- 反馈 -->
-    <Panel v-if="showFeedBack" position="top-left" class="feedback-tips">
-      <el-alert
-        v-for="(item, index) in feedbackList"
-        :key="index"
-        :title="item.title"
-        :type="item.type"
-        :description="item.description"
-        show-icon
-        :closable="false"
-      ></el-alert>
-    </Panel>
-
-    <!-- 右下角TIPDS -->
-    <Panel position="bottom-right" class="argument-text" :style="contentStyle">
-      <section style="width: 100%; height: 100%; position: relative">
-        <ArrowIcon
-          class="arrow"
-          @click="handleToggleFold"
-          :class="
-            contentStyle.width === MAX_CONTENT_WIDTH ? 'arrow-up' : 'arrow-down'
-          "
-        ></ArrowIcon>
-        <h3 class="argument-text-title" :class="props.reply">
-          {{ title }}
-        </h3>
-        <div class="argument-text-content" v-html="content"></div>
-        <section
-          class="show-peer-option-container"
-          v-if="
-            [
-              'checkConclusion',
-              'modifyConclusion',
-              'proposeConclusion',
-            ].includes(condition)
+        <el-popconfirm
+          title="你确定要重置论证?"
+          @confirm="
+            () => {
+              resetState()
+            }
           "
         >
-          <h3 class="show-peer-option-title">其他小组成员观点</h3>
-          <div class="show-peer-option-content">
-            <PeerIdeaContainer
-              v-for="item in peerIdeaList"
-              :key="item.id"
-              :color="item.group_color"
-              :name="item.nickname"
-              :ideaContent="item.content"
-              :showEllipsis="false"
-            ></PeerIdeaContainer>
-          </div>
-          <div style="margin-bottom: 20px; text-align: center">
-            <el-button
-              type="primary"
-              plain
-              text
-              :loading="loadingMore"
-              :disabled="noMore"
-              @click="handleClickMore"
-              >{{ noMore ? '没有更多了' : '查看更多...' }}</el-button
+          <template #reference>
+            <el-button plain style="margin-left: 0" color="#03346E">
+              重置论证
+            </el-button>
+          </template>
+        </el-popconfirm>
+
+        <el-button
+          plain
+          style="margin-left: 0"
+          color="#FF8225"
+          @click="
+            () => {
+              setFitView()
+            }
+          "
+          >自动布局</el-button
+        >
+
+        <el-button
+          plain
+          style="margin-left: 0"
+          color="#88D66C"
+          @click="
+            () => {
+              addNode(ArgumentType.Warrant)
+            }
+          "
+          >加入辩护</el-button
+        >
+
+        <el-button
+          plain
+          style="margin-left: 0"
+          color="#4535C1"
+          @click="
+            () => {
+              addNode(ArgumentType.Qualifier)
+            }
+          "
+          >加限定词</el-button
+        >
+
+        <el-button
+          plain
+          style="margin-left: 0"
+          color="#DC0083"
+          @click="
+            () => {
+              addNode(ArgumentType.Rebuttal)
+            }
+          "
+          >增加反驳</el-button
+        >
+      </Panel>
+
+      <!-- 在查看观点时可以选择支持观点或者反对观点, 如果是学生自己的观点，那么还可以修改观点 -->
+      <Panel
+        position="top-right"
+        class="button-group-container"
+        v-if="condition === 'checkIdea'"
+      >
+        <!-- 不能支持或者反对自己的观点 -->
+        <el-popconfirm
+          title="你确定要跳转至观点编辑页面吗?"
+          @confirm="handleClickAcceptBtn"
+          v-if="!InSelfIdea"
+        >
+          <template #reference>
+            <el-button plain style="margin-left: 0" type="success"
+              >支持观点</el-button
             >
-          </div>
+          </template>
+        </el-popconfirm>
+        <el-popconfirm
+          title="你确定要跳转至观点编辑页面吗?"
+          @confirm="handleClickRejectBtn"
+          v-if="!InSelfIdea"
+        >
+          <template #reference>
+            <el-button plain style="margin-left: 0" type="danger"
+              >反对观点</el-button
+            >
+          </template>
+        </el-popconfirm>
+        <!-- 只能修改自己的观点 -->
+        <el-popconfirm
+          title="你确定要修改观点吗?"
+          @confirm="handleClickModifyIdeaBtn"
+          v-if="InSelfIdea"
+        >
+          <template #reference>
+            <el-button plain style="margin-left: 0" type="warning">
+              修改观点
+            </el-button>
+          </template>
+        </el-popconfirm>
+      </Panel>
+
+      <Panel
+        position="top-right"
+        class="button-group-container"
+        v-if="condition === 'checkConclusion' && InSelfGroup"
+      >
+        <el-popconfirm
+          title="确定要修改小组总结的观点吗?"
+          @confirm="handleClickModifyConclusionBtn"
+        >
+          <template #reference>
+            <el-button plain style="margin-left: 0" type="warning"
+              >修改总结</el-button
+            >
+          </template>
+        </el-popconfirm>
+      </Panel>
+
+      <!-- 反馈 -->
+      <Panel v-if="showFeedBack" position="top-left" class="feedback-tips">
+        <el-alert
+          v-for="(item, index) in feedbackList"
+          :key="index"
+          :title="item.title"
+          :type="item.type"
+          :description="item.description"
+          show-icon
+          :closable="false"
+        ></el-alert>
+      </Panel>
+
+      <!-- 右下角TIPDS -->
+      <Panel
+        position="bottom-right"
+        class="argument-text"
+        :style="contentStyle"
+      >
+        <section style="width: 100%; height: 100%; position: relative">
+          <ArrowIcon
+            class="arrow"
+            @click="handleToggleFold"
+            :class="
+              contentStyle.width === MAX_CONTENT_WIDTH
+                ? 'arrow-up'
+                : 'arrow-down'
+            "
+          ></ArrowIcon>
+          <h3 class="argument-text-title" :class="props.reply">
+            {{ title }}
+          </h3>
+          <div class="argument-text-content" v-html="content"></div>
+          <section
+            class="show-peer-option-container"
+            v-if="
+              [
+                'checkConclusion',
+                'modifyConclusion',
+                'proposeConclusion',
+              ].includes(condition)
+            "
+          >
+            <h3 class="show-peer-option-title">其他小组成员观点</h3>
+            <div class="show-peer-option-content">
+              <PeerIdeaContainer
+                v-for="item in peerIdeaList"
+                :key="item.id"
+                :color="item.group_color"
+                :name="item.nickname"
+                :ideaContent="item.content"
+                :showEllipsis="false"
+              ></PeerIdeaContainer>
+            </div>
+            <div style="margin-bottom: 20px; text-align: center">
+              <el-button
+                type="primary"
+                plain
+                text
+                :loading="loadingMore"
+                :disabled="noMore"
+                @click="handleClickMore"
+                >{{ noMore ? '没有更多了' : '查看更多...' }}</el-button
+              >
+            </div>
+          </section>
         </section>
-      </section>
-    </Panel>
-  </VueFlow>
+      </Panel>
+    </VueFlow>
+  </div>
 </template>
 
 <style>
@@ -746,6 +773,27 @@ defineExpose({
 
 /* import the default theme, this is optional but generally recommended */
 @import '@vue-flow/core/dist/theme-default.css';
+
+.vue-flow-layout {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.vue-flow-layout-header {
+  position: absolute;
+  box-sizing: content-box;
+  background-color: #fff;
+  box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.08);
+  border-radius: 5px;
+  padding: 10px;
+  text-align: center;
+  height: 30px;
+  line-height: 30px;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+}
 
 .button-group-container {
   display: flex;
