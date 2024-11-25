@@ -26,7 +26,7 @@ import { useUserStore } from '@/store/modules/user/index.ts'
 // import PeerIdeaContainer from './components/peerIdeaContainer/index.vue'
 // import { queryGroupOptionApi } from '@/apis/flow/index.ts'
 // import { QueryGroupOptionResponse } from '@/apis/flow/type.ts'
-import useQueryParam from '@/hooks/router/useQueryParam.ts'
+// import useQueryParam from '@/hooks/router/useQueryParam.ts'
 // 组件一共几个状态
 // 1. chechIdea 查看观点，如果是自己的则显示修改按钮， 如果不是自己的则显示 支持 或者 反对 按钮
 // 2. checkConclusion 查看小组结论，如果是自己组的则可以修改，如果不是自己组的则只能查看

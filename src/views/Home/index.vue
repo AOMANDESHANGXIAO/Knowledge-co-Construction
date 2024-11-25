@@ -402,6 +402,10 @@ const handleRereshFlowData = () => {
   vueFlowRef.value?.refreshData()
 }
 
+const isDisabledOKBtn = computed(() => {
+  return ['checkIdea', 'checkConclusion'].includes(condition.value)
+})
+
 /**
  * 点击确认时触发
  */
@@ -1171,6 +1175,7 @@ const updateArgumentFlowState = _.debounce(() => {
             <el-button
               style="margin-left: 10px"
               color="#FF8225"
+              :disabled="isDisabledOKBtn"
               @click="handleOK"
               >{{ '确定' }}
             </el-button>
