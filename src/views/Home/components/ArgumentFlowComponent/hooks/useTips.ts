@@ -17,25 +17,30 @@ export default function useTips(props: {
   const MAX_CONTENT_WIDTH = '400px'
   const MIN_CONTENT_WIDTH = '20px'
   const { condition, topicContent } = props
-
+  const closed = ref(false)
   const { nodes, edges } = props.textualizedArgument
 
   const contentStyle = ref({
     width: MAX_CONTENT_WIDTH,
     transition: 'width 0.3s',
+    padding: '30px',
   })
 
   const handleToggleFold = () => {
     // 折叠
     if (contentStyle.value.width === MIN_CONTENT_WIDTH) {
+      closed.value = false
       contentStyle.value.width = MAX_CONTENT_WIDTH
+      contentStyle.value.padding = '30px'
     } else {
+      closed.value = true
       contentStyle.value.width = MIN_CONTENT_WIDTH
+      contentStyle.value.padding = '0'
     }
   }
 
   const titleMap: Record<Condition, string> = {
-    chechIdea: '检查观点',
+    checkIdea: '检查观点',
     checkConclusion: '检查结论',
     modifyIdea: '修改观点',
     modifyConclusion: '修改结论',
@@ -51,7 +56,7 @@ export default function useTips(props: {
   const contentRenderCondition: {
     [key: string]: Array<Condition>
   } = {
-    argument: ['chechIdea', 'checkConclusion', 'replyIdea'],
+    argument: ['checkIdea', 'checkConclusion', 'replyIdea'],
     topic: [
       'modifyConclusion',
       'modifyIdea',
@@ -71,6 +76,7 @@ export default function useTips(props: {
   })
 
   return {
+    closed,
     title,
     content,
     contentStyle,

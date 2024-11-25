@@ -493,7 +493,7 @@ $color: #88d66c;
     padding: 10px;
     overflow: hidden;
     text-overflow: ellipsis;
-    -webkit-line-clamp: 3;
+    line-clamp: 3;
   }
   .add {
     display: flex;

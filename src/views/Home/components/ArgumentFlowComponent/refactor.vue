@@ -23,9 +23,9 @@ import Dialog from './components/dialog/index.vue'
 import { useDialog } from './hooks/dialog/index'
 import { Condition } from './type.ts'
 import { useUserStore } from '@/store/modules/user/index.ts'
-import PeerIdeaContainer from './components/peerIdeaContainer/index.vue'
-import { queryGroupOptionApi } from '@/apis/flow/index.ts'
-import { QueryGroupOptionResponse } from '@/apis/flow/type.ts'
+// import PeerIdeaContainer from './components/peerIdeaContainer/index.vue'
+// import { queryGroupOptionApi } from '@/apis/flow/index.ts'
+// import { QueryGroupOptionResponse } from '@/apis/flow/type.ts'
 import useQueryParam from '@/hooks/router/useQueryParam.ts'
 // 组件一共几个状态
 // 1. chechIdea 查看观点，如果是自己的则显示修改按钮， 如果不是自己的则显示 支持 或者 反对 按钮
@@ -276,12 +276,16 @@ const handleTextualized = (): {
   }
 }
 
-const { content, contentStyle, handleToggleFold, MAX_CONTENT_WIDTH, title } =
-  useTips({
-    topicContent: props.topicContent,
-    condition: props.condition,
-    textualizedArgument: handleTextualized(),
-  })
+const {
+  closed,
+  contentStyle,
+  handleToggleFold,
+  MAX_CONTENT_WIDTH,
+} = useTips({
+  topicContent: props.topicContent,
+  condition: props.condition,
+  textualizedArgument: handleTextualized(),
+})
 
 const editNotification = (msg: string) => {
   ElNotification({
@@ -453,57 +457,57 @@ const handleClickModifyConclusionBtn = () => {
     modifiedEdges: edges.value,
   })
 }
-const topicId = useQueryParam('topic_id')
-const getTopicId = () => {
-  return topicId.value
-}
-const getGroupId = () => {
-  return JSON.parse(localStorage.getItem('userInfo')!).group_id
-}
+// const topicId = useQueryParam('topic_id')
+// const getTopicId = () => {
+//   return topicId.value
+// }
+// const getGroupId = () => {
+//   return JSON.parse(localStorage.getItem('userInfo')!).group_id
+// }
 
-const page = ref(1)
-const pageSize = ref(10)
-const peerIdeaList = ref<QueryGroupOptionResponse['list']>([])
-const total = ref(0)
-const noMore = ref(false)
-const { run: getOpinionList, loading: loadingMore } = useRequest({
-  apiFn: async () => {
-    return queryGroupOptionApi({
-      topic_id: getTopicId(),
-      group_id: getGroupId(),
-      page: page.value,
-      page_size: pageSize.value,
-    })
-  },
-  onSuccess(data: QueryGroupOptionResponse) {
-    console.log('onSuccess', data)
-    if (data.list.length === 0) {
-      ElNotification({
-        title: '提示',
-        message: '没有更多了',
-        duration: 1000,
-        type: 'warning',
-      })
-      noMore.value = true
-      return
-    }
-    peerIdeaList.value = [...peerIdeaList.value, ...data.list]
-    total.value = data.total
-  },
-  onFail(...args) {
-    console.log('onFail', args)
-  },
-  onError(...args) {
-    console.log('onError', args)
-  },
-  immediate: false,
-})
+// const page = ref(1)
+// const pageSize = ref(10)
+// const peerIdeaList = ref<QueryGroupOptionResponse['list']>([])
+// const total = ref(0)
+// const noMore = ref(false)
+// const { run: getOpinionList, loading: loadingMore } = useRequest({
+//   apiFn: async () => {
+//     return queryGroupOptionApi({
+//       topic_id: getTopicId(),
+//       group_id: getGroupId(),
+//       page: page.value,
+//       page_size: pageSize.value,
+//     })
+//   },
+//   onSuccess(data: QueryGroupOptionResponse) {
+//     console.log('onSuccess', data)
+//     if (data.list.length === 0) {
+//       ElNotification({
+//         title: '提示',
+//         message: '没有更多了',
+//         duration: 1000,
+//         type: 'warning',
+//       })
+//       noMore.value = true
+//       return
+//     }
+//     peerIdeaList.value = [...peerIdeaList.value, ...data.list]
+//     total.value = data.total
+//   },
+//   onFail(...args) {
+//     console.log('onFail', args)
+//   },
+//   onError(...args) {
+//     console.log('onError', args)
+//   },
+//   immediate: false,
+// })
 
-const handleClickMore = () => {
-  if (noMore.value) return
-  page.value += 1
-  getOpinionList()
-}
+// const handleClickMore = () => {
+//   if (noMore.value) return
+//   page.value += 1
+//   getOpinionList()
+// }
 // 2024/11/25 新增功能
 // 显示当前Condition
 const ConditionChineseMap: Record<Condition, string> = {
@@ -536,6 +540,14 @@ const onNotAllowed = () => {
     type: 'warning',
   })
 }
+
+// 右下角使用苏格拉底提问法作为Tips
+const socraticQuestioningTips = [
+  '前提正确吗?',
+  '结论正确吗?',
+  '前提和结论之间逻辑是否正确吗?',
+  '你的论证有没有局限性?',
+]
 
 defineExpose({
   getArgumentState,
@@ -735,53 +747,23 @@ defineExpose({
         class="argument-text"
         :style="contentStyle"
       >
-        <section style="width: 100%; height: 100%; position: relative">
-          <ArrowIcon
-            class="arrow"
-            @click="handleToggleFold"
-            :class="
-              contentStyle.width === MAX_CONTENT_WIDTH
-                ? 'arrow-up'
-                : 'arrow-down'
-            "
-          ></ArrowIcon>
-          <h3 class="argument-text-title" :class="props.reply">
-            {{ title }}
-          </h3>
-          <div class="argument-text-content" v-html="content"></div>
-          <section
-            class="show-peer-option-container"
-            v-if="
-              [
-                'checkConclusion',
-                'modifyConclusion',
-                'proposeConclusion',
-              ].includes(condition)
-            "
-          >
-            <h3 class="show-peer-option-title">其他小组成员观点</h3>
-            <div class="show-peer-option-content">
-              <PeerIdeaContainer
-                v-for="item in peerIdeaList"
-                :key="item.id"
-                :color="item.group_color"
-                :name="item.nickname"
-                :ideaContent="item.content"
-                :showEllipsis="false"
-              ></PeerIdeaContainer>
-            </div>
-            <div style="margin-bottom: 20px; text-align: center">
-              <el-button
-                type="primary"
-                plain
-                text
-                :loading="loadingMore"
-                :disabled="noMore"
-                @click="handleClickMore"
-                >{{ noMore ? '没有更多了' : '查看更多...' }}</el-button
-              >
-            </div>
-          </section>
+        <ArrowIcon
+          class="arrow"
+          @click="handleToggleFold"
+          :class="
+            contentStyle.width === MAX_CONTENT_WIDTH ? 'arrow-up' : 'arrow-down'
+          "
+        ></ArrowIcon>
+        <!-- 苏格拉底提示框架 -->
+        <section v-if="!closed">
+          <div>
+            <h3 class="argument-text-title">考虑回答以下问题</h3>
+          </div>
+          <ul>
+            <li v-for="t in socraticQuestioningTips" :key="t">
+              {{ t }}
+            </li>
+          </ul>
         </section>
       </Panel>
     </VueFlow>
@@ -835,13 +817,19 @@ defineExpose({
   background-color: #fff;
 }
 .argument-text {
+  /* position: relative; */
+  box-sizing: border-box;
   box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.08);
-  padding: 10px;
+  padding: 30px;
   background-color: #fff;
   width: 400px;
   height: 200px;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
   /* overflow: auto; */
+}
+.argument-text-container {
+  padding: 20px;
 }
 .argument-text-content {
   /* overflow-y: auto; */
@@ -873,8 +861,8 @@ defineExpose({
   transform: rotate(0deg);
 }
 .arrow-down {
-  transform: rotate(90deg);
-  right: -7px;
-  top: 0;
+  transform: rotate(90deg) translateX(-50%);
+  right: calc(50% - 7px);
+  top: 10px;
 }
 </style>
