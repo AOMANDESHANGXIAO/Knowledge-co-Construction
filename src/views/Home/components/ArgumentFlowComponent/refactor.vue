@@ -507,17 +507,35 @@ const handleClickMore = () => {
 // 2024/11/25 新增功能
 // 显示当前Condition
 const ConditionChineseMap: Record<Condition, string> = {
-  checkIdea: '检查自己的观点',
-  checkConclusion: '检查自己的结论',
-  modifyIdea: '修改自己的观点',
-  modifyConclusion: '修改自己的结论',
-  replyIdea: '回复对方的观点',
-  proposeIdea: '提出自己的观点',
-  proposeConclusion: '提出自己的结论',
+  checkIdea: '检查自己观点',
+  checkConclusion: '检查小组结论',
+  modifyIdea: '修改自己观点',
+  modifyConclusion: '修改自己结论',
+  replyIdea: '回复对方观点',
+  proposeIdea: '提出自己观点',
+  proposeConclusion: '提出小组结论',
 }
 const conditionText = computed(() => {
   return ConditionChineseMap[props.condition]
 })
+
+const isElementAllowedToEdit = computed(() => {
+  return [
+    'proposeIdea',
+    'proposeConclusion',
+    'modifyIdea',
+    'modifyConclusion',
+  ].includes(props.condition)
+})
+
+const onNotAllowed = () => {
+  ElNotification({
+    title: '提示',
+    message: '该论点仅供查看',
+    duration: 1000,
+    type: 'warning',
+  })
+}
 
 defineExpose({
   getArgumentState,
@@ -526,12 +544,14 @@ defineExpose({
 
 <template>
   <div class="vue-flow-layout">
+    <!-- 当前状态 -->
     <div class="vue-flow-layout-header">
       <n-text type="primary" style="font-size: 16px"> 当前状态: </n-text>
       <n-text type="primary" style="font-size: 16px">
         {{ conditionText }}
       </n-text>
     </div>
+    <!-- VueFlow -->
     <VueFlow
       :nodes="nodes"
       :edges="edges"
@@ -542,9 +562,10 @@ defineExpose({
         <ElementComponent
           :nodeId="props.id"
           :_type="props.data._type"
-          :visible="true"
+          :visible="isElementAllowedToEdit"
           v-model="props.data.inputValue"
           @addBacking="onAddBacking"
+          @notAllowed="onNotAllowed"
         ></ElementComponent>
       </template>
 

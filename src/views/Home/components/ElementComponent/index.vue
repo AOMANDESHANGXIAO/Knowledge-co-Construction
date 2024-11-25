@@ -7,7 +7,6 @@ import { Handle, Position } from '@vue-flow/core'
 import tips from '../toolTips/index.vue'
 import lightText from '@/components/common/highlight/index.vue'
 import { useForm } from '@/hooks/form'
-import type { ElInput } from 'element-plus'
 import vFocus from '@/directives/focus'
 
 defineOptions({
@@ -47,7 +46,12 @@ const elementMap = {
   },
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  _type: ArgumentType.Backing,
+  nodeId: '',
+  tags: () => [],
+  visible: true,
+})
 
 watch(
   () => props.modelValue,
@@ -60,13 +64,11 @@ watch(
 
 const dialogVisible = ref(false)
 
+const emit = defineEmits(['addBacking', 'update:modelValue', 'notAllowed'])
+
 const openDialog = () => {
   if (!props.visible) {
-    ElNotification({
-      title: '提示',
-      message: '该论证仅供查看!',
-      type: 'warning',
-    })
+    emit('notAllowed')
     dialogVisible.value = false
   } else {
     dialogVisible.value = true
@@ -80,8 +82,6 @@ const el = ref<HTMLElement | null>(null)
 const isHovered = useElementHover(el)
 
 const active = ref('0')
-
-const emit = defineEmits(['addBacking', 'update:modelValue'])
 
 const { form, formRef, rules, updateModelValue, setInputValue } = useForm({
   message: elementMap[props._type].msg,
@@ -246,7 +246,7 @@ if (props._type === ArgumentType.Backing) {
     <div class="text" @dblclick="dialogVisible = true">
       {{
         form.inputValue ||
-        `此处添加论证的${elementMap[props._type].title},双击以编辑`
+        `双击以编辑。此处添加论证的${elementMap[props._type].title}。`
       }}
     </div>
 
@@ -284,6 +284,7 @@ if (props._type === ArgumentType.Backing) {
     width="500"
     append-to-body
   >
+    <!-- 元素的介绍提示词 -->
     <el-collapse v-model="active">
       <el-collapse-item
         :title="`${elementMap[props._type].title}是什么?`"
@@ -407,7 +408,7 @@ if (props._type === ArgumentType.Backing) {
         </div>
       </el-collapse-item>
     </el-collapse>
-
+    <!-- 输入框 -->
     <el-form :model="form" :rules="rules" ref="formRef">
       <el-form-item prop="input">
         <el-input
@@ -447,42 +448,6 @@ if (props._type === ArgumentType.Backing) {
         >插 入</el-button
       >
     </div>
-
-    <!-- 支撑的Tags -->
-    <!-- 考虑移除: -->
-    <!-- <div class="tags-list" v-if="props._type === ArgumentType.Backing">
-      <el-tag
-        v-for="(tag, index) in backing.tags"
-        :key="index"
-        closable
-        :type="tag.type"
-        effect="dark"
-        @close="backing.handleRemoveTag(tag)"
-      >
-        {{ tag.name }}
-      </el-tag>
-    </div>
-
-    <el-divider v-if="props._type === ArgumentType.Backing"
-      >支撑标签</el-divider
-    >
-    <div class="tags-container" v-if="props._type === ArgumentType.Backing">
-      <el-select
-        v-model="backing.tag"
-        placeholder="你使用了何种证据来支撑?"
-        style="width: 250px"
-      >
-        <el-option
-          v-for="item in backing.tagsOpt"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        ></el-option>
-      </el-select>
-      <el-button :color="defaultColor" @click="backing.handleInsertTag"
-        >插 入</el-button
-      >
-    </div> -->
 
     <el-divider></el-divider>
 
