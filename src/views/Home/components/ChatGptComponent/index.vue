@@ -10,7 +10,8 @@ import Icon from './icon.vue'
 import { useClipboard } from '@vueuse/core'
 import type { NodeType, EdgeType } from '../ArgumentFlowComponent/type'
 import { ArgumentType } from '../ArgumentFlowComponent/type'
-// TODO: 修改代码，对话时不需要被检查
+import type { Scaffold} from './chatgptComponent.type'
+
 const props = withDefaults(
   defineProps<{
     // 话题
@@ -24,6 +25,7 @@ const props = withDefaults(
     }
     nodes: NodeType[]
     edges: EdgeType[]
+    scaffold: Scaffold[]
   }>(),
   {
     topic: '',
@@ -250,7 +252,7 @@ const checkNodesAndEdges = (
   let count = 0
   for (const condition of conditions) {
     const findNode = props.nodes.find(node => node._type === condition.nodeType)
-    console.log('findNode', findNode)
+    // console.log('findNode', findNode)
     if (findNode && findNode.data.inputValue.length >= condition.minWordCount) {
       count++
     }
@@ -265,147 +267,10 @@ const canSendMessage = computed(() => {
   ])
 })
 // 快速提示
-interface Scaffold {
-  title: string
-  description: string
-  getPrompt: (...args: any[]) => string
-  ShowInQuickPrompt: boolean
-  key:
-    | 'argumentation'
-    | 'defense'
-    | 'limitation'
-    | 'evidence'
-    | 'effect'
-    | 'problemSelf'
-  validate: (...args: any[]) => boolean
-  onValidateError: () => void
-}
 const trimmedTopic = computed(() => {
   return props.topic.trim()
 })
-const validateTopic = () => {
-  return props.topic.trim() !== ''
-}
-// 给ChatGpt的提示词支架
-const scaffolds = ref<Scaffold[]>([
-  {
-    title: '论证结构问题',
-    description: '检查论证的结构是否完整合理',
-    key: 'argumentation',
-    getPrompt: () => {
-      return `
-        请分析我的论证结构是否存在问题。这是讨论的话题:${
-          trimmedTopic.value
-        }。这是我的论证:${getFormattedNodes()}
-      `
-    },
-    ShowInQuickPrompt: true,
-    validate: () => {
-      return (
-        validateTopic() &&
-        getFormattedNodes().length > 0 &&
-        canSendMessage.value
-      )
-    },
-    onValidateError: () => {
-      ElMessage.error('请先完整输入论证内容')
-    },
-  },
-  {
-    title: '辩护逻辑合理性',
-    description: '分析论证的辩护逻辑是否合理',
-    key: 'defense',
-    getPrompt: () => {
-      return `
-        请分析我的论证辩护逻辑是否合理。这是讨论的话题:${
-          trimmedTopic.value
-        }。这是我的论证:${getFormattedNodes()}
-      `
-    },
-    ShowInQuickPrompt: true,
-    validate: () => {
-      return getFormattedNodes().length > 0 && canSendMessage.value
-    },
-    onValidateError: () => {
-      ElMessage.error('请先输入完整的论证内容')
-    },
-  },
-  {
-    title: '论证支撑合理性',
-    description: '评估论证的支撑是否充分合理',
-    key: 'evidence',
-    getPrompt: () => {
-      return `
-        请评估我的论证辩护的支撑是否合理充分。这是讨论的话题:${
-          trimmedTopic.value
-        }。这是我的论证:${getFormattedNodes()}
-      `
-    },
-    ShowInQuickPrompt: true,
-    validate: () => {
-      return (
-        getFormattedNodes().length > 0 &&
-        checkNodesAndEdges([
-          { nodeType: ArgumentType.Backing, minWordCount: 10 },
-        ])
-      )
-    },
-    onValidateError: () => {
-      ElMessage.error('请先输入论证的支撑内容')
-    },
-  },
-  {
-    title: '论证局限性',
-    description: '分析论证可能存在的局限',
-    key: 'limitation',
-    getPrompt: () => {
-      return `
-      <请求>
-        请分析我的论证可能存在的局限性。这是讨论的话题:${
-          trimmedTopic.value
-        }。这是我的论证:${getFormattedNodes()}
-      `
-    },
-    ShowInQuickPrompt: true,
-    validate: () => {
-      return (
-        getFormattedNodes().length > 0 &&
-        checkNodesAndEdges([
-          { nodeType: ArgumentType.Qualifier, minWordCount: 2 },
-          { nodeType: ArgumentType.Rebuttal, minWordCount: 10 },
-        ])
-      )
-    },
-    onValidateError: () => {
-      ElMessage.error('请先输入论证的限定和反驳')
-    },
-  },
-  {
-    title: '论证完整性',
-    description: '检查论证是否完整全面',
-    key: 'problemSelf',
-    getPrompt: () => {
-      return `
-        请全面检查我的论证是否完整。这是讨论的话题:${
-          trimmedTopic.value
-        }。这是我的论证:${getFormattedNodes()}
-      `
-    },
-    ShowInQuickPrompt: true,
-    validate: () => {
-      return validateTopic() && getFormattedNodes().length > 0
-    },
-    onValidateError: () => {
-      ElMessage.error('请先输入论证内容')
-    },
-  },
-])
 
-const showScaffoldsList = computed(() => {
-  return scaffolds.value.filter(item => {
-    return item.ShowInQuickPrompt
-  })
-})
 const onClickScaffoldItem = (scaffold: Scaffold) => {
   if (scaffold.validate()) {
     userInput.value = scaffold.getPrompt()
@@ -427,7 +292,7 @@ const onClickRefresh = (index: number) => {
   const originalPrompt = chatMessages.value[index - 1]?.content
   chatMessages.value = chatMessages.value.filter(
     (_, i) => i !== index && i !== index - 1
-  )   
+  )
   nextTick(() => {
     userInput.value = originalPrompt
     sendMessage({ pushNewMsg: pushNewMessageFromUserInputToChatMessages })
@@ -607,11 +472,7 @@ const onClickQuestionTemplate = () => {
         <div v-else class="message-content">{{ message.content }}</div>
         <div class="icon-btn" v-if="message.role === 'assistant'">
           <Icon name="copy" :size="16" @click="onClickCopy(message)" />
-          <Icon
-            name="refresh"
-            :size="16"
-            @click="onClickRefresh(index)"
-          />
+          <Icon name="refresh" :size="16" @click="onClickRefresh(index)" />
           <Icon name="disagree" :size="16" @click="onClickDisagree(message)" />
         </div>
       </div>
@@ -628,7 +489,7 @@ const onClickQuestionTemplate = () => {
         <!-- 空消息时会给快速提示 -->
         <div class="question-scaffolds">
           <n-card
-            v-for="scaffold in showScaffoldsList"
+            v-for="scaffold in props.scaffold"
             :key="scaffold.key"
             :title="scaffold.title"
             size="small"

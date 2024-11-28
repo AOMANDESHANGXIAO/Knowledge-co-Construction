@@ -45,6 +45,8 @@ import UploadField from '@/components/UploadField/index.vue'
 import { downloadFileApi } from '@/apis/files/index.ts'
 import CourseWorkAPI from '@/apis/courseWork'
 import ChatGptComponent from './components/ChatGptComponent/index.vue'
+import type { Scaffold } from './components/ChatGptComponent/chatgptComponent.type'
+import { ArgumentType } from './components/ArgumentFlowComponent/type.ts'
 
 const { getOneUserInfo } = useUserStore()
 
@@ -1024,8 +1026,14 @@ const handleSubmitCourseWork = () => {
   }
   uploadCourseWork()
 }
-
-// 要让ChatGpt的Component拿到论证图谱的nodes和edges
+const argumentTypeChinese = {
+  [ArgumentType.Claim]: '论点',
+  [ArgumentType.Data]: '论据',
+  [ArgumentType.Warrant]: '辩护',
+  [ArgumentType.Rebuttal]: '反驳',
+  [ArgumentType.Backing]: '支持',
+  [ArgumentType.Qualifier]: '限定词',
+}
 const getArgumentFlowState = () => {
   const res = argumentFlowRef.value?.getArgumentState()
   console.log('getArgumentFlowState res', res)
@@ -1040,6 +1048,84 @@ const getArgumentFlowState = () => {
     edges: res.edges.value,
   }
 }
+const getFormattedArgument = () => {
+  const { nodes } = getArgumentFlowState()
+  return nodes
+    .map(node => {
+      return `${argumentTypeChinese[node._type]}: ${node.data.inputValue}`
+    })
+    .join('\n')
+}
+/**
+ * 检查props.nodes和props.edges的情况，只有nodes和edges中包含
+ * 前提、结论、辩护时才可以发送消息
+ */
+const checkNodesAndEdges = (
+  conditions: {
+    nodeType: NodeType['_type']
+    minWordCount: number
+  }[]
+) => {
+  let count = 0
+  const { nodes } = getArgumentFlowState()
+  for (const condition of conditions) {
+    const findNode = nodes.find(node => node._type === condition.nodeType)
+    // console.log('findNode', findNode)
+    if (findNode && findNode.data.inputValue.length >= condition.minWordCount) {
+      count++
+    }
+  }
+  return count === conditions.length
+}
+// 要让ChatGpt的Component拿到论证图谱的nodes和edges
+const chatGptPromptScofflds: Scaffold[] = [
+  {
+    title: '给一个论证框架',
+    description: '请根据我的话题,给出一个基本的论证',
+    key: 'argument',
+    getPrompt: () => {
+      return `论证话题为: """${topicContent.value}"""。请你基于图尔敏的论证模型给出一个论证。`
+    },
+    ShowInQuickPrompt: true,
+    validate: () => {
+      return true
+    },
+    onValidateError: () => {
+      ElMessage.error('请先完整输入论证内容')
+    },
+  },
+  {
+    title: '指出不足之处',
+    description: '请你帮我分析我的论证有什么不足之处',
+    key: 'limitation',
+    getPrompt: () => {
+      return `我想论证的话题为"""
+      ${topicContent.value}
+      """"。这是我的论证:"""${getFormattedArgument()}"""。请你指出我的论证的不足之处或者逻辑有问题之处。`
+    },
+    ShowInQuickPrompt: true,
+    validate: () => {
+      return checkNodesAndEdges([
+        {
+          nodeType: ArgumentType.Claim,
+          minWordCount: 10,
+        },
+        {
+          nodeType: ArgumentType.Data,
+          minWordCount: 10,
+        },
+      ])
+    },
+    onValidateError: () => {
+      ElNotification({
+        title: '提示',
+        message: '请先完整输入论证内容,至少填写前提和结论,每个元素至少10个字。',
+        type: 'warning',
+      })
+    },
+  },
+]
+
 const nodesForChatGpt = ref<NodeType[]>([])
 const edgesForChatGpt = ref<EdgeType[]>([])
 // 进行防抖，多次触发只更新一次
@@ -1137,12 +1223,12 @@ const updateArgumentFlowState = _.debounce(() => {
         <el-col :span="18" style="padding: 10px; background-color: #f5f5f5">
           <div class="argument-flow-container" style="background-color: #fff">
             <argumentFlowComponent
+              ref="argumentFlowRef"
               :modified-edges="modifiedEdges"
               :modified-nodes="modifiedNodes"
               :reply-edges="replyEdges"
               :reply-nodes="replyNodes"
               :key="key"
-              ref="argumentFlowRef"
               :condition="condition"
               :role="controller.role"
               :action="controller.action"
@@ -1185,6 +1271,7 @@ const updateArgumentFlowState = _.debounce(() => {
         <el-col :span="6">
           <div class="chatgpt-container">
             <ChatGptComponent
+              :scaffold="chatGptPromptScofflds"
               :topic="topicContent"
               current-argument="测试"
               :get-argument-state="getArgumentFlowState"

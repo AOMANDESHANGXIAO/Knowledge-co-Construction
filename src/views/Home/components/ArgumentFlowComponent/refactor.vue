@@ -276,12 +276,7 @@ const handleTextualized = (): {
   }
 }
 
-const {
-  closed,
-  contentStyle,
-  handleToggleFold,
-  MAX_CONTENT_WIDTH,
-} = useTips({
+const { closed, contentStyle, handleToggleFold, MAX_CONTENT_WIDTH } = useTips({
   topicContent: props.topicContent,
   condition: props.condition,
   textualizedArgument: handleTextualized(),
@@ -548,6 +543,159 @@ const socraticQuestioningTips = [
   '前提和结论之间逻辑是否正确吗?',
   '你的论证有没有局限性?',
 ]
+interface RenderButtonListItem {
+  btnText: string
+  btnColor: string
+  confirm?: boolean
+  confirmText?: string
+  onConfirm?: () => void
+  onClick: () => void
+  isRender: () => boolean
+}
+
+// 修改或者发布观点时的按钮列表
+// 修改结论+修改
+const renderReviseConditionList: RenderButtonListItem[] = [
+  {
+    btnText: '重置论证',
+    btnColor: '#03346E',
+    confirm: true,
+    confirmText: '确定重置?',
+    onConfirm() {
+      resetState()
+    },
+    onClick() {},
+    isRender: () => {
+      return true
+    },
+  },
+  {
+    btnText: '自动布局',
+    btnColor: '#FF8225',
+    confirm: false,
+    onClick() {
+      setFitView()
+    },
+    isRender: () => {
+      return true
+    },
+  },
+  {
+    btnText: '加入辩护',
+    btnColor: '#88D66C',
+    onClick() {
+      addNode(ArgumentType.Warrant)
+    },
+    isRender: () => {
+      return true
+    },
+  },
+  {
+    btnText: '加限定词',
+    btnColor: '#4535C1',
+    onClick() {
+      addNode(ArgumentType.Qualifier)
+    },
+    isRender: () => {
+      return true
+    },
+  },
+  {
+    btnText: '增加反驳',
+    btnColor: '#DC0083',
+    onClick() {
+      addNode(ArgumentType.Rebuttal)
+    },
+    isRender: () => {
+      return true
+    },
+  },
+]
+// 查看观点时的BtnList
+const renderCheckIdeaConditionList: RenderButtonListItem[] = [
+  {
+    btnText: '支持观点',
+    btnColor: '#88D66C',
+    confirmText: '你确定要跳转至观点编辑页面吗?',
+    confirm: true,
+    onClick() {},
+    onConfirm() {
+      handleClickAcceptBtn()
+    },
+    isRender() {
+      return !props.InSelfIdea
+    },
+  },
+  {
+    btnText: '反对观点',
+    btnColor: '#FF2929',
+    confirmText: '你确定要跳转至观点编辑页面吗?',
+    confirm: true,
+    onClick() {},
+    onConfirm() {
+      handleClickRejectBtn()
+    },
+    isRender() {
+      return !props.InSelfIdea
+    },
+  },
+  {
+    btnText: '修改观点',
+    btnColor: '#3D3BF3',
+    confirmText: '你确定要修改观点吗?',
+    confirm: true,
+    onClick() {},
+    onConfirm() {
+      handleClickModifyIdeaBtn()
+    },
+    isRender() {
+      return props.InSelfIdea
+    },
+  },
+]
+// 查看小组结论并且是自己的组
+const renderCheckConclusionConditionList: RenderButtonListItem[] = [
+  {
+    btnText: '修改结论',
+    btnColor: '#88D66C',
+    confirmText: '确定要修改小组总结的观点吗?',
+    confirm: true,
+    onClick() {},
+    onConfirm() {
+      handleClickModifyConclusionBtn()
+    },
+    isRender() {
+      return true
+    },
+  },
+]
+
+const renderBtnList = computed(() => {
+  console.log('render...')
+  let list: RenderButtonListItem[] = []
+  if (props.condition === 'checkIdea') {
+    console.log(1)
+    list = renderCheckIdeaConditionList
+  } else if (
+    [
+      'modifyConclusion',
+      'modifyIdea',
+      'replyIdea',
+      'proposeConclusion',
+      'proposeIdea',
+    ].includes(props.condition)
+  ) {
+    console.log(2)
+    list = renderReviseConditionList
+  } else if (props.condition === 'checkConclusion' && props.InSelfGroup) {
+    console.log(3)
+    list = renderCheckConclusionConditionList
+  } else {
+    console.log(4)
+    list = []
+  }
+  return list.filter(item => item.isRender())
+})
 
 defineExpose({
   getArgumentState,
@@ -592,140 +740,32 @@ defineExpose({
 
       <Controls />
 
-      <!-- 当选择修改观点时，可以通过这些按钮来进行修改-->
+      <!-- 右上角显示的按钮 -->
       <Panel
         position="top-right"
         class="button-group-container"
-        v-if="
-          condition === 'modifyConclusion' ||
-          condition === 'modifyIdea' ||
-          condition === 'replyIdea' ||
-          condition === 'proposeConclusion' ||
-          condition === 'proposeIdea'
-        "
+        v-if="renderBtnList.length > 0"
       >
-        <el-popconfirm
-          title="你确定要重置论证?"
-          @confirm="
-            () => {
-              resetState()
-            }
-          "
-        >
-          <template #reference>
-            <el-button plain style="margin-left: 0" color="#03346E">
-              重置论证
-            </el-button>
-          </template>
-        </el-popconfirm>
-
-        <el-button
-          plain
-          style="margin-left: 0"
-          color="#FF8225"
-          @click="
-            () => {
-              setFitView()
-            }
-          "
-          >自动布局</el-button
-        >
-
-        <el-button
-          plain
-          style="margin-left: 0"
-          color="#88D66C"
-          @click="
-            () => {
-              addNode(ArgumentType.Warrant)
-            }
-          "
-          >加入辩护</el-button
-        >
-
-        <el-button
-          plain
-          style="margin-left: 0"
-          color="#4535C1"
-          @click="
-            () => {
-              addNode(ArgumentType.Qualifier)
-            }
-          "
-          >加限定词</el-button
-        >
-
-        <el-button
-          plain
-          style="margin-left: 0"
-          color="#DC0083"
-          @click="
-            () => {
-              addNode(ArgumentType.Rebuttal)
-            }
-          "
-          >增加反驳</el-button
-        >
-      </Panel>
-
-      <!-- 在查看观点时可以选择支持观点或者反对观点, 如果是学生自己的观点，那么还可以修改观点 -->
-      <Panel
-        position="top-right"
-        class="button-group-container"
-        v-if="condition === 'checkIdea'"
-      >
-        <!-- 不能支持或者反对自己的观点 -->
-        <el-popconfirm
-          title="你确定要跳转至观点编辑页面吗?"
-          @confirm="handleClickAcceptBtn"
-          v-if="!InSelfIdea"
-        >
-          <template #reference>
-            <el-button plain style="margin-left: 0" type="success"
-              >支持观点</el-button
+        <div v-for="item in renderBtnList">
+          <div v-if="item.confirm">
+            <el-popconfirm :title="item.confirmText" @confirm="item.onConfirm">
+              <template #reference>
+                <el-button plain style="margin-left: 0" :color="item.btnColor">
+                  {{ item.btnText }}
+                </el-button>
+              </template>
+            </el-popconfirm>
+          </div>
+          <div v-else>
+            <el-button
+              plain
+              style="margin-left: 0"
+              :color="item.btnColor"
+              @click="item.onClick"
+              >{{ item.btnText }}</el-button
             >
-          </template>
-        </el-popconfirm>
-        <el-popconfirm
-          title="你确定要跳转至观点编辑页面吗?"
-          @confirm="handleClickRejectBtn"
-          v-if="!InSelfIdea"
-        >
-          <template #reference>
-            <el-button plain style="margin-left: 0" type="danger"
-              >反对观点</el-button
-            >
-          </template>
-        </el-popconfirm>
-        <!-- 只能修改自己的观点 -->
-        <el-popconfirm
-          title="你确定要修改观点吗?"
-          @confirm="handleClickModifyIdeaBtn"
-          v-if="InSelfIdea"
-        >
-          <template #reference>
-            <el-button plain style="margin-left: 0" type="warning">
-              修改观点
-            </el-button>
-          </template>
-        </el-popconfirm>
-      </Panel>
-
-      <Panel
-        position="top-right"
-        class="button-group-container"
-        v-if="condition === 'checkConclusion' && InSelfGroup"
-      >
-        <el-popconfirm
-          title="确定要修改小组总结的观点吗?"
-          @confirm="handleClickModifyConclusionBtn"
-        >
-          <template #reference>
-            <el-button plain style="margin-left: 0" type="warning"
-              >修改总结</el-button
-            >
-          </template>
-        </el-popconfirm>
+          </div>
+        </div>
       </Panel>
 
       <!-- 反馈 -->
