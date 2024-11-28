@@ -506,7 +506,7 @@ const handleClickModifyConclusionBtn = () => {
 // 2024/11/25 新增功能
 // 显示当前Condition
 const ConditionChineseMap: Record<Condition, string> = {
-  checkIdea: '检查自己观点',
+  checkIdea: '检查观点',
   checkConclusion: '检查小组结论',
   modifyIdea: '修改自己观点',
   modifyConclusion: '修改自己结论',

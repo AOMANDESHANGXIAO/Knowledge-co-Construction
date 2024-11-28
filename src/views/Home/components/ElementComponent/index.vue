@@ -303,6 +303,41 @@ const getElementTipsRenderMap = (argumentType: ArgumentType) => {
 const currentElementTips = computed(() => {
   return getElementTipsRenderMap(props._type)
 })
+// 提示模板
+const getElementArgumentGuide = (argumentType: ArgumentType) => {
+  switch (argumentType) {
+    case ArgumentType.Data: {
+      return [
+        '我认为论证的前提是',
+        'XXXX',
+        '我认为论证的前提是',
+        '我认为论证的前提是',
+      ]
+    }
+    case ArgumentType.Warrant: {
+      return ['XXX', 'XXXX']
+    }
+    case ArgumentType.Backing: {
+      return ['XXX', 'XXXX']
+    }
+    case ArgumentType.Rebuttal: {
+      return ['XXX', 'XXXX']
+    }
+    case ArgumentType.Qualifier: {
+      return ['大多数情况下', '总体而言', '某些时候', '一般而言']
+    }
+    case ArgumentType.Claim: {
+      return ['XXX', 'XXXX']
+    }
+  }
+}
+const currentElemntArgumentGuide = computed(() => {
+  return getElementArgumentGuide(props._type)
+})
+const handleClickTag = (tip: string) => {
+  // 将提示词填写到输入框中
+  form.value.inputValue = form.value.inputValue + tip
+}
 </script>
 
 <template>
@@ -397,32 +432,17 @@ const currentElementTips = computed(() => {
         ></el-input>
       </el-form-item>
     </el-form>
-
-    <el-divider v-if="props._type === ArgumentType.Warrant"
-      >辩护模板</el-divider
-    >
-
-    <!-- 辩护模板 -->
-    <div class="template-container" v-if="props._type === ArgumentType.Warrant">
-      <el-select
-        v-model="warrant.template"
-        placeholder="需要辩护模板吗?"
-        style="width: 250px"
-      >
-        <el-option
-          v-for="item in warrant.tOptions"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        ></el-option>
-      </el-select>
-      <el-button :color="defaultColor" @click="warrant.handleInsertTemplate"
-        >插 入</el-button
+    <!-- 论证前提词汇 -->
+    <div class="argument-guide-container">
+      <n-tag
+        v-for="(item, index) in currentElemntArgumentGuide"
+        :key="index"
+        @click="handleClickTag(item)"
+        type="info"
+        >{{ item }}</n-tag
       >
     </div>
-
     <el-divider></el-divider>
-
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="dialogVisible = false" plain :color="defaultColor"
@@ -502,5 +522,16 @@ $color: #88d66c;
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.argument-guide-container {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  width: 100%;
+  gap: 10px;
+  :deep(.n-tag) {
+    // margin-top: 10px;
+    cursor: pointer;
+  }
 }
 </style>
