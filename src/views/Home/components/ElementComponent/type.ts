@@ -1,5 +1,4 @@
-import { ArgumentType } from "../ArgumentFlowComponent/type"
-
+import { ArgumentType } from '../ArgumentFlowComponent/type'
 
 /**
  * @deprecated
@@ -23,5 +22,6 @@ export interface Props {
   modelValue: string
   visible: boolean
   _type: ArgumentType
+  argumentGuideType: 'propose' | 'agree' | 'disagree' | 'summary'
   tags?: Tag[]
 }

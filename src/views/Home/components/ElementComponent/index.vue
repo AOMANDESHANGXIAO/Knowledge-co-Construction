@@ -51,6 +51,7 @@ const props = withDefaults(defineProps<Props>(), {
   nodeId: '',
   tags: () => [],
   visible: true,
+  argumentGuideType: 'propose',
 })
 
 watch(
@@ -303,33 +304,53 @@ const getElementTipsRenderMap = (argumentType: ArgumentType) => {
 const currentElementTips = computed(() => {
   return getElementTipsRenderMap(props._type)
 })
-// 提示模板
-const getElementArgumentGuide = (argumentType: ArgumentType) => {
-  switch (argumentType) {
-    case ArgumentType.Data: {
-      return [
-        '我认为论证的前提是',
-        'XXXX',
-        '我认为论证的前提是',
-        '我认为论证的前提是',
-      ]
-    }
-    case ArgumentType.Warrant: {
-      return ['XXX', 'XXXX']
-    }
-    case ArgumentType.Backing: {
-      return ['XXX', 'XXXX']
-    }
-    case ArgumentType.Rebuttal: {
-      return ['XXX', 'XXXX']
-    }
-    case ArgumentType.Qualifier: {
-      return ['大多数情况下', '总体而言', '某些时候', '一般而言']
-    }
-    case ArgumentType.Claim: {
-      return ['XXX', 'XXXX']
-    }
+// TODO: 引导语句，提出自己观点时+同意观点时引导+不同意时引导+总结观点时引导
+const argumentGuideMapping: {
+  [key in ArgumentType]: {
+    [key in Props['argumentGuideType']]: string[]
   }
+} = {
+  data: {
+    propose: ['Propose', '我认为', '我认为', '我认为'],
+    agree: ['agree', '我认为', '我认为', '我认为'],
+    disagree: ['disagree', '我认为', '我认为', '我认为'],
+    summary: ['summary', '我认为', '我认为', '我认为'],
+  },
+  warrant: {
+    propose: ['Propose', '我认为', '我认为', '我认为'],
+    agree: ['agree', '我认为', '我认为', '我认为'],
+    disagree: ['disagree', '我认为', '我认为', '我认为'],
+    summary: ['summary', '我认为', '我认为', '我认为'],
+  },
+  backing: {
+    propose: ['Propose', '我认为', '我认为', '我认为'],
+    agree: ['agree', '我认为', '我认为', '我认为'],
+    disagree: ['disagree', '我认为', '我认为', '我认为'],
+    summary: ['summary', '我认为', '我认为', '我认为'],
+  },
+  rebuttal: {
+    propose: ['Propose', '我认为', '我认为', '我认为'],
+    agree: ['agree', '我认为', '我认为', '我认为'],
+    disagree: ['disagree', '我认为', '我认为', '我认为'],
+    summary: ['summary', '我认为', '我认为', '我认为'],
+  },
+  qualifier: {
+    propose: ['Propose', '我认为', '我认为', '我认为'],
+    agree: ['agree', '我认为', '我认为', '我认为'],
+    disagree: ['disagree', '我认为', '我认为', '我认为'],
+    summary: ['summary', '我认为', '我认为', '我认为'],
+  },
+  claim: {
+    propose: ['Propose', '我认为', '我认为', '我认为'],
+    agree: ['agree', '我认为', '我认为', '我认为'],
+    disagree: ['disagree', '我认为', '我认为', '我认为'],
+    summary: ['summary', '我认为', '我认为', '我认为'],
+  },
+}
+
+// 论证引导语句
+const getElementArgumentGuide = (argumentType: ArgumentType) => {
+  return argumentGuideMapping[argumentType][props.argumentGuideType]
 }
 const currentElemntArgumentGuide = computed(() => {
   return getElementArgumentGuide(props._type)

@@ -524,6 +524,7 @@ const isElementAllowedToEdit = computed(() => {
     'proposeConclusion',
     'modifyIdea',
     'modifyConclusion',
+    'replyIdea'
   ].includes(props.condition)
 })
 
@@ -696,6 +697,39 @@ const renderBtnList = computed(() => {
   }
   return list.filter(item => item.isRender())
 })
+class CheckGuideState {
+  static checkStatePropose() {
+    return props.condition === 'proposeIdea' || props.condition === 'modifyIdea'
+  }
+  static checkStateAgree() {
+    return props.condition === 'replyIdea' && props.reply === 'approve'
+  }
+  static checkStateDisagree() {
+    return props.condition === 'replyIdea' && props.reply === 'reject'
+  }
+  static checkStateSummary() {
+    return (
+      props.condition === 'proposeConclusion' ||
+      props.condition === 'modifyConclusion'
+    )
+  }
+}
+// 论证提示词状态
+const argumentGuideState: ComputedRef<
+  'propose' | 'agree' | 'disagree' | 'summary'
+> = computed(() => {
+  if (CheckGuideState.checkStatePropose()) {
+    return 'propose'
+  } else if (CheckGuideState.checkStateAgree()) {
+    return 'agree'
+  } else if (CheckGuideState.checkStateDisagree()) {
+    return 'disagree'
+  } else if (CheckGuideState.checkStateSummary()) {
+    return 'summary'
+  } else {
+    return 'propose'
+  }
+})
 
 defineExpose({
   getArgumentState,
@@ -723,6 +757,7 @@ defineExpose({
           :nodeId="props.id"
           :_type="props.data._type"
           :visible="isElementAllowedToEdit"
+          :argumentGuideType="argumentGuideState"
           v-model="props.data.inputValue"
           @addBacking="onAddBacking"
           @notAllowed="onNotAllowed"
