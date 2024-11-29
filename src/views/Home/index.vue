@@ -47,6 +47,7 @@ import CourseWorkAPI from '@/apis/courseWork'
 import ChatGptComponent from './components/ChatGptComponent/index.vue'
 import type { Scaffold } from './components/ChatGptComponent/chatgptComponent.type'
 import { ArgumentType } from './components/ArgumentFlowComponent/type.ts'
+import { getArgumentHtml } from '@/utils/formatter/argument.formatter.ts'
 
 const { getOneUserInfo } = useUserStore()
 
@@ -1142,8 +1143,10 @@ const openQuestionDialog = () => {
 const closeQuestionDialog = () => {
   questionDialogVisible.value = false
 }
+const questionIdeaNodes = ref<NodeType[]>([])
 // 提问的Dialog打开
-const onClickQuestionBtn = () => {
+const onClickQuestionBtn = ({ nodes }: { nodes: NodeType[] }) => {
+  questionIdeaNodes.value = nodes
   // 关闭论点编辑器的dialog
   dialogVisible.value = false
   // 开启提问的dialog
@@ -1153,23 +1156,55 @@ const onClickQuestionBtn = () => {
 }
 const questionFormModel = ref({
   question: '',
-  evidence: '',
 })
 const questionFormModelRules = {
   question: [{ required: true, message: '请输入问题', trigger: 'blur' }],
-  evidence: [{ required: true, message: '请输入证据', trigger: 'blur' }],
 }
-const questionNoticeWordList = ref([
-  '我认为你的论证存在XX问题',
-  '我认为你的论证存在XX不足之处',
+const questionScaffoldList = ref([
+  {
+    title: '厘清概念与定义',
+    list: [
+      '你为什么这么说?XXX',
+      'XX与我们所讨论的有什么关系?',
+      'XX到底是什么意思?',
+    ],
+  },
+  {
+    title: '探究假设与前提',
+    list: [
+      '请解释你为什么XXX',
+      '你好像假设了XXX',
+      '你怎样证明或者反对该假设?',
+      '你同意还是反对XX?',
+    ],
+  },
+  {
+    title: '探究理由与证据',
+    list: ['这些理由足够充分吗?', '你有什么证据支持?', '你怎么知道这个的?'],
+  },
+  {
+    title: '质疑观点与视角',
+    list: [
+      '另一种看待此问题的方式是XXX,这听起来有道理吗?',
+      '其他看待此问题的视角是什么?',
+      'XX的优点和缺点是什么?',
+    ],
+  },
+  {
+    title: '探究后果与影响',
+    list: ['这个会怎么影响XX?', '这个假设的后果是什么?', '为什么XXX是重要的?'],
+  },
+  {
+    title: '探究问题本身',
+    list: ['你提的这个问题有什么意义?', '为什么要论证XX?'],
+  },
 ])
-const evidenceNoticeWordList = ref(['问题在于,', '你的前提存在问题'])
 const onClickQuestionTag = (word: string) => {
   questionFormModel.value.question += word
 }
-const onClickEvidenceTag = (word: string) => {
-  questionFormModel.value.evidence += word
-}
+const questionIdeaHtml = computed(() => {
+  return getArgumentHtml(questionIdeaNodes.value)
+})
 </script>
 
 <template>
@@ -1606,45 +1641,37 @@ const onClickEvidenceTag = (word: string) => {
             >
             </n-input>
           </n-form-item>
-          <n-form-item path="evidence" label="依据">
-            <n-input
-              v-model:value="questionFormModel.evidence"
-              type="textarea"
-              placeholder="请输入提问的依据..."
-            >
-            </n-input>
-          </n-form-item>
         </n-form>
+        <!-- 提示正在提问的观点 -->
+        <div class="notice-is-reply-container">
+          <n-text type="primary" style="font-size: 20px">正在提问的观点</n-text>
+          <div>
+            <n-text v-html="questionIdeaHtml"></n-text>
+          </div>
+        </div>
       </n-col>
       <n-col :span="12">
-        <div class="tags-container">
-          <header>问题引导词</header>
-          <div class="tags-content">
-            <n-tag
-              v-for="(item, index) in questionNoticeWordList"
-              :key="index"
-              type="info"
-              @click="onClickQuestionTag(item)"
-              >{{ item }}</n-tag
-            >
-          </div>
-        </div>
-        <div class="tags-container">
-          <header>理由引导词</header>
-          <div class="tags-content">
-            <n-tag
-              v-for="(item, index) in evidenceNoticeWordList"
-              :key="index"
-              type="info"
-              @click="onClickEvidenceTag(item)"
-              >{{ item }}</n-tag
-            >
-          </div>
-        </div>
+        <n-collapse>
+          <n-collapse-item
+            v-for="(item, index) in questionScaffoldList"
+            :title="item.title"
+            :name="item.title"
+            :key="index"
+          >
+            <div class="tags-content">
+              <n-tag
+                v-for="(word, _index) in item.list"
+                :key="_index"
+                type="primary"
+                @click="onClickQuestionTag(word)"
+                >{{ word }}</n-tag
+              >
+            </div>
+          </n-collapse-item>
+        </n-collapse>
       </n-col>
     </n-row>
 
-    <!-- todo: 提问框架 -->
     <template #footer>
       <div class="dialog-footer">
         <n-button @click="closeQuestionDialog">取 消</n-button>
@@ -1840,18 +1867,12 @@ $naive-green: #18a058;
   margin-bottom: 10px;
 }
 
-.tags-container {
+.tags-content {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin-bottom: 10px;
-  .tags-content {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    :deep(.n-tag) {
-      cursor: pointer;
-    }
+  flex-wrap: wrap;
+  gap: 10px;
+  :deep(.n-tag) {
+    cursor: pointer;
   }
 }
 </style>

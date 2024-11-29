@@ -415,7 +415,12 @@ const emit = defineEmits<{
     payload: { modifiedNodes: NodeType[]; modifiedEdges: EdgeType[] }
   ): void
   (e: 'onUpdateArgumentFlowState'): void
-  (e: 'onClickQuestion'): void
+  (
+    e: 'onClickQuestion',
+    payload: {
+      nodes: NodeType[]
+    }
+  ): void
 }>()
 
 const handleClickRejectBtn = () => {
@@ -647,7 +652,9 @@ const renderCheckIdeaConditionList: RenderButtonListItem[] = [
     confirm: false,
     onClick() {
       console.log('提个问题...')
-      emit('onClickQuestion')
+      emit('onClickQuestion', {
+        nodes: nodes.value,
+      })
     },
     isRender() {
       return !props.InSelfIdea
