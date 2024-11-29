@@ -1134,6 +1134,42 @@ const updateArgumentFlowState = _.debounce(() => {
   nodesForChatGpt.value = res.nodes
   edgesForChatGpt.value = res.edges
 }, 500)
+
+const questionDialogVisible = ref(false)
+const openQuestionDialog = () => {
+  questionDialogVisible.value = true
+}
+const closeQuestionDialog = () => {
+  questionDialogVisible.value = false
+}
+// 提问的Dialog打开
+const onClickQuestionBtn = () => {
+  // 关闭论点编辑器的dialog
+  dialogVisible.value = false
+  // 开启提问的dialog
+  console.log('onClickQuestionBtn')
+  // questionDialogVisible.value = true
+  openQuestionDialog()
+}
+const questionFormModel = ref({
+  question: '',
+  evidence: '',
+})
+const questionFormModelRules = {
+  question: [{ required: true, message: '请输入问题', trigger: 'blur' }],
+  evidence: [{ required: true, message: '请输入证据', trigger: 'blur' }],
+}
+const questionNoticeWordList = ref([
+  '我认为你的论证存在XX问题',
+  '我认为你的论证存在XX不足之处',
+])
+const evidenceNoticeWordList = ref(['问题在于,', '你的前提存在问题'])
+const onClickQuestionTag = (word: string) => {
+  questionFormModel.value.question += word
+}
+const onClickEvidenceTag = (word: string) => {
+  questionFormModel.value.evidence += word
+}
 </script>
 
 <template>
@@ -1243,6 +1279,7 @@ const updateArgumentFlowState = _.debounce(() => {
               @on-click-modify-idea-btn="onClickModifyIdeaBtn"
               @on-click-modify-conclusion-btn="onClickModifyConclusionBtn"
               @on-update-argument-flow-state="updateArgumentFlowState"
+              @on-click-question="onClickQuestionBtn"
             ></argumentFlowComponent>
           </div>
           <div class="button-footer-container">
@@ -1546,6 +1583,77 @@ const updateArgumentFlowState = _.debounce(() => {
       </n-tab-pane>
     </n-tabs>
   </el-dialog>
+
+  <!-- 提问Dialog -->
+  <el-dialog
+    v-model="questionDialogVisible"
+    width="80%"
+    :close-on-click-modal="false"
+    :close-on-press-escape="false"
+  >
+    <n-row :gutter="20">
+      <n-col :span="12">
+        <n-form
+          ref="questionFormRef"
+          :model="questionFormModel"
+          :rules="questionFormModelRules"
+        >
+          <n-form-item path="question" label="问题">
+            <n-input
+              v-model:value="questionFormModel.question"
+              type="textarea"
+              placeholder="请输入想提的问题..."
+            >
+            </n-input>
+          </n-form-item>
+          <n-form-item path="evidence" label="依据">
+            <n-input
+              v-model:value="questionFormModel.evidence"
+              type="textarea"
+              placeholder="请输入提问的依据..."
+            >
+            </n-input>
+          </n-form-item>
+        </n-form>
+      </n-col>
+      <n-col :span="12">
+        <div class="tags-container">
+          <header>问题引导词</header>
+          <div class="tags-content">
+            <n-tag
+              v-for="(item, index) in questionNoticeWordList"
+              :key="index"
+              type="info"
+              @click="onClickQuestionTag(item)"
+              >{{ item }}</n-tag
+            >
+          </div>
+        </div>
+        <div class="tags-container">
+          <header>理由引导词</header>
+          <div class="tags-content">
+            <n-tag
+              v-for="(item, index) in evidenceNoticeWordList"
+              :key="index"
+              type="info"
+              @click="onClickEvidenceTag(item)"
+              >{{ item }}</n-tag
+            >
+          </div>
+        </div>
+      </n-col>
+    </n-row>
+
+    <!-- todo: 提问框架 -->
+    <template #footer>
+      <div class="dialog-footer">
+        <n-button @click="closeQuestionDialog">取 消</n-button>
+        <n-button type="primary" @click="" style="margin-left: 10px"
+          >确 认</n-button
+        >
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <style scoped lang="scss">
@@ -1730,5 +1838,20 @@ $naive-green: #18a058;
   border: 1px solid #ccc;
   border-radius: 10px;
   margin-bottom: 10px;
+}
+
+.tags-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+  .tags-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    :deep(.n-tag) {
+      cursor: pointer;
+    }
+  }
 }
 </style>
