@@ -125,7 +125,10 @@ interface QueryNodeContentData {
   [property: string]: any
 }
 
-interface NodeResponseBased<T extends 'idea' | 'group' | 'topic', D> {
+interface NodeResponseBased<
+  T extends 'idea' | 'group' | 'topic' | 'question',
+  D
+> {
   id: string
   type: T
   position: {
@@ -164,6 +167,15 @@ interface QueryFlowResponse {
         }
       >
     | NodeResponseBased<'topic', { text: string }>
+    | NodeResponseBased<
+        'question',
+        {
+          name: string
+          id: number
+          bgc: string
+          student_id: number
+        }
+      >
   >
   edges: Array<EdgeResponse>
 }
@@ -219,5 +231,5 @@ export type {
   ProposeGroupConclusionParams,
   ModifyGroupConclusionParams,
   QueryDashBoardResponse,
-  QueryGroupOptionResponse
+  QueryGroupOptionResponse,
 }

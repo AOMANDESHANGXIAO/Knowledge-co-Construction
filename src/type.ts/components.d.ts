@@ -72,6 +72,7 @@ declare module 'vue' {
     NText: typeof import('naive-ui')['NText']
     NTimeline: typeof import('naive-ui')['NTimeline']
     NTimelineItem: typeof import('naive-ui')['NTimelineItem']
+    QuestionNode: typeof import('./../components/vueFlow/components/questionNode/index.vue')['default']
     RadarGraph: typeof import('./../components/common/radarGraph/index.vue')['default']
     RelationshipGraph: typeof import('./../components/common/relationshipGraph/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

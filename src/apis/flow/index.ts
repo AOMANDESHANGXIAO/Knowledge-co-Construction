@@ -135,6 +135,31 @@ const queryGroupOptionApi = async ({
   })
 }
 
+const questionIdea = async (args: {
+  topic_id: number
+  reply_node_id: number // node_id
+  question_content: string
+  student_id: number // 创建者的id}) => {
+}): Promise<Response> => {
+  return Service.post('/flow/question_idea', args)
+}
+
+const checkQuestionContent = async (args: {
+  node_id: number
+  student_id: number
+}): Promise<
+  Response<{
+    content: string
+    nickname: string
+  }>
+> => {
+  return Service({
+    method: 'get',
+    url: '/flow/check_question_content',
+    params: args,
+  })
+}
+
 export {
   queryFlowDataApi,
   queryNodeContentApi,
@@ -148,5 +173,7 @@ export {
   queryGroupNodeContentApi,
   queryWordCloudApi,
   queryGroupOptionApi,
+  questionIdea,
+  checkQuestionContent
   // reviseSelfIdeaApi,
 }

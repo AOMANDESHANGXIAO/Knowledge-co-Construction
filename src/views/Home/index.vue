@@ -36,7 +36,7 @@ import { QueryDashBoardResponse, TimeLineItem } from '@/apis/flow/type'
 import useEvaluation from './hooks/useEvaluation'
 import _ from 'lodash'
 import router from '@/router/index.ts'
-import { NButton } from 'naive-ui'
+import { NButton, NForm } from 'naive-ui'
 import { ArchiveOutline as ArchiveIcon } from '@vicons/ionicons5'
 import { uploadFilesApi, uploadCourseWorkApi } from '@/apis/upload/index.ts'
 import useTable from '@/hooks/Async/useTable.ts'
@@ -47,7 +47,8 @@ import CourseWorkAPI from '@/apis/courseWork'
 import ChatGptComponent from './components/ChatGptComponent/index.vue'
 import type { Scaffold } from './components/ChatGptComponent/chatgptComponent.type'
 import { ArgumentType } from './components/ArgumentFlowComponent/type.ts'
-import { getArgumentHtml } from '@/utils/formatter/argument.formatter.ts'
+import { getArgumentList } from '@/utils/formatter/argument.formatter.ts'
+import { questionIdea, checkQuestionContent } from '@/apis/flow'
 
 const { getOneUserInfo } = useUserStore()
 
@@ -1144,8 +1145,16 @@ const closeQuestionDialog = () => {
   questionDialogVisible.value = false
 }
 const questionIdeaNodes = ref<NodeType[]>([])
+let replyNodeId = 0
 // 提问的Dialog打开
-const onClickQuestionBtn = ({ nodes }: { nodes: NodeType[] }) => {
+const onClickQuestionBtn = ({
+  nodes,
+  reply_node_id,
+}: {
+  nodes: NodeType[]
+  reply_node_id: number
+}) => {
+  replyNodeId = reply_node_id
   questionIdeaNodes.value = nodes
   // 关闭论点编辑器的dialog
   dialogVisible.value = false
@@ -1158,7 +1167,7 @@ const questionFormModel = ref({
   question: '',
 })
 const questionFormModelRules = {
-  question: [{ required: true, message: '请输入问题', trigger: 'blur' }],
+  question: [{ required: true, message: '请输入问题', trigger: 'change' }],
 }
 const questionScaffoldList = ref([
   {
@@ -1202,9 +1211,79 @@ const questionScaffoldList = ref([
 const onClickQuestionTag = (word: string) => {
   questionFormModel.value.question += word
 }
-const questionIdeaHtml = computed(() => {
-  return getArgumentHtml(questionIdeaNodes.value)
+const isQuestionargumentList = computed(() => {
+  return getArgumentList(questionIdeaNodes.value)
 })
+
+const getQuestionArgs = () => {
+  const student_id = JSON.parse(localStorage.getItem('userInfo')!).id
+  return {
+    topic_id: topicId.value,
+    question_content: questionFormModel.value.question.trim(),
+    student_id: Number(student_id),
+    reply_node_id: replyNodeId,
+  }
+}
+// question
+const { run: createNewQuestionApi, loading: questionSubmitLoading } =
+  useRequest({
+    apiFn: () => {
+      const args = getQuestionArgs()
+      return questionIdea(args)
+    },
+  })
+const questionFormRef = ref<InstanceType<typeof NForm> | null>(null)
+const onClickQuestionSubmitBtn = () => {
+  console.log('onClickQuestionSubmitBtn')
+  console.log(questionFormRef.value)
+  if (questionFormModel.value.question.trim().length === 0) {
+    ElMessage.error('请输入问题')
+    return
+  }
+  createNewQuestionApi()
+}
+// 检查questionNode
+const getCheckQuestionParams = () => {
+  return {
+    node_id: checkQuestionNodeId,
+    student_id: JSON.parse(localStorage.getItem('userInfo')!).id as number,
+  }
+}
+// 显示查看的问题内容
+const questionContent = ref({
+  content: '',
+  nickname: '',
+})
+const { run: checkQuestionApi } = useRequest({
+  apiFn: async () => {
+    const args = getCheckQuestionParams()
+    return checkQuestionContent(args)
+  },
+  onSuccess(res: { content: string; nickname: string }) {
+    questionContent.value = res
+    console.log('checkQuestionApi', res)
+  },
+})
+let checkQuestionNodeId = 0
+const onClickQuestionNode = (payload: {
+  nodeId: number
+  studentId: number
+}) => {
+  console.log('onClickQuestionNode', payload)
+  checkQuestionNodeId = payload.nodeId
+  openCheckQuestionDialog()
+  checkQuestionApi()
+}
+const checkQuestionVisible = ref(false)
+const openCheckQuestionDialog = () => {
+  checkQuestionVisible.value = true
+}
+const closeCheckQuestionDialog = () => {
+  checkQuestionVisible.value = false
+}
+const onClickResponseQuestion = () => {
+  console.log('onClickReponseQuestion')
+}
 </script>
 
 <template>
@@ -1219,6 +1298,7 @@ const questionIdeaHtml = computed(() => {
       "
       @onClickGroupNode="onClickGroupNode"
       @onClickIdeaNode="onClickIdeaNode"
+      @onClickQuestionNode="onClickQuestionNode"
     >
       <!-- 右上角插槽放一些控制按钮 -->
       <template #top-right>
@@ -1646,7 +1726,10 @@ const questionIdeaHtml = computed(() => {
         <div class="notice-is-reply-container">
           <n-text type="primary" style="font-size: 20px">正在提问的观点</n-text>
           <div>
-            <n-text v-html="questionIdeaHtml"></n-text>
+            <div v-for="(item, index) in isQuestionargumentList" :key="index">
+              <n-text type="info"> {{ item.type + ':' }}</n-text>
+              <n-text>{{ item.text }}</n-text>
+            </div>
           </div>
         </div>
       </n-col>
@@ -1675,8 +1758,37 @@ const questionIdeaHtml = computed(() => {
     <template #footer>
       <div class="dialog-footer">
         <n-button @click="closeQuestionDialog">取 消</n-button>
-        <n-button type="primary" @click="" style="margin-left: 10px"
+        <n-button
+          type="primary"
+          :loading="questionSubmitLoading"
+          @click="onClickQuestionSubmitBtn"
+          style="margin-left: 10px"
           >确 认</n-button
+        >
+      </div>
+    </template>
+  </el-dialog>
+
+  <!-- check question dialog -->
+  <el-dialog v-model="checkQuestionVisible" :append-to-body="true" width="80%">
+    <div class="check-question-dialog">
+      <div style="font-size: 24px">
+        <strong>{{ questionContent.nickname || '正在加载...' }}</strong
+        >的提问
+      </div>
+      <div>
+        <n-text>{{ questionContent.content || '正在加载...' }}</n-text>
+      </div>
+    </div>
+
+    <template #footer>
+      <div class="dialog-footer">
+        <n-button @click="closeCheckQuestionDialog">取 消</n-button>
+        <n-button
+          type="primary"
+          @click="onClickResponseQuestion"
+          style="margin-left: 10px"
+          >回 应</n-button
         >
       </div>
     </template>

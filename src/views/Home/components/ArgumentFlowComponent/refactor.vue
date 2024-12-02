@@ -419,6 +419,7 @@ const emit = defineEmits<{
     e: 'onClickQuestion',
     payload: {
       nodes: NodeType[]
+      reply_node_id: number
     }
   ): void
 }>()
@@ -654,6 +655,7 @@ const renderCheckIdeaConditionList: RenderButtonListItem[] = [
       console.log('提个问题...')
       emit('onClickQuestion', {
         nodes: nodes.value,
+        reply_node_id: Number(props.focusNodeId),
       })
     },
     isRender() {

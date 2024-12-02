@@ -25,23 +25,17 @@ const argumentElementWeightMap = {
 const getArgumentTypeWeight = (argumentElement: ArgumentType) => {
   return argumentElementWeightMap[argumentElement]
 }
-const getArgumentHtml = (nodes: NodeType[]) => {
-  const res =
-    `<ul>` +
-    nodes
-      .map(node => {
-        return {
-          html: `<li><strong>${getArgumentTypeChinese(node._type)}<strong/><span>${
-            node.data.inputValue
-          }</span></li>`,
-          weight: getArgumentTypeWeight(node._type),
-        }
-      })
-      .sort((a, b) => b.weight - a.weight)
-      .map(item => item.html)
-      .join('\n') +
-    `</ul>`
-  console.log('html =>', res)
-  return res
+const getArgumentList = (nodes: NodeType[]) => {
+  const res = nodes
+    .map(node => {
+      return {
+        weight: getArgumentTypeWeight(node._type),
+        type: getArgumentTypeChinese(node._type),
+        text: node.data.inputValue,
+      }
+    })
+    .sort((a, b) => b.weight - a.weight)
+    console.log(res)
+    return res
 }
-export { argumentTypeChinese, getArgumentTypeWeight, getArgumentHtml }
+export { argumentTypeChinese, getArgumentTypeWeight, getArgumentList }

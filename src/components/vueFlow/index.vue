@@ -8,6 +8,7 @@ import '@vue-flow/controls/dist/style.css'
 import { nextTick } from 'vue'
 import topicNode from './components/topicNode/index.vue'
 import groupNode from './components/groupNode/index.vue'
+import questionNode from './components/questionNode/index.vue'
 import ideaNode from './components/ideaNode/index.vue'
 import { queryFlowDataApi } from '@/apis/flow/index.ts'
 import useRequest from '@/hooks/Async/useRequest'
@@ -97,6 +98,20 @@ const stateFormatter = (data: QueryFlowResponse) => {
             sourcePosition: Position.Bottom,
           },
         }
+      } else if (node.type === 'question') {
+        const { data } = node
+        return {
+          ...node,
+          data: {
+            name: data.name,
+            id: String(data.id),
+            bgc: data.bgc,
+            student_id: String(data.student_id),
+            highlight: false,
+            targetPosition: Position.Top,
+            sourcePosition: Position.Bottom,
+          },
+        }
       } else {
         return {
           ...node,
@@ -119,6 +134,9 @@ const stateFormatter = (data: QueryFlowResponse) => {
     }),
   }
 }
+const [nodes, setNodes] = useState<Node[]>([])
+
+const [edges, setEdges] = useState<Edge[]>([])
 
 const { loading, run } = useRequest({
   apiFn: async () => {
@@ -134,16 +152,12 @@ const { loading, run } = useRequest({
   onFinally: () => {
     setFitView()
   },
+  immediate: true,
 })
-
-const [nodes, setNodes] = useState<Node[]>([])
-
-const [edges, setEdges] = useState<Edge[]>([])
 
 /**
  * init flow data
  */
-run()
 
 const { layout } = useLayout()
 
@@ -234,6 +248,9 @@ defineExpose({
       </template>
       <template #node-idea="props">
         <ideaNode :data="props.data" v-bind="$attrs" />
+      </template>
+      <template #node-question="props">
+        <questionNode :data="props.data" v-bind="$attrs" />
       </template>
 
       <Background
