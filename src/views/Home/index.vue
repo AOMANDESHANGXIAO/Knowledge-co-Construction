@@ -48,8 +48,15 @@ import ChatGptComponent from './components/ChatGptComponent/index.vue'
 import type { Scaffold } from './components/ChatGptComponent/chatgptComponent.type'
 import { ArgumentType } from './components/ArgumentFlowComponent/type.ts'
 import { getArgumentList } from '@/utils/formatter/argument.formatter.ts'
-import { questionIdea, checkQuestionContent } from '@/apis/flow'
-
+import {
+  queryNodeContentApi,
+  questionIdea,
+  checkQuestionContent,
+} from '@/apis/flow'
+import flowTool from './useFlowHandler.ts'
+import { ArgumentNode, ArgumentEdge } from '@/apis/flow/type.ts'
+import { QueryNodeContentData } from '@/apis/flow/type'
+import { convertToHTML } from './components/ArgumentFlowComponent/utils.ts'
 const { getOneUserInfo } = useUserStore()
 
 const [dialogVisible, setDialogVisible] = useState(false)
@@ -1271,9 +1278,57 @@ const onClickQuestionNode = (payload: {
 }) => {
   console.log('onClickQuestionNode', payload)
   checkQuestionNodeId = payload.nodeId
+  // 拿到nodes和edges
+  const res = vueFlowRef.value!.getState()
+  // 查找这个问题指向的观点是什么?
+  const node = flowTool.findTargetNodeBySourceId({
+    nodes: res.nodes,
+    edges: res.edges,
+    node_id: String(payload.nodeId),
+  })
+  targetNodeId = node!.id
+  console.log('找到了正在提问的node', node)
+
   openCheckQuestionDialog()
+  getReponseContentApi()
   checkQuestionApi()
 }
+/**
+ * 查看问题回复的观点
+ */
+let targetNodeId = ''
+const getReponseContentParams = () => {
+  return {
+    node_id: Number(targetNodeId),
+    student_id: Number(studentId),
+  }
+}
+const responseArgumentState = ref<{
+  nodes: ArgumentNode[]
+  edges: ArgumentEdge[]
+}>({
+  nodes: [],
+  edges: [],
+})
+const responseArgumentHTML = computed(() => {
+  return convertToHTML({
+    nodes: responseArgumentState.value.nodes,
+    edges: responseArgumentState.value.edges,
+  })
+})
+const { run: getReponseContentApi } = useRequest({
+  apiFn: () => {
+    const params = getReponseContentParams()
+    return queryNodeContentApi(params.node_id, params.student_id)
+  },
+  onSuccess: (res: QueryNodeContentData) => {
+    const { nodes, edges } = res
+    console.log('getReponseContentApi success', res)
+    responseArgumentState.value.nodes = nodes
+    responseArgumentState.value.edges = edges
+  },
+})
+
 const checkQuestionVisible = ref(false)
 const openCheckQuestionDialog = () => {
   checkQuestionVisible.value = true
@@ -1773,12 +1828,21 @@ const onClickResponseQuestion = () => {
   <el-dialog v-model="checkQuestionVisible" :append-to-body="true" width="80%">
     <div class="check-question-dialog">
       <div style="font-size: 24px">
-        <strong>{{ questionContent.nickname || '正在加载...' }}</strong
-        >的提问
+        <strong
+          ><n-text type="primary">{{
+            questionContent.nickname + '的提问' || '正在加载...'
+          }}</n-text></strong
+        >
       </div>
       <div>
         <n-text>{{ questionContent.content || '正在加载...' }}</n-text>
       </div>
+    </div>
+    <div class="response-idea-container" style="margin-top: 20px">
+      <div style="font-size: 24px">
+        <strong><n-text type="primary">该问题针对以下论点提问</n-text></strong>
+      </div>
+      <div v-html="responseArgumentHTML || '正在加载...'"></div>
     </div>
 
     <template #footer>

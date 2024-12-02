@@ -97,7 +97,7 @@ interface NodeData {
   [property: string]: any
 }
 
-interface ArgumentNode {
+export interface ArgumentNode {
   id: string
   data: {
     inputValue: string
@@ -112,7 +112,7 @@ interface ArgumentNode {
   [property: string]: any
 }
 
-interface ArgumentEdge {
+export interface ArgumentEdge {
   id: string
   source: string
   target: string
