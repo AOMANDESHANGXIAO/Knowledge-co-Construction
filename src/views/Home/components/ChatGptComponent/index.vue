@@ -10,7 +10,7 @@ import Icon from './icon.vue'
 import { useClipboard } from '@vueuse/core'
 import type { NodeType, EdgeType } from '../ArgumentFlowComponent/type'
 import { ArgumentType } from '../ArgumentFlowComponent/type'
-import type { Scaffold} from './chatgptComponent.type'
+import type { Scaffold } from './chatgptComponent.type'
 
 const props = withDefaults(
   defineProps<{
@@ -263,7 +263,6 @@ const canSendMessage = computed(() => {
   return checkNodesAndEdges([
     { nodeType: ArgumentType.Claim, minWordCount: 10 },
     { nodeType: ArgumentType.Data, minWordCount: 10 },
-    { nodeType: ArgumentType.Warrant, minWordCount: 10 },
   ])
 })
 // 快速提示
@@ -377,6 +376,14 @@ const onClickQuestionTemplate = () => {
     userInput.value += selectedOption.getPrompt()
   }
 }
+const onClickNotAllowMask = () => {
+  ElNotification({
+    title: '提示',
+    message: '构建一个包含前提和结论元素的论证以解锁,每个元素不少于10个字',
+    duration: 5000,
+    type: 'warning',
+  })
+}
 </script>
 
 <template>
@@ -488,18 +495,29 @@ const onClickQuestionTemplate = () => {
         </div>
         <!-- 空消息时会给快速提示 -->
         <div class="question-scaffolds">
-          <n-card
-            v-for="scaffold in props.scaffold"
-            :key="scaffold.key"
-            :title="scaffold.title"
-            size="small"
-            hoverable
-            embedded
-            :bordered="false"
-            @click="onClickScaffoldItem(scaffold)"
-          >
-            <n-text>{{ scaffold.description }}</n-text>
-          </n-card>
+          <div class="card-container" v-for="scaffold in props.scaffold">
+            <n-card
+              :key="scaffold.key"
+              :title="scaffold.title"
+              size="small"
+              hoverable
+              embedded
+              :bordered="false"
+              @click="onClickScaffoldItem(scaffold)"
+            >
+              <n-text>{{ scaffold.description }}</n-text>
+            </n-card>
+            <!-- 蒙版，如果不能发送信息则显示 -->
+            <div
+              class="mask"
+              v-if="!canSendMessage"
+              @click="onClickNotAllowMask"
+            >
+              <n-text type="primary" style="font-size: 18px"
+                >继续构建论证以解锁</n-text
+              >
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -542,7 +560,7 @@ const onClickQuestionTemplate = () => {
             type="textarea"
             :rows="2"
             :autosize="{ minRows: 2, maxRows: 6 }"
-            :disabled="isReceiving"
+            :disabled="isReceiving || !canSendMessage"
             clearable
           />
         </el-col>
@@ -556,7 +574,7 @@ const onClickQuestionTemplate = () => {
               }
             "
             circle
-            :disabled="isReceiving"
+            :disabled="isReceiving || !canSendMessage"
             color="#2563eb"
             ><el-icon><Position /></el-icon
           ></el-button>
@@ -665,6 +683,25 @@ const onClickQuestionTemplate = () => {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    :deep(.n-card) {
+      cursor: pointer;
+    }
+    .card-container {
+      position: relative;
+    }
+    .mask {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.5);
+      z-index: 100;
+      cursor: not-allowed;
+    }
   }
 }
 
