@@ -1364,6 +1364,32 @@ const onClickResponseQuestion = () => {
  * 消息提示功能
  */
 const handleClickNotice = () => {}
+
+const msgTabBarList = ref([
+  { content: '支持我的', key: 'support', num: 3 },
+  { content: '反对我的', key: 'oppose', num: 0 },
+  { content: '向我提问的', key: 'ask', num: 10 },
+])
+const activeKey = ref('support')
+interface Idea {
+  nickname: string
+  type: 'primary' | 'info' | 'warning' | 'success' | 'error'
+  id: string
+}
+
+const ideaList = ref<Idea[]>([
+  { nickname: 'Idea 1', type: 'success', id: '1' },
+  { nickname: 'Idea 2', type: 'info', id: '2' },
+  { nickname: 'Idea 33333', type: 'warning', id: '3' },
+  { nickname: 'Idea 4', type: 'error', id: '4' },
+  { nickname: 'Idea 5', type: 'primary', id: '5' },
+])
+const onTagChange = (key: string) => {
+  console.log('key', key)
+}
+const onClickTag = (id: string) => {
+  console.log('id', id)
+}
 </script>
 
 <template>
@@ -1383,13 +1409,19 @@ const handleClickNotice = () => {}
       <!-- 右上角插槽放一些控制按钮 -->
       <template #top-right>
         <div class="layout-panel">
-          <n-popover trigger="hover">
+          <n-popover trigger="click" style="padding: 0">
             <template #trigger>
               <button title="消息提示" @click="handleClickNotice">
                 <Icon :name="IconName.Notice"></Icon>
               </button>
             </template>
-            <MsgNotice></MsgNotice>
+            <MsgNotice
+              :tab-bar-list="msgTabBarList"
+              v-model:active-key="activeKey"
+              :idea-list="ideaList"
+              @on-change="onTagChange"
+              @on-click-tag="onClickTag"
+            ></MsgNotice>
           </n-popover>
           <button title="小组文件" @click="handleClickGroupFileBtn">
             <Icon :name="IconName.File"></Icon>
