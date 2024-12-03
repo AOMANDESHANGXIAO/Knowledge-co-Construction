@@ -57,6 +57,7 @@ import flowTool from './useFlowHandler.ts'
 import { ArgumentNode, ArgumentEdge } from '@/apis/flow/type.ts'
 import { QueryNodeContentData } from '@/apis/flow/type'
 import { convertToHTML } from './components/ArgumentFlowComponent/utils.ts'
+import MsgNotice from './components/messageNotice/index.vue'
 
 const { getOneUserInfo } = useUserStore()
 
@@ -1359,6 +1360,10 @@ const onClickResponseQuestion = () => {
   openArgumentEditor()
   console.log('onClickReponseQuestion')
 }
+/**
+ * 消息提示功能
+ */
+const handleClickNotice = () => {}
 </script>
 
 <template>
@@ -1378,6 +1383,14 @@ const onClickResponseQuestion = () => {
       <!-- 右上角插槽放一些控制按钮 -->
       <template #top-right>
         <div class="layout-panel">
+          <n-popover trigger="hover">
+            <template #trigger>
+              <button title="消息提示" @click="handleClickNotice">
+                <Icon :name="IconName.Notice"></Icon>
+              </button>
+            </template>
+            <MsgNotice></MsgNotice>
+          </n-popover>
           <button title="小组文件" @click="handleClickGroupFileBtn">
             <Icon :name="IconName.File"></Icon>
           </button>

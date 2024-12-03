@@ -188,6 +188,34 @@ const props = defineProps<Props>()
         fill="#ffffff"
       ></path>
     </svg>
+
+    <svg
+      v-else-if="props.name === IconName.Notice"
+      t="1733192340100"
+      class="icon"
+      viewBox="0 0 1024 1024"
+      version="1.1"
+      xmlns="http://www.w3.org/2000/svg"
+      p-id="4291"
+      width="200"
+      height="200"
+    >
+      <path
+        d="M508.8 44.8c-256 0-464 208-464 464s208 464 464 464 464-208 464-464S764.8 44.8 508.8 44.8zM508.8 924.8c-230.4 0-416-185.6-416-416s185.6-416 416-416 416 185.6 416 416S739.2 924.8 508.8 924.8z"
+        p-id="4292"
+        fill="#ffffff"
+      ></path>
+      <path
+        d="M521.6 652.8c12.8 0 22.4-9.6 22.4-22.4l0-428.8c0-12.8-9.6-22.4-22.4-22.4-12.8 0-22.4 9.6-22.4 22.4l0 428.8C496 640 508.8 652.8 521.6 652.8z"
+        p-id="4293"
+        fill="#ffffff"
+      ></path>
+      <path
+        d="M521.6 748.8m-35.2 0a1.1 1.1 0 1 0 70.4 0 1.1 1.1 0 1 0-70.4 0Z"
+        p-id="4294"
+        fill="#ffffff"
+      ></path>
+    </svg>
   </section>
 </template>
 
