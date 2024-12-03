@@ -57,6 +57,7 @@ import flowTool from './useFlowHandler.ts'
 import { ArgumentNode, ArgumentEdge } from '@/apis/flow/type.ts'
 import { QueryNodeContentData } from '@/apis/flow/type'
 import { convertToHTML } from './components/ArgumentFlowComponent/utils.ts'
+
 const { getOneUserInfo } = useUserStore()
 
 const [dialogVisible, setDialogVisible] = useState(false)
@@ -131,6 +132,7 @@ const [condition, setCondition] = useState<
   | 'replyIdea'
   | 'proposeIdea'
   | 'proposeConclusion'
+  | 'responseQuestion'
 >('checkIdea')
 
 const onClickGroupNode = (payload: {
@@ -314,6 +316,7 @@ const {
   submitReplyIdea,
   submitProposeGroupConclusion,
   submitModifyGroupConclusion,
+  submitResponseQuestion,
 } = useSubmit({
   onSuccess: () => {
     ElNotification({
@@ -400,6 +403,20 @@ const handleSubmit = () => {
         nodes: nodesValue,
         edges: edgesValue,
       })
+      break
+    }
+    case 'responseQuestion': {
+      console.log('responseQuestion submitting...')
+      console.log('nodes', nodesValue)
+      console.log('edges', edgesValue)
+      submitResponseQuestion({
+        topic_id: topicId.value,
+        student_id: +studentId,
+        nodes: nodesValue,
+        edges: edgesValue,
+        questionNodeId: String(checkQuestionNodeId.value),
+      })
+      console.log('submitResponseQuestion finished')
       break
     }
   }
@@ -1252,7 +1269,7 @@ const onClickQuestionSubmitBtn = () => {
 // 检查questionNode
 const getCheckQuestionParams = () => {
   return {
-    node_id: checkQuestionNodeId,
+    node_id: checkQuestionNodeId.value,
     student_id: JSON.parse(localStorage.getItem('userInfo')!).id as number,
   }
 }
@@ -1271,13 +1288,13 @@ const { run: checkQuestionApi } = useRequest({
     console.log('checkQuestionApi', res)
   },
 })
-let checkQuestionNodeId = 0
+let checkQuestionNodeId = ref(0)
 const onClickQuestionNode = (payload: {
   nodeId: number
   studentId: number
 }) => {
   console.log('onClickQuestionNode', payload)
-  checkQuestionNodeId = payload.nodeId
+  checkQuestionNodeId.value = payload.nodeId
   // 拿到nodes和edges
   const res = vueFlowRef.value!.getState()
   // 查找这个问题指向的观点是什么?
@@ -1337,6 +1354,9 @@ const closeCheckQuestionDialog = () => {
   checkQuestionVisible.value = false
 }
 const onClickResponseQuestion = () => {
+  closeCheckQuestionDialog()
+  setCondition('responseQuestion')
+  openArgumentEditor()
   console.log('onClickReponseQuestion')
 }
 </script>
@@ -1444,6 +1464,7 @@ const onClickResponseQuestion = () => {
               :focus-node-id="requestParams.focusNodeId"
               :show-feed-back="true"
               :topic-content="topicContent"
+              :responseQuestionNodeId="checkQuestionNodeId"
               @on-click-accept-btn="onClickApproveBtn"
               @on-click-reject-btn="onClickRejectBtn"
               @on-click-modify-idea-btn="onClickModifyIdeaBtn"

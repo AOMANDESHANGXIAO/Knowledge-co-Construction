@@ -51,6 +51,7 @@ const props = withDefaults(
     modifiedEdges: EdgeType[]
     replyNodes: NodeType[]
     replyEdges: EdgeType[]
+    responseQuestionNodeId: number // 回复问题的NodeId
   }>(),
   {
     condition: 'checkIdea',
@@ -66,6 +67,7 @@ const props = withDefaults(
     replyNodes: () => [],
     replyEdges: () => [],
     reply: 'none',
+    responseQuestionNodeId: 0, // 回复问题的NodeId
   }
 )
 /**
@@ -217,28 +219,35 @@ function whenModifyConclusion() {
   setFitView()
 }
 
-function replyIdea() {
+function whenReplyIdea() {
   console.log('replyIdea')
   setDefaultValue()
 }
 
-function proposeIdea() {
+function whenProposeIdea() {
   console.log('proposeIdea')
   setDefaultValue()
 }
 
-function proposeConclusion() {
+function whenProposeConclusion() {
   console.log('proposeConclusion')
   setDefaultValue()
 }
+
+function whenResponseQuestion() {
+  console.log('whenResponseQuestion')
+  setDefaultValue()
+}
+
 const onMountedFunctionMap = {
   checkIdea: whenCheckIdea,
   checkConclusion: whenCheckConclusion,
   modifyIdea: whenModifyIdea,
   modifyConclusion: whenModifyConclusion,
-  replyIdea: replyIdea,
-  proposeIdea: proposeIdea,
-  proposeConclusion: proposeConclusion,
+  replyIdea: whenReplyIdea,
+  proposeIdea: whenProposeIdea,
+  proposeConclusion: whenProposeConclusion,
+  responseQuestion: whenResponseQuestion,
 }
 
 onMounted(() => {
@@ -520,6 +529,7 @@ const ConditionChineseMap: Record<Condition, string> = {
   replyIdea: '回复对方观点',
   proposeIdea: '提出自己观点',
   proposeConclusion: '提出小组结论',
+  responseQuestion: '回复问题',
 }
 const conditionText = computed(() => {
   return ConditionChineseMap[props.condition]
@@ -532,6 +542,7 @@ const isElementAllowedToEdit = computed(() => {
     'modifyIdea',
     'modifyConclusion',
     'replyIdea',
+    'responseQuestion',
   ].includes(props.condition)
 })
 
@@ -713,6 +724,8 @@ const renderBtnList = computed(() => {
   } else if (props.condition === 'checkConclusion' && props.InSelfGroup) {
     console.log(3)
     list = renderCheckConclusionConditionList
+  } else if (props.condition === 'responseQuestion') {
+    list = renderReviseConditionList
   } else {
     console.log(4)
     list = []

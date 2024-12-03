@@ -91,5 +91,6 @@ export type Condition =
   | 'replyIdea'
   | 'proposeIdea'
   | 'proposeConclusion'
+  | 'responseQuestion'
 
 export type { NodeType, EdgeType, AddBackPayload, FeedBack, ArgumentNode }

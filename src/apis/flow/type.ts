@@ -45,6 +45,10 @@ interface ProposeGroupConclusionParams
   groupNodeId: string
 }
 
+interface ResponseQuestionArgs extends CreateNewIdeaArgs {
+  questionNodeId: string
+}
+
 interface ModifyGroupConclusionParams extends ProposeGroupConclusionParams {}
 
 interface ReviseGroupConclusionParams {
@@ -232,4 +236,5 @@ export type {
   ModifyGroupConclusionParams,
   QueryDashBoardResponse,
   QueryGroupOptionResponse,
+  ResponseQuestionArgs
 }

@@ -18,7 +18,7 @@ function convertToHTML(data: { nodes: NodeType[]; edges: EdgeType[] }) {
   const warrants = data.edges.filter(edge => edge._type === 'warrant_claim')
   if (warrants.length > 0) {
     htmlOutput += `<div><strong><em>辩护</em>:</strong><ul>\n`
-    warrants.forEach((warrant, index) => {
+    warrants.forEach((warrant, _) => {
       htmlOutput += `<li>${nodesMap[warrant.source]}</li>\n`
     })
     htmlOutput += `</ul></div>\n`
@@ -28,7 +28,7 @@ function convertToHTML(data: { nodes: NodeType[]; edges: EdgeType[] }) {
   const backings = data.edges.filter(edge => edge._type === 'backing_warrant')
   if (backings.length > 0) {
     htmlOutput += `<div><strong><em>支撑</em>:</strong><ul>\n`
-    backings.forEach((backing, index) => {
+    backings.forEach((backing, _) => {
       htmlOutput += `<li>${nodesMap[backing.source]}</li>\n`
     })
     htmlOutput += `</ul></div>\n`

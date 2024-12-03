@@ -8,6 +8,7 @@ import {
   modifyIdeaApi,
   proposeGroupConclusionApi,
   modifyGroupConclusionApi,
+  responseQuestionApi,
 } from '@/apis/flow'
 import { CreateNewIdeaArgs } from '@/apis/flow/type'
 import useRequest from '@/hooks/Async/useRequest'
@@ -208,11 +209,45 @@ export default function useSumbit({
     })
   }
 
+  const submitResponseQuestion = ({
+    topic_id,
+    student_id,
+    nodes,
+    edges,
+    questionNodeId,
+  }: {
+    topic_id: number
+    student_id: number
+    nodes: NodeType[]
+    edges: EdgeType[]
+    questionNodeId: string
+  }) => {
+    useRequest({
+      apiFn: async () => {
+        return responseQuestionApi({
+          topic_id,
+          student_id,
+          nodes,
+          edges,
+          questionNodeId,
+        })
+      },
+      onSuccess: () => {
+        onSuccess && onSuccess()
+      },
+      onFail: () => {
+        onFail && onFail()
+      },
+      immediate: true,
+    })
+  }
+
   return {
     submitProposeIdea,
     submitModifyIdea,
     submitReplyIdea,
     submitProposeGroupConclusion,
     submitModifyGroupConclusion,
+    submitResponseQuestion,
   }
 }

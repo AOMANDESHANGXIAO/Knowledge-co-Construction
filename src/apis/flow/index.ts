@@ -11,6 +11,7 @@ import type {
   ModifyGroupConclusionParams,
   QueryDashBoardResponse,
   QueryGroupOptionResponse,
+  ResponseQuestionArgs,
 } from './type.ts'
 const queryFlowDataApi = (
   topic_id: number
@@ -160,6 +161,12 @@ const checkQuestionContent = async (args: {
   })
 }
 
+const responseQuestionApi = async (
+  args: ResponseQuestionArgs
+): Promise<Response> => {
+  return Service.post('/flow/response_question', args)
+}
+
 export {
   queryFlowDataApi,
   queryNodeContentApi,
@@ -174,6 +181,7 @@ export {
   queryWordCloudApi,
   queryGroupOptionApi,
   questionIdea,
-  checkQuestionContent
+  checkQuestionContent,
+  responseQuestionApi
   // reviseSelfIdeaApi,
 }
