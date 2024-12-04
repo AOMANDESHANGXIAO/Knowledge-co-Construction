@@ -44,6 +44,7 @@ const props = withDefaults(
       time: string
     }>
     wordCloudTextList?: QueryWordCloudResult['list']
+    patterns: string[]
   }>(),
   {
     timeLineList: () => [
@@ -61,6 +62,7 @@ const props = withDefaults(
       },
     ],
     wordCloudTextList: () => [] as QueryWordCloudResult['list'],
+    patterns: () => [],
   }
 )
 const getCloudWordData = inject('getCloudWordData') as () => void
@@ -144,6 +146,7 @@ const handleGetWordCloudContent = (name: string) => {
               :option="item.option"
               :type="item.type"
               :alert="alerts[index]"
+              :patterns="props.patterns"
             >
             </DashBoardItem>
           </div>

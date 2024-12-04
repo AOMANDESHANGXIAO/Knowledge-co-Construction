@@ -799,60 +799,65 @@ const argumentGuideState: ComputedRef<
  * 2. 正在回复的论证
  * 3. 正在针对发表观点的论题
  */
-const tipsState = computed<{
-  title: string
-  content: string
-  type: 'info' | 'warning' | 'success'
-}>(() => {
+const tipsState = computed(() => {
   const condition = props.condition
-  let title = ''
-  let content = ''
-  let type: 'info' | 'warning' | 'success' = 'info'
-  // 如果状态是回复提问的话
-  if (condition === 'responseQuestion') {
-    title = '正在回复的问题'
-    content = props.responsedQuestion
-    type = 'info'
-  } else if (condition === 'checkIdea' || condition === 'checkConclusion') {
-    title = '正在查看的论证'
-    content = convertToText({
-      nodes: props.checkedState.nodes,
-      edges: props.checkedState.edges,
-    })
-    type = 'info'
-  } else if (
-    condition === 'replyIdea' ||
-    props.reply === 'approve' ||
-    props.reply === 'reject'
-  ) {
-    title = '正在回复的论证'
-    content = convertToText({
-      nodes: props.checkedState.nodes,
-      edges: props.checkedState.edges,
-    })
-    type = 'info'
-  } else if (condition === 'modifyIdea' || condition === 'modifyConclusion') {
-    title = '正在修改的论证'
-    content = convertToText({
-      nodes: props.checkedState.nodes,
-      edges: props.checkedState.edges,
-    })
-    type = 'info'
-  } else if (condition === 'proposeIdea' || condition === 'proposeConclusion') {
-    title = '正在针对此话题发表观点'
-    content = props.topicContent
-    type = 'info'
+  const defaultState = {
+    title: '',
+    content: '',
+    type: 'info',
   }
-  console.log('tipsState', {
-    title,
-    content,
-    type,
-  })
-  return {
-    title,
-    content,
-    type,
+
+  const stateMap = {
+    responseQuestion: {
+      title: '正在回复的问题',
+      content: props.responsedQuestion,
+    },
+    checkIdea: {
+      title: '正在查看的论证',
+      content: convertToText({
+        nodes: props.checkedState.nodes,
+        edges: props.checkedState.edges,
+      }),
+    },
+    checkConclusion: {
+      title: '正在查看的论证',
+      content: convertToText({
+        nodes: props.checkedState.nodes,
+        edges: props.checkedState.edges,
+      }),
+    },
+    replyIdea: {
+      title: '正在回复的论证',
+      content: convertToText({
+        nodes: props.checkedState.nodes,
+        edges: props.checkedState.edges,
+      }),
+    },
+    modifyIdea: {
+      title: '正在修改的论证',
+      content: convertToText({
+        nodes: props.checkedState.nodes,
+        edges: props.checkedState.edges,
+      }),
+    },
+    modifyConclusion: {
+      title: '正在修改的论证',
+      content: convertToText({
+        nodes: props.checkedState.nodes,
+        edges: props.checkedState.edges,
+      }),
+    },
+    proposeIdea: {
+      title: '正在针对此话题发表观点',
+      content: props.topicContent,
+    },
+    proposeConclusion: {
+      title: '正在针对此话题发表观点',
+      content: props.topicContent,
+    },
   }
+
+  return stateMap[condition] || defaultState
 })
 
 defineExpose({
@@ -956,8 +961,8 @@ defineExpose({
         <!-- 苏格拉底提示框架 -->
         <!-- 重构,这里应该显示正在回复的观点或者回应的问题 -->
         <section v-if="!closed">
-          <n-h3 prefix="bar" :type="tipsState.type">
-            <n-text :type="tipsState.type">{{ tipsState.title }}</n-text>
+          <n-h3 prefix="bar" type="info">
+            <n-text type="info">{{ tipsState.title }}</n-text>
           </n-h3>
           <n-text v-html="tipsState.content"> </n-text>
         </section>

@@ -553,6 +553,7 @@ const {
   getEvaluatedArgument,
   getEvaluatedGroupContribution,
   getEvaluatedInteraction,
+  highLightPatterns,
   // @ts-ignore
 } = useEvaluation(evaluationData)
 
@@ -1511,10 +1512,11 @@ const [checkedArgument, setCheckedArgument] = useState<{
       <!-- 左上角插槽放dashboard显示小组的互动等 -->
       <template #top-left>
         <mini-dash-board
-          style="scale: 0.8; transform-origin: 0 0"
+          style="scale: 1; transform-origin: 0 0"
           @checkDetail="onCheckDetail"
           :list="alertList"
           :title="progressText"
+          :patterns="highLightPatterns"
         />
       </template>
     </flow-component>
@@ -1611,6 +1613,7 @@ const [checkedArgument, setCheckedArgument] = useState<{
     :append-to-body="true"
   >
     <fullScreenDashBoard
+      :patterns="highLightPatterns"
       :dashBoardRenderList="dashBoardRenderList"
       :alerts="alertList"
       :time-line-list="timeLineList"

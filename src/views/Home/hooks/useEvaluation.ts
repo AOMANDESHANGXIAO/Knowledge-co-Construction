@@ -97,6 +97,18 @@ function useEvaluation(
   const GREAT_ARGUMENT_RATE = 0.7
   const WARNING_ARGUMENT_RATE = 0.5
   const ARGUMENT_ELMENTS = ['支撑', '结论', '前提', '限定词', '反驳', '辩护']
+  const dynamticPatterns = ref<string[]>([])
+  const addDynamticPatterns = (newPatterns: string[]) => {
+    // 遍历newPatterns，如果原先的没有就加上
+    newPatterns.forEach(item => {
+      if (!dynamticPatterns.value.includes(item)) {
+        dynamticPatterns.value.push(item)
+      }
+    })
+  }
+  const highLightPatterns = computed(() => {
+    return [...ARGUMENT_ELMENTS, ...dynamticPatterns.value]
+  })
 
   const getArguSequence = () => {
     const { argumentData } = props.value
@@ -144,8 +156,8 @@ function useEvaluation(
 
   const titleMap = {
     success: '表现优异!',
-    warning: '你可以做的更好!',
-    error: '需要加把劲!',
+    info: '你可以做的更好!',
+    warning: '需要加把劲!',
   }
 
   const loadingHandler = () => {
@@ -174,7 +186,7 @@ function useEvaluation(
    */
   const getEvaluatedArgument = () => {
     const { argumentData } = props.value
-    let _type: 'success' | 'warning' | 'error' = 'success'
+    let _type: 'success' | 'warning' | 'info' = 'success'
     const res = loadingHandler()
     if (!res.flag) {
       return res.alert
@@ -200,9 +212,9 @@ function useEvaluation(
     if (warningCount === 0 && dangerCount === 0) {
       _type = 'success'
     } else if (warningCount > dangerCount) {
-      _type = 'warning'
+      _type = 'info'
     } else {
-      _type = 'error'
+      _type = 'warning'
     }
 
     return {
@@ -254,11 +266,12 @@ function useEvaluation(
    */
   const getEvaluatedInteraction = () => {
     const { interactionData } = props.value
-    let _type: 'success' | 'warning' | 'error' = 'success'
+    let _type: 'success' | 'warning' | 'info' = 'success'
     const res = loadingHandler()
     if (!res.flag) {
       return res.alert
     }
+    const shouldBeAddedHighLightWords = [] as string[]
     const { isInteracted, noEngageStudents, leastEngageStudents } =
       formatInteractionElement(interactionData)
 
@@ -276,6 +289,7 @@ function useEvaluation(
      */
     if (noEngageStudents.length > 0) {
       noEngageStudents.forEach(item => {
+        shouldBeAddedHighLightWords.push(item)
         suggestions.push(`学生${item}没有互动哦!快于他互动吧!`)
       })
     }
@@ -286,6 +300,7 @@ function useEvaluation(
     if (leastEngageStudents.length > 0) {
       leastEngageStudents.forEach(item => {
         if (noEngageStudents.includes(item)) return
+        shouldBeAddedHighLightWords.push(item)
         suggestions.push(`学生${item}的互动较少哦!请多多互动吧!`)
       })
     }
@@ -293,11 +308,11 @@ function useEvaluation(
     if (suggestions.length === 0) {
       _type = 'success'
     } else if (suggestions.length < 3) {
-      _type = 'warning'
+      _type = 'info'
     } else {
-      _type = 'error'
+      _type = 'warning'
     }
-
+    addDynamticPatterns(shouldBeAddedHighLightWords)
     return {
       title: titleMap[_type],
       suggestions,
@@ -347,7 +362,7 @@ function useEvaluation(
     const totalStudents = barSeries.length
 
     const suggestions: string[] = []
-
+    const shouldBeAddedHighLightWords = [] as string[]
     // 遍历每个贡献类型
     sequence.forEach((contributionType, index) => {
       const ranking = studentRankings[index]
@@ -357,6 +372,7 @@ function useEvaluation(
         (ranking === totalStudents || ranking === totalStudents - 1) &&
         contributionTypeText
       ) {
+        shouldBeAddedHighLightWords.push(contributionTypeText)
         suggestions.push(
           `你在${contributionTypeText}方面的排名较低，请积极参与相关活动！`
         )
@@ -368,12 +384,16 @@ function useEvaluation(
     studentData!.data.forEach((count, index) => {
       const contributionTypeText = sequence[index]
       if (count < average && contributionTypeText) {
+        shouldBeAddedHighLightWords.push(contributionTypeText)
         suggestions.push(
           `你在本组中的${contributionTypeText}表现不佳，请积极参与学习活动！`
         )
       }
     })
-
+    /**
+     *
+     */
+    addDynamticPatterns(shouldBeAddedHighLightWords)
     return {
       rankings: studentRankings,
       suggestions,
@@ -384,22 +404,23 @@ function useEvaluation(
    * 评价小组贡献
    */
   const getEvaluatedGroupContribution = () => {
-    let _type: 'success' | 'warning' | 'error' = 'success'
+    let _type: 'success' | 'warning' | 'info' = 'success'
     const res = loadingHandler()
     if (!res.flag) {
       return res.alert
     }
 
     const { suggestions } = formatGroupContribution()
+
     // console.log('rankings', rankings)
     // console.log('suggestions', suggestions)
 
     if (suggestions.length === 0) {
       _type = 'success'
     } else if (suggestions.length < 3) {
-      _type = 'warning'
+      _type = 'info'
     } else {
-      _type = 'error'
+      _type = 'warning'
     }
 
     return {
@@ -413,6 +434,7 @@ function useEvaluation(
     getEvaluatedArgument,
     getEvaluatedGroupContribution,
     getEvaluatedInteraction,
+    highLightPatterns,
   }
 }
 export default useEvaluation

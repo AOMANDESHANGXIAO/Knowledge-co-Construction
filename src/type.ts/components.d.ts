@@ -63,6 +63,7 @@ declare module 'vue' {
     NGradientText: typeof import('naive-ui')['NGradientText']
     NH1: typeof import('naive-ui')['NH1']
     NH3: typeof import('naive-ui')['NH3']
+    NHighlight: typeof import('naive-ui')['NHighlight']
     NInput: typeof import('naive-ui')['NInput']
     NList: typeof import('naive-ui')['NList']
     NListItem: typeof import('naive-ui')['NListItem']

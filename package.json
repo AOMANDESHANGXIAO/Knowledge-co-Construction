@@ -32,7 +32,7 @@
     "lodash": "^4.17.21",
     "lottie-web": "^5.12.2",
     "marked": "^15.0.0",
-    "naive-ui": "^2.39.0",
+    "naive-ui": "^2.40.0",
     "nanoid": "^5.0.7",
     "pinia": "^2.1.7",
     "pinia-plugin-persistedstate": "^3.2.1",

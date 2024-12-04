@@ -14,10 +14,12 @@ withDefaults(
       type: 'info' | 'success' | 'warning' | 'error'
       suggestions: string[]
     }
+    patterns: string[]
   }>(),
   {
     title: '默认标题',
     alert: () => dev_data[0],
+    patterns: () => []
   }
 )
 </script>
@@ -34,6 +36,7 @@ withDefaults(
           v-bind="alert"
           :list="alert.suggestions"
           :closable="false"
+          :patterns="patterns"
           show-icon
         ></my-alert>
       </template>

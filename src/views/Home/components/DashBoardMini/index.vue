@@ -10,7 +10,7 @@ defineOptions({
   name: 'dash-board-mini',
 })
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     list?: Array<{
       title: string
@@ -18,10 +18,12 @@ withDefaults(
       suggestions: string[]
     }>
     title: string
+    patterns: string[]
   }>(),
   {
     list: () => dev_data,
     title: '加载中...',
+    patterns: () => [],
   }
 )
 
@@ -37,7 +39,7 @@ const getTwoSuggestion = (suggestions: string[]) => {
     return suggestions
   }
 
-  return [...suggestions.slice(0, 2), '...']  
+  return [...suggestions.slice(0, 2), '...']
 }
 
 const isMinimized = ref(false)
@@ -48,7 +50,7 @@ const toggleMinimize = () => {
 </script>
 
 <template>
-  <div class="dash-board-mini" :class="{ 'minimized': isMinimized }">
+  <div class="dash-board-mini" :class="{ minimized: isMinimized }">
     <header>
       <div class="title">✨学习仪表盘✨</div>
       <div class="header-actions">
@@ -68,7 +70,7 @@ const toggleMinimize = () => {
         >
       </div>
     </header>
-    <div class="content" :class="{ 'hidden': isMinimized }">
+    <div class="content" :class="{ hidden: isMinimized }">
       <section class="time-layout">
         <n-gradient-text type="info">当前阶段:</n-gradient-text>
         <n-gradient-text type="success"> {{ title }} </n-gradient-text>
@@ -76,6 +78,7 @@ const toggleMinimize = () => {
       <section class="alert-layout">
         <my-alert
           v-for="item in list"
+          :patterns="props.patterns"
           :key="item.title"
           v-bind="item"
           :list="getTwoSuggestion(item.suggestions)"
@@ -112,7 +115,7 @@ $min-dash-board-ratio: 0.75;
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
-    
+
     .header-actions {
       display: flex;
       align-items: center;
@@ -131,7 +134,7 @@ $min-dash-board-ratio: 0.75;
     transition: all 0.3s ease;
     max-height: 1000px;
     opacity: 1;
-    
+
     &.hidden {
       margin: 0;
     }
