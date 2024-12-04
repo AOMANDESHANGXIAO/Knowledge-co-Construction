@@ -756,9 +756,9 @@ const handleDownLoadFile = (file: FileListItem) => {
 const handleRemoveFile = (file: FileListItem) => {
   console.log('handleRemoveFile', file)
 }
-const handleClickGroupFileBtn = () => {
-  setFileDialogVisible(true)
-}
+// const handleClickGroupFileBtn = () => {
+//   setFileDialogVisible(true)
+// }
 const uploadGroupFieldRef = ref<InstanceType<typeof UploadField> | null>(null)
 const uploadGroupFile = () => {
   uploadGroupFieldRef.value?.goFile()
@@ -1292,11 +1292,11 @@ const { run: checkQuestionApi } = useRequest({
   },
 })
 let checkQuestionNodeId = ref(0)
-const onClickQuestionNode = (payload: {
+
+const onClickQuestionNode = async (payload: {
   nodeId: number
   studentId: number
 }) => {
-  console.log('onClickQuestionNode', payload)
   checkQuestionNodeId.value = payload.nodeId
   // 拿到nodes和edges
   const res = vueFlowRef.value!.getState()
@@ -1307,8 +1307,6 @@ const onClickQuestionNode = (payload: {
     node_id: String(payload.nodeId),
   })
   targetNodeId = node!.id
-  console.log('找到了正在提问的node', node)
-
   openCheckQuestionDialog()
   getReponseContentApi()
   checkQuestionApi()
@@ -1408,7 +1406,6 @@ const getResponseNodesValue = () => {
     student_id: studentId,
   })
   responseEdges.value = res
-  console.log('getResponseNodesValue', res)
 }
 
 const buttons = ref<
@@ -1418,19 +1415,14 @@ const buttons = ref<
     action: (...args: any) => void
   }>
 >([
-  { title: '小组文件', icon: IconName.File, action: handleClickGroupFileBtn },
+  // { title: '小组文件', icon: IconName.File, action: handleClickGroupFileBtn },
   { title: '发表观点', icon: IconName.Idea, action: handleClickProposeIdeaBtn },
   {
     title: '总结观点',
     icon: IconName.Summary,
     action: handleClickConclusionBtn,
   },
-  { title: '刷新', icon: IconName.Refresh, action: handleRereshFlowData },
-  {
-    title: '返回首页',
-    icon: IconName.Home,
-    action: () => router.push({ path: '/' }),
-  },
+  { title: '刷新界面', icon: IconName.Refresh, action: handleRereshFlowData },
   {
     title: '垂直排列',
     icon: IconName.Vertical,
@@ -1440,6 +1432,11 @@ const buttons = ref<
     title: '水平排列',
     icon: IconName.Horizontal,
     action: () => handleLayout(LayoutDirection.Horizontal),
+  },
+  {
+    title: '返回首页',
+    icon: IconName.Home,
+    action: () => router.push({ path: '/' }),
   },
 ])
 const onRightClick = (e: MouseEvent) => {
@@ -1457,6 +1454,16 @@ const onRightClick = (e: MouseEvent) => {
     }),
   })
 }
+/**
+ * checKNodes,edges
+ */
+const [checkedArgument, setCheckedArgument] = useState<{
+  nodes: NodeType[]
+  edges: EdgeType[]
+}>({
+  nodes: [],
+  edges: [],
+})
 </script>
 
 <template>
@@ -1504,6 +1511,7 @@ const onRightClick = (e: MouseEvent) => {
       <!-- 左上角插槽放dashboard显示小组的互动等 -->
       <template #top-left>
         <mini-dash-board
+          style="scale: 0.8; transform-origin: 0 0"
           @checkDetail="onCheckDetail"
           :list="alertList"
           :title="progressText"
@@ -1545,6 +1553,9 @@ const onRightClick = (e: MouseEvent) => {
               :show-feed-back="true"
               :topic-content="topicContent"
               :responseQuestionNodeId="checkQuestionNodeId"
+              :responsed-question="questionContent.content"
+              :onUpdateState="setCheckedArgument"
+              :checked-state="checkedArgument"
               @on-click-accept-btn="onClickApproveBtn"
               @on-click-reject-btn="onClickRejectBtn"
               @on-click-modify-idea-btn="onClickModifyIdeaBtn"

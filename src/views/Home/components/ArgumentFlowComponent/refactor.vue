@@ -23,6 +23,7 @@ import Dialog from './components/dialog/index.vue'
 import { useDialog } from './hooks/dialog/index'
 import { Condition } from './type.ts'
 import { useUserStore } from '@/store/modules/user/index.ts'
+import { convertToText } from './utils.ts'
 // import PeerIdeaContainer from './components/peerIdeaContainer/index.vue'
 // import { queryGroupOptionApi } from '@/apis/flow/index.ts'
 // import { QueryGroupOptionResponse } from '@/apis/flow/type.ts'
@@ -52,6 +53,18 @@ const props = withDefaults(
     replyNodes: NodeType[]
     replyEdges: EdgeType[]
     responseQuestionNodeId: number // 回复问题的NodeId
+    responsedQuestion: string // 正在被回复的问题
+    checkedState: {
+      nodes: NodeType[]
+      edges: EdgeType[]
+    }
+    onUpdateState: ({
+      nodes,
+      edges,
+    }: {
+      nodes: NodeType[]
+      edges: EdgeType[]
+    }) => void
   }>(),
   {
     condition: 'checkIdea',
@@ -68,6 +81,12 @@ const props = withDefaults(
     replyEdges: () => [],
     reply: 'none',
     responseQuestionNodeId: 0, // 回复问题的NodeId
+    responsedQuestion: '',
+    onUpdateState: () => {},
+    checkedState: () => ({
+      nodes: [],
+      edges: [],
+    }),
   }
 )
 /**
@@ -128,6 +147,13 @@ const { run: queryArgumentState } = useRequest({
     setNodesValue(nodes)
     setEdgesValue(edges)
     setFitView()
+    /**
+     * 调用状态更新的钩子
+     */
+    props.onUpdateState({
+      nodes,
+      edges,
+    })
   },
   onFail() {
     setDefaultValue()
@@ -185,7 +211,7 @@ const { run: getGroupNodeContent } = useRequest({
 /**
  * 检查观点时，会根据聚焦的Node的id去查询节点内容
  */
-function whenCheckIdea() {
+async function whenCheckIdea() {
   console.log('whenCheckIdea')
   queryArgumentState()
 }
@@ -193,7 +219,7 @@ function whenCheckIdea() {
 /**
  * 检查观点时，也会根据聚焦的Node的id去查询节点内容
  */
-function whenCheckConclusion() {
+async function whenCheckConclusion() {
   console.log('whenCheckConclusion')
   // queryArgumentState()
   getGroupNodeContent()
@@ -203,7 +229,7 @@ function whenCheckConclusion() {
  * 修改观点时，如果有聚焦的Node的id，则会根据聚焦的Node的id去查询节点内容
  * 如果没有聚焦的Node的id，则设置默认状态
  */
-function whenModifyIdea() {
+async function whenModifyIdea() {
   console.log('whenModifyIdea')
   queryArgumentState()
   setFitView()
@@ -213,28 +239,28 @@ function whenModifyIdea() {
  * 修改观点时，也会根据聚焦的Node的id去查询节点内容
  * 如果没有聚焦的Node的id，则设置默认状态
  */
-function whenModifyConclusion() {
+async function whenModifyConclusion() {
   console.log('whenModifyConclusion')
   queryArgumentState()
   setFitView()
 }
 
-function whenReplyIdea() {
+async function whenReplyIdea() {
   console.log('replyIdea')
   setDefaultValue()
 }
 
-function whenProposeIdea() {
+async function whenProposeIdea() {
   console.log('proposeIdea')
   setDefaultValue()
 }
 
-function whenProposeConclusion() {
+async function whenProposeConclusion() {
   console.log('proposeConclusion')
   setDefaultValue()
 }
 
-function whenResponseQuestion() {
+async function whenResponseQuestion() {
   console.log('whenResponseQuestion')
   setDefaultValue()
 }
@@ -556,12 +582,13 @@ const onNotAllowed = () => {
 }
 
 // 右下角使用苏格拉底提问法作为Tips
-const socraticQuestioningTips = [
-  '前提正确吗?',
-  '结论正确吗?',
-  '前提和结论之间逻辑是否正确吗?',
-  '你的论证有没有局限性?',
-]
+// const socraticQuestioningTips = [
+//   '前提正确吗?',
+//   '结论正确吗?',
+//   '前提和结论之间逻辑是否正确吗?',
+//   '你的论证有没有局限性?',
+// ]
+
 interface RenderButtonListItem {
   btnText: string
   btnColor: string
@@ -766,6 +793,68 @@ const argumentGuideState: ComputedRef<
   }
 })
 
+/**
+ * TODO: 右下角提示
+ * 1. 正在回应的问题
+ * 2. 正在回复的论证
+ * 3. 正在针对发表观点的论题
+ */
+const tipsState = computed<{
+  title: string
+  content: string
+  type: 'info' | 'warning' | 'success'
+}>(() => {
+  const condition = props.condition
+  let title = ''
+  let content = ''
+  let type: 'info' | 'warning' | 'success' = 'info'
+  // 如果状态是回复提问的话
+  if (condition === 'responseQuestion') {
+    title = '正在回复的问题'
+    content = props.responsedQuestion
+    type = 'info'
+  } else if (condition === 'checkIdea' || condition === 'checkConclusion') {
+    title = '正在查看的论证'
+    content = convertToText({
+      nodes: props.checkedState.nodes,
+      edges: props.checkedState.edges,
+    })
+    type = 'info'
+  } else if (
+    condition === 'replyIdea' ||
+    props.reply === 'approve' ||
+    props.reply === 'reject'
+  ) {
+    title = '正在回复的论证'
+    content = convertToText({
+      nodes: props.checkedState.nodes,
+      edges: props.checkedState.edges,
+    })
+    type = 'info'
+  } else if (condition === 'modifyIdea' || condition === 'modifyConclusion') {
+    title = '正在修改的论证'
+    content = convertToText({
+      nodes: props.checkedState.nodes,
+      edges: props.checkedState.edges,
+    })
+    type = 'info'
+  } else if (condition === 'proposeIdea' || condition === 'proposeConclusion') {
+    title = '正在针对此话题发表观点'
+    content = props.topicContent
+    type = 'info'
+  }
+  console.log('tipsState', {
+    title,
+    content,
+    type,
+  })
+  return {
+    title,
+    content,
+    type,
+  }
+})
+
 defineExpose({
   getArgumentState,
 })
@@ -840,15 +929,15 @@ defineExpose({
 
       <!-- 反馈 -->
       <Panel v-if="showFeedBack" position="top-left" class="feedback-tips">
-        <el-alert
+        <n-alert
           v-for="(item, index) in feedbackList"
           :key="index"
           :title="item.title"
           :type="item.type"
-          :description="item.description"
           show-icon
           :closable="false"
-        ></el-alert>
+          >{{ item.description }}</n-alert
+        >
       </Panel>
 
       <!-- 右下角TIPDS -->
@@ -865,15 +954,12 @@ defineExpose({
           "
         ></ArrowIcon>
         <!-- 苏格拉底提示框架 -->
+        <!-- 重构,这里应该显示正在回复的观点或者回应的问题 -->
         <section v-if="!closed">
-          <div>
-            <h3 class="argument-text-title">考虑回答以下问题</h3>
-          </div>
-          <ul>
-            <li v-for="t in socraticQuestioningTips" :key="t">
-              {{ t }}
-            </li>
-          </ul>
+          <n-h3 prefix="bar" :type="tipsState.type">
+            <n-text :type="tipsState.type">{{ tipsState.title }}</n-text>
+          </n-h3>
+          <n-text v-html="tipsState.content"> </n-text>
         </section>
       </Panel>
     </VueFlow>
@@ -930,7 +1016,7 @@ defineExpose({
   /* position: relative; */
   box-sizing: border-box;
   box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.08);
-  padding: 30px;
+  padding: 5px;
   background-color: #fff;
   width: 400px;
   height: 200px;
@@ -939,7 +1025,7 @@ defineExpose({
   /* overflow: auto; */
 }
 .argument-text-container {
-  padding: 20px;
+  padding: 5px;
 }
 .argument-text-content {
   /* overflow-y: auto; */

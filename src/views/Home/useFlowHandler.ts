@@ -1,5 +1,5 @@
 import { Node, Edge, IdeaNode } from '@/components/vueFlow/type'
-import { getStuNodeIds } from '@/components/vueFlow/utils'
+// import { getStuNodeIds } from '@/components/vueFlow/utils'
 import _ from 'lodash'
 
 class flowTool {

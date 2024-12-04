@@ -90,10 +90,10 @@ const ToulminGuideWords = {
   },
   qualifier: {
     // 限定词
-    propose: ['除非', '在xxx情况下', '只有'],
-    agree: ['除非', '在xxx情况下', '只有'],
-    disagree: ['除非', '在xxx情况下', '只有'],
-    summary: ['除非', '在xxx情况下', '只有'],
+    propose: ['除非', '在xxx情况下', '只有XXX情况才成立'],
+    agree: ['除非', '在xxx情况下', '只有XXX情况才成立'],
+    disagree: ['除非', '在xxx情况下', '只有XXX情况才成立'],
+    summary: ['除非', '在xxx情况下', '只有XXX情况才成立'],
   },
   claim: {
     // 结论
