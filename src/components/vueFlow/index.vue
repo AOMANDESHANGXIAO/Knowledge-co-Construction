@@ -35,7 +35,13 @@ defineOptions({
 
 const props = defineProps<{
   updateVueFlowEffects?: () => void
+  onMountedEffect?: (...args: any) => void
+  onUpdateValues?: (...args: any) => void
 }>()
+
+onMounted(() => {
+  props.onMountedEffect && props.onMountedEffect()
+})
 
 const {
   fitView,
@@ -220,12 +226,19 @@ const getState = () => {
   }
 }
 
+const setFitViewOnNodeCenter = (id: string) => {
+  console.log('设置了节点中心')
+  fitView({
+    nodes: [id],
+  })
+}
 defineExpose({
   handleLayout,
   refreshData: () => {
     run()
   },
   getState,
+  setFitViewOnNodeCenter,
 })
 </script>
 

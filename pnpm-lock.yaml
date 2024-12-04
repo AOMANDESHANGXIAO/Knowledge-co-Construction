@@ -11,6 +11,9 @@ dependencies:
   '@element-plus/icons-vue':
     specifier: ^2.3.1
     version: 2.3.1(vue@3.5.8)
+  '@imengyu/vue3-context-menu':
+    specifier: ^1.4.3
+    version: 1.4.3
   '@types/lodash':
     specifier: ^4.17.7
     version: 4.17.7
@@ -454,6 +457,10 @@ packages:
 
   /@floating-ui/utils@0.2.2:
     resolution: {integrity: sha512-J4yDIIthosAsRZ5CPYP/jQvUAQtlZTTD/4suA08/FEnlxqW3sKS9iAhgsa9VYLZ6vDHn/ixJgIqRQPotoBjxIw==}
+    dev: false
+
+  /@imengyu/vue3-context-menu@1.4.3:
+    resolution: {integrity: sha512-W2rT+xllLSg+u/Z36jE+mrjzO8gCIw0YDDyBxywuASmwrBotU4deftW8Zz9GK/QEHBRNyV5nBINZJo2J257Wlg==}
     dev: false
 
   /@jridgewell/sourcemap-codec@1.4.15:

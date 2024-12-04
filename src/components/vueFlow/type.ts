@@ -24,7 +24,7 @@ export enum EdgeType {
 
 export interface VueFlowNode {
   id: string // 节点id
-  type: "idea" | "group" | "topic" // 节点类型
+  type: 'idea' | 'group' | 'topic' // 节点类型
   position: {
     // 节点初始位置
     x: number
@@ -45,7 +45,7 @@ export interface VueFlowEdge {
 }
 
 /**
- * 
+ *
  */
 export interface TopicNode {
   text: string
@@ -86,12 +86,17 @@ export interface Edge {
   id: string
   source: string
   target: string
-  _type: "idea_to_group" | "group_to_discuss" | "approve" | "reject"
+  _type:
+    | 'idea_to_group'
+    | 'group_to_discuss'
+    | 'approve'
+    | 'reject'
+    | 'question_to_idea'
+    | 'response_to_question'
   animated: boolean
   style: {
     stroke: string
   }
 }
-
 
 export type LayoutDir = 'TB' | 'LR'

@@ -11,7 +11,7 @@ import { useClipboard } from '@vueuse/core'
 import type { NodeType, EdgeType } from '../ArgumentFlowComponent/type'
 import { ArgumentType } from '../ArgumentFlowComponent/type'
 import type { Scaffold } from './chatgptComponent.type'
-
+import { THEME_COLOR } from '@/config'
 const props = withDefaults(
   defineProps<{
     // 话题
@@ -265,6 +265,20 @@ const canSendMessage = computed(() => {
     { nodeType: ArgumentType.Data, minWordCount: 10 },
   ])
 })
+watch(
+  () => canSendMessage.value,
+  (newValue, oldValue) => {
+    if (newValue !== oldValue && oldValue === false && newValue === true) {
+      ElNotification({
+        title: '提示',
+        message: '论证助手已解锁!你可以开始对话了!',
+        type: 'success',
+        duration: 3000,
+      })
+    }
+  }
+)
+
 // 快速提示
 const trimmedTopic = computed(() => {
   return props.topic.trim()
@@ -538,7 +552,10 @@ const onClickNotAllowMask = () => {
           </el-select>
         </el-col>
         <el-col :span="4">
-          <el-button type="success" @click="onClickQuestionTemplate"
+          <el-button
+            :color="THEME_COLOR"
+            @click="onClickQuestionTemplate"
+            :disabled="isReceiving || !canSendMessage"
             >插入</el-button
           >
         </el-col>
@@ -575,7 +592,7 @@ const onClickNotAllowMask = () => {
             "
             circle
             :disabled="isReceiving || !canSendMessage"
-            color="#2563eb"
+            :color="THEME_COLOR"
             ><el-icon><Position /></el-icon
           ></el-button>
         </el-col>
@@ -592,7 +609,7 @@ const onClickNotAllowMask = () => {
   height: 100%;
   padding: 10px;
   background-color: #f5f5f5;
-  --user-message-color: #95ec69;
+  --user-message-color: v-bind(THEME_COLOR);
   --assistant-message-color: #e6f4ff;
   overflow: hidden;
   .header-bar {
@@ -659,6 +676,7 @@ const onClickNotAllowMask = () => {
 
 .user {
   justify-content: flex-end;
+  color: #fff;
 }
 
 .assistant {

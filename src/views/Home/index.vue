@@ -58,6 +58,8 @@ import { ArgumentNode, ArgumentEdge } from '@/apis/flow/type.ts'
 import { QueryNodeContentData } from '@/apis/flow/type'
 import { convertToHTML } from './components/ArgumentFlowComponent/utils.ts'
 import MsgNotice from './components/messageNotice/index.vue'
+import { THEME_COLOR } from '@/config.ts'
+import ContextMenu from '@imengyu/vue3-context-menu'
 
 const { getOneUserInfo } = useUserStore()
 
@@ -1376,7 +1378,6 @@ interface Idea {
   type: 'primary' | 'info' | 'warning' | 'success' | 'error'
   id: string
 }
-
 const ideaList = ref<Idea[]>([
   { nickname: 'Idea 1', type: 'success', id: '1' },
   { nickname: 'Idea 2', type: 'info', id: '2' },
@@ -1389,17 +1390,84 @@ const onTagChange = (key: string) => {
 }
 const onClickTag = (id: string) => {
   console.log('id', id)
+  vueFlowRef.value?.setFitViewOnNodeCenter(id)
+}
+const responseEdges = ref<{
+  approve: EdgeType[]
+  reject: EdgeType[]
+  question: EdgeType[]
+}>({
+  approve: [],
+  reject: [],
+  question: [],
+})
+const getResponseNodesValue = () => {
+  const res = flowTool.getResponseNodes({
+    nodes: vueFlowRef.value!.getState().nodes,
+    edges: vueFlowRef.value!.getState().edges,
+    student_id: studentId,
+  })
+  responseEdges.value = res
+  console.log('getResponseNodesValue', res)
+}
+
+const buttons = ref<
+  Array<{
+    title: string
+    icon: IconName
+    action: (...args: any) => void
+  }>
+>([
+  { title: '小组文件', icon: IconName.File, action: handleClickGroupFileBtn },
+  { title: '发表观点', icon: IconName.Idea, action: handleClickProposeIdeaBtn },
+  {
+    title: '总结观点',
+    icon: IconName.Summary,
+    action: handleClickConclusionBtn,
+  },
+  { title: '刷新', icon: IconName.Refresh, action: handleRereshFlowData },
+  {
+    title: '返回首页',
+    icon: IconName.Home,
+    action: () => router.push({ path: '/' }),
+  },
+  {
+    title: '垂直排列',
+    icon: IconName.Vertical,
+    action: () => handleLayout(LayoutDirection.Vertical),
+  },
+  {
+    title: '水平排列',
+    icon: IconName.Horizontal,
+    action: () => handleLayout(LayoutDirection.Horizontal),
+  },
+])
+const onRightClick = (e: MouseEvent) => {
+  //prevent the browser's default menu
+  e.preventDefault()
+  //show your menu
+  ContextMenu.showContextMenu({
+    x: e.x,
+    y: e.y,
+    items: buttons.value.map(btn => {
+      return {
+        label: btn.title,
+        onClick: () => btn.action(),
+      }
+    }),
+  })
 }
 </script>
 
 <template>
   <!-- 知识建构图谱 -->
-  <div class="vue-flow-container">
+  <div class="vue-flow-container" @click.right.stop="onRightClick">
     <flow-component
       ref="vueFlowRef"
       :update-vue-flow-effects="
         () => {
           getDashBoardData()
+          getResponseNodesValue()
         }
       "
       @onClickGroupNode="onClickGroupNode"
@@ -1423,56 +1491,13 @@ const onClickTag = (id: string) => {
               @on-click-tag="onClickTag"
             ></MsgNotice>
           </n-popover>
-          <button title="小组文件" @click="handleClickGroupFileBtn">
-            <Icon :name="IconName.File"></Icon>
-          </button>
-          <button title="发表观点" @click="handleClickProposeIdeaBtn">
-            <Icon :name="IconName.Idea" />
-          </button>
-          <button title="总结观点" @click="handleClickConclusionBtn">
-            <Icon :name="IconName.Summary" />
-          </button>
           <button
-            title="刷新"
-            @click="
-              () => {
-                // 更新VueFlow的Data
-                handleRereshFlowData()
-              }
-            "
+            v-for="(button, index) in buttons"
+            :key="index"
+            :title="button.title"
+            @click="button.action"
           >
-            <Icon :name="IconName.Refresh" />
-          </button>
-          <button
-            title="返回首页"
-            @click="
-              () => {
-                // 返回首页
-                router.push({ path: '/' })
-              }
-            "
-          >
-            <Icon :name="IconName.Home" />
-          </button>
-          <button
-            title="垂直排列"
-            @click="
-              () => {
-                handleLayout(LayoutDirection.Vertical)
-              }
-            "
-          >
-            <Icon :name="IconName.Vertical" />
-          </button>
-          <button
-            title="水平排列"
-            @click="
-              () => {
-                handleLayout(LayoutDirection.Horizontal)
-              }
-            "
-          >
-            <Icon :name="IconName.Horizontal" />
+            <Icon :name="button.icon" />
           </button>
         </div>
       </template>
@@ -1491,7 +1516,17 @@ const onClickTag = (id: string) => {
   <section class="dialog-container" v-show="dialogVisible">
     <el-dialog v-model="dialogVisible" width="1200" :append-to-body="true">
       <el-row :gutter="20">
-        <el-col :span="18" style="padding: 10px; background-color: #f5f5f5">
+        <el-col
+          :span="18"
+          style="
+            height: 80vh;
+            padding: 10px;
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+          "
+        >
           <div class="argument-flow-container" style="background-color: #fff">
             <argumentFlowComponent
               ref="argumentFlowRef"
@@ -1526,22 +1561,22 @@ const onClickTag = (id: string) => {
                 }
               "
               plain
-              color="#FF8225"
+              :color="THEME_COLOR"
               style="margin-left: 10px"
             >
               取消
             </el-button>
             <el-button
               style="margin-left: 10px"
-              color="#FF8225"
+              :color="THEME_COLOR"
               :disabled="isDisabledOKBtn"
               @click="handleOK"
-              >{{ '确定' }}
+              >发布!
             </el-button>
           </div>
         </el-col>
         <!-- ChatGpt对话框 -->
-        <el-col :span="6">
+        <el-col :span="6" style="height: 80vh">
           <div class="chatgpt-container">
             <ChatGptComponent
               :scaffold="chatGptPromptScofflds"
@@ -2008,7 +2043,7 @@ h3 {
 
 .process-panel button:hover,
 .layout-panel button:hover {
-  background-color: #2563eb;
+  background-color: v-bind(THEME_COLOR);
   transition: background-color 0.2s;
 }
 

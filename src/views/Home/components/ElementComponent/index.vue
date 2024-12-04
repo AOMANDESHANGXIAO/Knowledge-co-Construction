@@ -8,7 +8,7 @@ import tips from '../toolTips/index.vue'
 import lightText from '@/components/common/highlight/index.vue'
 import { useForm } from '@/hooks/form'
 import vFocus from '@/directives/focus'
-
+import guideData from './argumentGuide.data'
 defineOptions({
   name: 'elementComponent',
 })
@@ -234,7 +234,7 @@ const getElementTipsRenderMap = (argumentType: ArgumentType) => {
     case ArgumentType.Warrant: {
       return {
         texts: [
-          '辩护是指论据和论题之间的逻辑连接或推理，是为什么论据可以支持论题的理由。例如一个论证的前提是“锻炼有助于保持健康，减少患病的风险。',
+          '辩护是指论据和论题之间的逻辑连接或推理,是为什么论据可以支持论题的理由。例如一个论证的前提是“锻炼有助于保持健康,减少患病的风险。',
           '结论是“人要定期锻炼身体”。那么为了说明前提和结论的关系,我们需要加入辩护。在这个论证中,辩护可以是:“因为身体健康状况与定期锻炼有直接关系。”',
         ],
         lightText: true,
@@ -247,30 +247,30 @@ const getElementTipsRenderMap = (argumentType: ArgumentType) => {
     case ArgumentType.Data: {
       return {
         texts: [
-          `前提条件(Data)是支持论题(Claim)的证据或事实，是你用来证明论题的基础。例如你要证明"人们应该每天锻炼",那么你论证的前提可能是"锻炼有助于保持健康，减少患病的风险。"`,
+          `前提条件(Data)是支持论题(Claim)的证据或事实,是你用来证明论题的基础。例如你要证明"人们应该每天锻炼",那么你论证的前提可能是"锻炼有助于保持健康,减少患病的风险。"`,
           `我们使用D表示前提,`,
-          `使用C表示论题。那么"D一类的数据使人们得出类似C的结论或提出类似C的主张"，或"既然D,必然C"。`,
+          `使用C表示论题。那么"D一类的数据使人们得出类似C的结论或提出类似C的主张",或"既然D,必然C"。`,
         ],
       }
     }
     case ArgumentType.Backing: {
       return {
         texts: [
-          ` 支撑（Backing）是为辩护（Warrant）提供进一步支持的证据或信息。支撑的作用是加强和验证辩护的有效性，使整个论证更加有力和可信。
-              具体来说，辩护是解释为什么论据（Grounds）能够支持结论（Claim）的推理或原则，而支撑则为这一推理或原则提供额外的证据和理由，以确保其稳固性和可靠性。支撑可以是各种形式的证据，如统计数据、研究结果、专家意见、历史案例等。`,
+          ` 支撑（Backing）是为辩护（Warrant）提供进一步支持的证据或信息。支撑的作用是加强和验证辩护的有效性,使整个论证更加有力和可信。
+              具体来说,辩护是解释为什么论据（Grounds）能够支持结论（Claim）的推理或原则,而支撑则为这一推理或原则提供额外的证据和理由,以确保其稳固性和可靠性。支撑可以是各种形式的证据,如统计数据、研究结果、专家意见、历史案例等。`,
         ],
         lightText: true,
         keywords: [
-          '支撑可以是各种形式的证据，如统计数据、研究结果、专家意见、历史案例等',
+          '支撑可以是各种形式的证据,如统计数据、研究结果、专家意见、历史案例等',
         ],
       }
     }
     case ArgumentType.Rebuttal: {
       return {
         text: [
-          '反驳（Rebuttal）是在论证过程中对可能的反对意见或批评进行预先处理的部分。它的作用是识别并回应那些可能削弱论证或提出相反观点的要素，从而增强论证的说服力和可信度。反驳通常包括两部分：首先，识别潜在的反对意见，这些意见可能是对论题、论据、辩护或其他论证部分的质疑或攻击；其次，对这些反对意见进行回应或反驳，通过提供进一步的证据、解释或辩护来化解这些质疑。',
-          `反驳的重要性在于它展示了论证者对不同观点的考虑和应对能力，使论证显得更加全面和公正。例如，如果有人主张“人们应该每天锻炼”，他们可能会预见到一些反对意见，如“有些人可能因为健康问题无法进行日常锻炼”。作为反驳，论证者可以回应道：“除非有医学上的禁忌，否则大多数人应该每天锻炼，因为即使是轻度的运动对大部分人的健康也是有益的，并且可以根据个人情况调整锻炼强度。”`,
-          ' 通过有效地处理和回应反对意见，反驳部分不仅可以增强论证的说服力，还能展示论证者对问题的深刻理解和辩证思维能力，从而使论证更具说服力和可靠性。',
+          '反驳（Rebuttal）是在论证过程中对可能的反对意见或批评进行预先处理的部分。它的作用是识别并回应那些可能削弱论证或提出相反观点的要素,从而增强论证的说服力和可信度。反驳通常包括两部分：首先,识别潜在的反对意见,这些意见可能是对论题、论据、辩护或其他论证部分的质疑或攻击；其次,对这些反对意见进行回应或反驳,通过提供进一步的证据、解释或辩护来化解这些质疑。',
+          `反驳的重要性在于它展示了论证者对不同观点的考虑和应对能力,使论证显得更加全面和公正。例如,如果有人主张“人们应该每天锻炼”,他们可能会预见到一些反对意见,如“有些人可能因为健康问题无法进行日常锻炼”。作为反驳,论证者可以回应道：“除非有医学上的禁忌,否则大多数人应该每天锻炼,因为即使是轻度的运动对大部分人的健康也是有益的,并且可以根据个人情况调整锻炼强度。”`,
+          ' 通过有效地处理和回应反对意见,反驳部分不仅可以增强论证的说服力,还能展示论证者对问题的深刻理解和辩证思维能力,从而使论证更具说服力和可靠性。',
         ],
         lightText: true,
         keywords: [
@@ -282,8 +282,8 @@ const getElementTipsRenderMap = (argumentType: ArgumentType) => {
     case ArgumentType.Qualifier: {
       return {
         texts: [
-          '限定词（Qualifier）是用来表明论题的适用范围或强度的词语或短语。在图尔敏的论证模型中，限定词帮助论证者对自己的论题进行一定程度的限制或调节，以便更加准确和现实地表达自己的观点。',
-          '通过使用限定词，论证者可以避免过于绝对的主张，从而使论证更加合理和有说服力。',
+          '限定词（Qualifier）是用来表明论题的适用范围或强度的词语或短语。在图尔敏的论证模型中,限定词帮助论证者对自己的论题进行一定程度的限制或调节,以便更加准确和现实地表达自己的观点。',
+          '通过使用限定词,论证者可以避免过于绝对的主张,从而使论证更加合理和有说服力。',
         ],
         lightText: true,
         keywords: ['限定词', '表明概率、频率、强度或范围的词语'],
@@ -292,8 +292,8 @@ const getElementTipsRenderMap = (argumentType: ArgumentType) => {
     case ArgumentType.Claim: {
       return {
         texts: [
-          '结论（Claim）是你希望证明的主要观点或立场。它是整个论证的核心，是你通过提供证据和推理想要让听众或读者接受的陈述。',
-          '有效的结论应当是明确的、具体的，并且能够激发听众或读者的兴趣，使他们愿意进一步探讨和思考这个问题。',
+          '结论（Claim）是你希望证明的主要观点或立场。它是整个论证的核心,是你通过提供证据和推理想要让听众或读者接受的陈述。',
+          '有效的结论应当是明确的、具体的,并且能够激发听众或读者的兴趣,使他们愿意进一步探讨和思考这个问题。',
         ],
         lightText: true,
         keywords: ['主要观点', '论证的核心'],
@@ -304,49 +304,12 @@ const getElementTipsRenderMap = (argumentType: ArgumentType) => {
 const currentElementTips = computed(() => {
   return getElementTipsRenderMap(props._type)
 })
-// TODO: 引导语句，提出自己观点时+同意观点时引导+不同意时引导+总结观点时引导
+// TODO: 引导语句,提出自己观点时+同意观点时引导+不同意时引导+总结观点时引导
 const argumentGuideMapping: {
   [key in ArgumentType]: {
     [key in Props['argumentGuideType']]: string[]
   }
-} = {
-  data: {
-    propose: ['Propose', '我认为', '我认为', '我认为'],
-    agree: ['agree', '我认为', '我认为', '我认为'],
-    disagree: ['disagree', '我认为', '我认为', '我认为'],
-    summary: ['summary', '我认为', '我认为', '我认为'],
-  },
-  warrant: {
-    propose: ['Propose', '我认为', '我认为', '我认为'],
-    agree: ['agree', '我认为', '我认为', '我认为'],
-    disagree: ['disagree', '我认为', '我认为', '我认为'],
-    summary: ['summary', '我认为', '我认为', '我认为'],
-  },
-  backing: {
-    propose: ['Propose', '我认为', '我认为', '我认为'],
-    agree: ['agree', '我认为', '我认为', '我认为'],
-    disagree: ['disagree', '我认为', '我认为', '我认为'],
-    summary: ['summary', '我认为', '我认为', '我认为'],
-  },
-  rebuttal: {
-    propose: ['Propose', '我认为', '我认为', '我认为'],
-    agree: ['agree', '我认为', '我认为', '我认为'],
-    disagree: ['disagree', '我认为', '我认为', '我认为'],
-    summary: ['summary', '我认为', '我认为', '我认为'],
-  },
-  qualifier: {
-    propose: ['Propose', '我认为', '我认为', '我认为'],
-    agree: ['agree', '我认为', '我认为', '我认为'],
-    disagree: ['disagree', '我认为', '我认为', '我认为'],
-    summary: ['summary', '我认为', '我认为', '我认为'],
-  },
-  claim: {
-    propose: ['Propose', '我认为', '我认为', '我认为'],
-    agree: ['agree', '我认为', '我认为', '我认为'],
-    disagree: ['disagree', '我认为', '我认为', '我认为'],
-    summary: ['summary', '我认为', '我认为', '我认为'],
-  },
-}
+} = guideData
 
 // 论证引导语句
 const getElementArgumentGuide = (argumentType: ArgumentType) => {
