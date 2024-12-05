@@ -13,6 +13,7 @@ const props = withDefaults(
     ideaList: Array<{
       nickname: string
       type: 'primary' | 'info' | 'warning' | 'success' | 'error'
+      content: string
       id: string
     }>
   }>(),
@@ -22,7 +23,7 @@ const props = withDefaults(
     ideaList: () => [],
   }
 )
-const emits = defineEmits(['update:activeKey', 'onChange','onClickTag'])
+const emits = defineEmits(['update:activeKey', 'onChange', 'onClickTag'])
 const onClickTabBarItem = (key: string) => {
   emits('update:activeKey', key)
   emits('onChange', key)
@@ -54,8 +55,11 @@ const onClickTag = (id: string) => {
           :type="item.type"
           :key="index"
           style="margin-right: 5px; margin-bottom: 5px; cursor: pointer"
-          >{{ item.nickname }}</n-tag
         >
+          <n-ellipsis style="max-width: 100px">
+            {{ item.nickname + ':' + item.content }}
+          </n-ellipsis>
+        </n-tag>
       </div>
     </n-card>
   </div>

@@ -14,11 +14,13 @@ import type {
   ResponseQuestionArgs,
 } from './type.ts'
 const queryFlowDataApi = (
-  topic_id: number
+  topic_id: number,
+  student_id: number
 ): Promise<Response<QueryFlowResponse>> => {
   return Service.get(`/flow/query`, {
     params: {
       topic_id,
+      student_id,
     },
   })
 }
@@ -182,6 +184,6 @@ export {
   queryGroupOptionApi,
   questionIdea,
   checkQuestionContent,
-  responseQuestionApi
+  responseQuestionApi,
   // reviseSelfIdeaApi,
 }

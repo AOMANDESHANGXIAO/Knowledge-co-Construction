@@ -21,7 +21,7 @@ import { getStuNodeIds, getGroupNodeId } from './utils'
 import { useNotification } from './hook'
 import { useUserStore } from '@/store/modules/user/index.ts'
 import useState from '@/hooks/State/useState.ts'
-
+import { NodeInteraction } from '@/apis/flow/type'
 /**
  * WARNING: 设置nodes和edges状态时在一个函数内最好只更新一次
  * 不要在一个函数内更新多次
@@ -33,11 +33,34 @@ defineOptions({
   name: 'MyVueFlow',
 })
 
-const props = defineProps<{
-  updateVueFlowEffects?: () => void
-  onMountedEffect?: (...args: any) => void
-  onUpdateValues?: (...args: any) => void
-}>()
+// const props = withDefaults(
+//   defineProps({
+//     updateVueFlowEffects: { type: Function, default: () => {} },
+//     onMountedEffect: { type: Function, default: () => {} },
+//     onUpdateValues: { type: Function, default: () => {} },
+//   }),
+//   () => ({
+//     updateVueFlowEffects: () => {},
+//     onMountedEffect: () => {},
+//     onUpdateValues: () => {},
+//   })
+// )
+const props = withDefaults(
+  defineProps<{
+    updateVueFlowEffects?: () => void
+    onMountedEffect?: () => void
+    onUpdateValues?: (args: {
+      nodes: Node[]
+      edges: Edge[]
+      related: NodeInteraction[]
+    }) => void
+  }>(),
+  {
+    updateVueFlowEffects: () => {},
+    onMountedEffect: () => {},
+    onUpdateValues: () => {},
+  }
+)
 
 onMounted(() => {
   props.onMountedEffect && props.onMountedEffect()
@@ -138,6 +161,7 @@ const stateFormatter = (data: QueryFlowResponse) => {
         },
       }
     }),
+    related: data.related,
   }
 }
 const [nodes, setNodes] = useState<Node[]>([])
@@ -146,12 +170,23 @@ const [edges, setEdges] = useState<Edge[]>([])
 
 const { loading, run } = useRequest({
   apiFn: async () => {
-    return await queryFlowDataApi(topicId.value)
+    return await queryFlowDataApi(topicId.value, Number(student_id))
   },
-  onSuccess: (data: { nodes: Node[]; edges: Edge[] }) => {
+  onSuccess: (data: {
+    nodes: Node[]
+    edges: Edge[]
+    related: NodeInteraction[]
+  }) => {
+    console.log('queryFlowDataApidata', data)
     setNodes(data.nodes)
     setEdges(data.edges)
     props.updateVueFlowEffects && props.updateVueFlowEffects()
+    props.onUpdateValues &&
+      props.onUpdateValues({
+        nodes: data.nodes,
+        edges: data.edges,
+        related: data.related,
+      })
   },
   onFail: () => {},
   formatter: stateFormatter,

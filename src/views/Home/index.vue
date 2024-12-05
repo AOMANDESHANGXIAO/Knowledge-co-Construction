@@ -32,7 +32,11 @@ import {
   queryWordCloudApi,
   QueryWordCloudResult,
 } from '@/apis/flow'
-import { QueryDashBoardResponse, TimeLineItem } from '@/apis/flow/type'
+import {
+  NodeInteraction,
+  QueryDashBoardResponse,
+  TimeLineItem,
+} from '@/apis/flow/type'
 import useEvaluation from './hooks/useEvaluation'
 import _ from 'lodash'
 import router from '@/router/index.ts'
@@ -60,6 +64,8 @@ import { convertToHTML } from './components/ArgumentFlowComponent/utils.ts'
 import MsgNotice from './components/messageNotice/index.vue'
 import { THEME_COLOR } from '@/config.ts'
 import ContextMenu from '@imengyu/vue3-context-menu'
+import { Edge, Node } from '@/components/vueFlow/type.ts'
+// import { NodeInteraction } from '@/apis/flow/type'
 
 const { getOneUserInfo } = useUserStore()
 
@@ -1366,26 +1372,84 @@ const onClickResponseQuestion = () => {
  */
 const handleClickNotice = () => {}
 
-const msgTabBarList = ref([
-  { content: '支持我的', key: 'support', num: 3 },
-  { content: '反对我的', key: 'oppose', num: 0 },
-  { content: '向我提问的', key: 'ask', num: 10 },
-])
-const activeKey = ref('support')
+const activeKey = ref<'support' | 'ask' | 'oppose'>('support')
 interface Idea {
   nickname: string
+  content: string
   type: 'primary' | 'info' | 'warning' | 'success' | 'error'
   id: string
 }
-const ideaList = ref<Idea[]>([
-  { nickname: 'Idea 1', type: 'success', id: '1' },
-  { nickname: 'Idea 2', type: 'info', id: '2' },
-  { nickname: 'Idea 33333', type: 'warning', id: '3' },
-  { nickname: 'Idea 4', type: 'error', id: '4' },
-  { nickname: 'Idea 5', type: 'primary', id: '5' },
-])
+const relatedValue = ref<NodeInteraction[]>([])
+const onFlowComponentValueUpdate = ({
+  nodes,
+  edges,
+  related,
+}: {
+  nodes: Node[]
+  edges: Edge[]
+  related: NodeInteraction[]
+}) => {
+  relatedValue.value = [...related]
+  console.log('onFlowComponentValueUpdate.related', related)
+}
+const filterMap: Record<
+  'support' | 'oppose' | 'ask',
+  (item: NodeInteraction) => boolean
+> = {
+  support: (item: NodeInteraction) => item.type === 'approve',
+  oppose: (item: NodeInteraction) => item.type === 'reject',
+  ask: (item: NodeInteraction) => item.type === 'question_to_idea',
+}
+const allNotResponsed = computed(() => {
+  return relatedValue.value.filter(item => !item.responsed)
+})
+const ideaList = computed<Idea[]>(() => {
+  const filterFunc = filterMap[activeKey.value]
+  let type: Idea['type'] = 'info'
+  if (activeKey.value === 'ask') {
+    type = 'info'
+  } else if (activeKey.value === 'support') {
+    type = 'success'
+  } else {
+    type = 'error'
+  }
+  return relatedValue.value
+    .filter(item => !item.responsed)
+    .filter(item => {
+      return filterFunc(item)
+    })
+    .map(item => {
+      return {
+        nickname: item.sourceNodeStudent,
+        type,
+        id: item.source,
+        content: item.sourceNodeContent,
+      }
+    })
+})
+const msgTabBarList = computed(() => {
+  return [
+    {
+      content: '支持我的',
+      key: 'support',
+      num: relatedValue.value.filter(item => item.type === 'approve').length,
+    },
+    {
+      content: '反对我的',
+      key: 'oppose',
+      num: relatedValue.value.filter(item => item.type === 'reject').length,
+    },
+    {
+      content: '向我提问的',
+      key: 'ask',
+      num: relatedValue.value.filter(item => item.type === 'question_to_idea')
+        .length,
+    },
+  ]
+})
 const onTagChange = (key: string) => {
   console.log('key', key)
+  activeKey.value = key as 'support' | 'ask' | 'oppose'
 }
 const onClickTag = (id: string) => {
   console.log('id', id)
@@ -1470,7 +1534,7 @@ const [checkedArgument, setCheckedArgument] = useState<{
 <template>
   <!-- 知识建构图谱 -->
   <div class="vue-flow-container" @click.right.stop="onRightClick">
-    <flow-component
+    <flowComponent
       ref="vueFlowRef"
       :update-vue-flow-effects="
         () => {
@@ -1478,6 +1542,7 @@ const [checkedArgument, setCheckedArgument] = useState<{
           getResponseNodesValue()
         }
       "
+      :onUpdateValues="onFlowComponentValueUpdate"
       @onClickGroupNode="onClickGroupNode"
       @onClickIdeaNode="onClickIdeaNode"
       @onClickQuestionNode="onClickQuestionNode"
@@ -1487,8 +1552,18 @@ const [checkedArgument, setCheckedArgument] = useState<{
         <div class="layout-panel">
           <n-popover trigger="click" style="padding: 0">
             <template #trigger>
-              <button title="消息提示" @click="handleClickNotice">
+              <button
+                title="消息提示"
+                @click="handleClickNotice"
+                style="position: relative"
+              >
                 <Icon :name="IconName.Notice"></Icon>
+                <div
+                  class="notification-badge"
+                  v-if="allNotResponsed.length > 0"
+                >
+                  {{ allNotResponsed.length }}
+                </div>
               </button>
             </template>
             <MsgNotice
@@ -1519,7 +1594,7 @@ const [checkedArgument, setCheckedArgument] = useState<{
           :patterns="highLightPatterns"
         />
       </template>
-    </flow-component>
+    </flowComponent>
   </div>
 
   <!-- 论点编辑器dialog -->
@@ -2131,7 +2206,40 @@ $dashboard-height: 300px;
     list-style: none;
   }
 }
-
+.notification-badge {
+  position: absolute;
+  z-index: 10;
+  right: -2px;
+  bottom: -8px;
+  width: 20px;
+  height: 20px;
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  animation: shake 2.5s infinite;
+}
+/* 定义摇晃动画 */
+@keyframes shake {
+  75% {
+    transform: translate(0);
+  }
+  80% {
+    transform: translate(-2px);
+  }
+  85% {
+    transform: translate(2px);
+  }
+  90% {
+    transform: translate(-2px);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
 .search-box {
   display: flex;
   align-items: center;

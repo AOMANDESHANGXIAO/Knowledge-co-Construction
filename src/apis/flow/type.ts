@@ -148,7 +148,17 @@ interface EdgeResponse {
   _type: 'idea_to_group' | 'group_to_discuss' | 'approve' | 'reject'
   animated: boolean
 }
-
+export interface NodeInteraction {
+  sourceNodeStudent: string
+  targetNodeStudent: string
+  sourceNodeContent: string
+  sourceStudentId: string
+  targetStudentId: string
+  source: string
+  target: string
+  type: string
+  responsed: boolean
+}
 interface QueryFlowResponse {
   nodes: Array<
     | NodeResponseBased<
@@ -182,6 +192,7 @@ interface QueryFlowResponse {
       >
   >
   edges: Array<EdgeResponse>
+  related: Array<NodeInteraction>
 }
 export interface TimeLineItem {
   id: number
@@ -236,5 +247,5 @@ export type {
   ModifyGroupConclusionParams,
   QueryDashBoardResponse,
   QueryGroupOptionResponse,
-  ResponseQuestionArgs
+  ResponseQuestionArgs,
 }
