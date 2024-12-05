@@ -1380,6 +1380,46 @@ interface Idea {
   id: string
 }
 const relatedValue = ref<NodeInteraction[]>([])
+/**
+ * 这个方法提醒学习者去交互
+ */
+const notifactionStudentToInteract = ({
+  support,
+  ask,
+  oppose,
+}: {
+  support: number
+  ask: number
+  oppose: number
+}) => {
+  const supportMessage =
+    support > 0
+      ? `<div>有<strong><span style="color:green">${support}</span></strong>个学生支持你的意见</div>`
+      : ''
+  const askMessage =
+    ask > 0
+      ? `<div>有<strong><span style="color:blue">${ask}</span></strong>个学生提出了问题</div>`
+      : ''
+  const opposeMessage =
+    oppose > 0
+      ? `<div>有<strong><span style="color:red">${oppose}</span></strong>个学生反对你的意见</div>`
+      : ''
+  const callToActionMessage = `<div>请及时回应和参与讨论</div>`
+
+  ElNotification({
+    title: '提示',
+    type: 'success',
+    dangerouslyUseHTMLString: true,
+    message: `
+<div>
+    ${supportMessage}
+    ${askMessage}
+    ${opposeMessage}
+    ${callToActionMessage}
+</div>`,
+    position: 'bottom-right',
+  })
+}
 const onFlowComponentValueUpdate = ({
   nodes,
   edges,
@@ -1390,6 +1430,12 @@ const onFlowComponentValueUpdate = ({
   related: NodeInteraction[]
 }) => {
   relatedValue.value = [...related]
+  if (relatedValue.value.length === 0) return
+  notifactionStudentToInteract({
+    support: related.filter(item => item.type === 'approve').length,
+    ask: related.filter(item => item.type === 'question_to_idea').length,
+    oppose: related.filter(item => item.type === 'reject').length,
+  })
   console.log('onFlowComponentValueUpdate.related', related)
 }
 const filterMap: Record<

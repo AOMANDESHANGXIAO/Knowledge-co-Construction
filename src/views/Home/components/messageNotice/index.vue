@@ -50,6 +50,7 @@ const onClickTag = (id: string) => {
       </div>
       <div class="idea-pool-container">
         <n-tag
+          v-if="ideaList.length > 0"
           v-for="(item, index) in ideaList"
           @click="onClickTag(item.id)"
           :type="item.type"
@@ -60,6 +61,7 @@ const onClickTag = (id: string) => {
             {{ item.nickname + ':' + item.content }}
           </n-ellipsis>
         </n-tag>
+        <n-empty description="观点池为空~" v-else> </n-empty>
       </div>
     </n-card>
   </div>
@@ -119,11 +121,13 @@ const onClickTag = (id: string) => {
   .idea-pool-container {
     gap: 10px;
     width: 100%;
+    max-height: 500px;
     // height: 200px;
     padding: 10px;
     margin-top: 10px;
     border-radius: 10px;
     border: 1px solid #ccc;
+    overflow: auto;
   }
 }
 </style>
