@@ -1,5 +1,8 @@
 <script lang="ts" setup>
 import { Handle, Position } from '@vue-flow/core'
+import { useAnimate } from '@vueuse/core' // 引入 useAnimation
+import animate from '@/components/vueFlow/animate.ts'
+import eventBus from '@/hooks/eventBus.ts'
 
 interface QuestionNodeProps {
   id: string
@@ -24,7 +27,9 @@ const props = withDefaults(defineProps<Props>(), {
     targetPosition: Position.Top,
   }),
 })
-
+const el = ref<HTMLElement | null>(null)
+const keyframes = ref(animate)
+const { play } = useAnimate(el, keyframes, 1000)
 // 向父组件传递事件,click, 由父组件判断是查看还是修改
 const emits = defineEmits<{
   (
@@ -44,14 +49,18 @@ const handleCheckQuestion = () => {
   })
 }
 onMounted(() => {
-  console.log('InQuestionNode, the props is', props)
+  eventBus.on('animate', (id: string) => {
+    if (id === props.data.id) {
+      play()
+    }
+  })
 })
 </script>
 
 <template>
   <div
     class="idea-node"
-    ref="myHoverableElement"
+    ref="el"
     :style="{ backgroundColor: props.data.bgc }"
     @click="handleCheckQuestion"
   >

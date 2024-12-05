@@ -2,6 +2,9 @@
 import { Handle, Position } from '@vue-flow/core'
 import { IdeaNodeProps } from './type.ts'
 import icon from './components/icon/index.vue'
+import { useAnimate } from '@vueuse/core' // 引入 useAnimation
+import animate from '@/components/vueFlow/animate.ts'
+import eventBus from '@/hooks/eventBus.ts'
 
 interface Props {
   data: IdeaNodeProps
@@ -29,6 +32,15 @@ const emits = defineEmits<{
     }
   ): void
 }>()
+const el = ref<HTMLElement | null>(null)
+const keyframes = ref(animate)
+const { play } = useAnimate(el, keyframes, 1000)
+
+const handlePlay = () => {
+  play()
+}
+
+defineExpose({ handlePlay })
 
 const handleCheckIdea = () => {
   // 返回id
@@ -37,12 +49,19 @@ const handleCheckIdea = () => {
     studentId: String(props.data.student_id),
   })
 }
+onMounted(() => {
+  eventBus.on('animate', (id: string) => {
+    if(id === props.data.id) {
+      handlePlay()
+    }
+  })
+})
 </script>
 
 <template>
   <div
     class="idea-node"
-    ref="myHoverableElement"
+    ref="el"
     :style="{ backgroundColor: props.data.bgc }"
     @click="handleCheckIdea"
   >

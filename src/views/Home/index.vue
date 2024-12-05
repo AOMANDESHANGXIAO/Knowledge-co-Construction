@@ -65,7 +65,7 @@ import MsgNotice from './components/messageNotice/index.vue'
 import { THEME_COLOR } from '@/config.ts'
 import ContextMenu from '@imengyu/vue3-context-menu'
 import { Edge, Node } from '@/components/vueFlow/type.ts'
-// import { NodeInteraction } from '@/apis/flow/type'
+
 
 const { getOneUserInfo } = useUserStore()
 
@@ -1411,13 +1411,14 @@ const notifactionStudentToInteract = ({
     type: 'success',
     dangerouslyUseHTMLString: true,
     message: `
-<div>
+<div style="font-size:20px">
     ${supportMessage}
     ${askMessage}
     ${opposeMessage}
     ${callToActionMessage}
 </div>`,
     position: 'bottom-right',
+    duration: 0,
   })
 }
 const onFlowComponentValueUpdate = ({

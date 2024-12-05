@@ -22,6 +22,7 @@ import { useNotification } from './hook'
 import { useUserStore } from '@/store/modules/user/index.ts'
 import useState from '@/hooks/State/useState.ts'
 import { NodeInteraction } from '@/apis/flow/type'
+import eventBus from '@/hooks/eventBus'
 /**
  * WARNING: 设置nodes和edges状态时在一个函数内最好只更新一次
  * 不要在一个函数内更新多次
@@ -260,12 +261,20 @@ const getState = () => {
     edges: edges.value,
   }
 }
+/**
+ * 
+ * @param id 
+ * 发布订阅模式，发出信号，子组件接收到后执行相应情况
+ */
+const publishMessage = (id: string) => {
+  eventBus.emit('animate', id)
+}
 
 const setFitViewOnNodeCenter = (id: string) => {
-  console.log('设置了节点中心')
   fitView({
     nodes: [id],
   })
+  publishMessage(id)
 }
 defineExpose({
   handleLayout,
