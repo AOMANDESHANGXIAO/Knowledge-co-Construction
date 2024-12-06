@@ -1,4 +1,9 @@
 <script setup lang="ts">
+/**
+ * @deprecated
+ * 这个组件已经被弃用了,
+ * 经过实验发现，这种对于人的认知负荷实在太大，也不利于大家填写
+ */
 import { VueFlow, Panel, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
