@@ -105,7 +105,12 @@ export type GroupNodeData = {
   }
   position: Position
 }
-export type InteractionNodeType = 'idea' | 'agree' | 'disagree' | 'ask' | 'response'
+export type InteractionNodeType =
+  | 'idea'
+  | 'agree'
+  | 'disagree'
+  | 'ask'
+  | 'response'
 export type InteractionNodeData = {
   id: string
   type: InteractionNodeType

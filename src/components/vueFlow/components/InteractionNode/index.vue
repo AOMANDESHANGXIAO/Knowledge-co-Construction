@@ -5,6 +5,8 @@ import { useAnimate } from '@vueuse/core' // 引入 useAnimation
 import animate from '@/components/vueFlow/animate.ts'
 import eventBus from '@/hooks/eventBus.ts'
 import { InteractionNodeType } from '@/apis/viewpoint/interface.ts'
+import ViewPointAPI from '@/apis/viewpoint'
+import { useUserStore } from '@/store/modules/user'
 
 interface Props {
   data: {
@@ -64,21 +66,210 @@ onMounted(() => {
     }
   })
 })
+const { getOneUserInfo } = useUserStore()
+const studentId = getOneUserInfo<string>('id')
+const checkIsStudentSelfNode = () => {
+  return String(props.data.student_id) === String(studentId)
+}
+interface Buttons {
+  text: string
+  color: string
+  onClick: () => void
+}
+interface DataMap {
+  idea: {
+    buttons: Buttons[]
+  }
+  ask: {
+    buttons: Buttons[]
+  }
+  response: {
+    buttons: Buttons[]
+  }
+  disagree: {
+    buttons: Buttons[]
+  }
+  agree: {
+    buttons: Buttons[]
+  }
+}
+const BLUE = '#2563eb'
+const GREEN = '#40a578'
+const YELLOW = '#f9a825'
+const RED = '#ee4e4e'
+const PURPLE = '#4335a7'
+
+const popoverDataMap: {
+  self: DataMap
+  notSelf: DataMap
+} = {
+  /**
+   * 是自己的观点
+   */
+  self: {
+    idea: {
+      buttons: [
+        {
+          text: '修改',
+          color: BLUE,
+          onClick: () => {
+            console.log('修改自己观点')
+          },
+        },
+      ],
+    },
+    ask: {
+      buttons: [
+        {
+          text: '修改',
+          color: BLUE,
+          onClick: () => {
+            console.log('修改自己提問')
+          },
+        },
+      ],
+    },
+    response: {
+      buttons: [
+        {
+          text: '修改',
+          color: BLUE,
+          onClick: () => {
+            console.log('修改自己的回应')
+          },
+        },
+      ],
+    },
+    disagree: {
+      buttons: [
+        {
+          text: '修改',
+          color: BLUE,
+          onClick: () => {
+            console.log('修改自己的反驳')
+          },
+        },
+      ],
+    },
+    agree: {
+      buttons: [
+        {
+          text: '修改',
+          color: BLUE,
+          onClick: () => {
+            console.log('修改自己的赞同')
+          },
+        },
+      ],
+    },
+  },
+  /**
+   * 不是自己的观点
+   */
+  notSelf: {
+    idea: {
+      buttons: [
+        {
+          text: '1修改',
+          color: BLUE,
+          onClick: () => {
+            console.log('修改自己观点')
+          },
+        },
+      ],
+    },
+    ask: {
+      buttons: [
+        {
+          text: '2修改',
+          color: BLUE,
+          onClick: () => {
+            console.log('修改自己提問')
+          },
+        },
+      ],
+    },
+    response: {
+      buttons: [
+        {
+          text: '2修改',
+          color: BLUE,
+          onClick: () => {
+            console.log('修改自己的回应')
+          },
+        },
+      ],
+    },
+    disagree: {
+      buttons: [
+        {
+          text: '2修改',
+          color: BLUE,
+          onClick: () => {
+            console.log('修改自己的反驳')
+          },
+        },
+      ],
+    },
+    agree: {
+      buttons: [
+        {
+          text: '2修改',
+          color: BLUE,
+          onClick: () => {
+            console.log('修改自己的赞同')
+          },
+        },
+      ],
+    },
+  },
+}
+const popoverRenderFooter = computed(() => {
+  if (checkIsStudentSelfNode()) {
+    return {
+      buttons: popoverDataMap.self[props.data.type].buttons,
+    }
+  }
+  return {
+    buttons: popoverDataMap.notSelf[props.data.type].buttons,
+  }
+})
 </script>
 
 <template>
-  <div
-    class="interaction-node"
-    ref="el"
-    :style="{ backgroundColor: props.data.bgc }"
-    @click="handleCheckIdea"
-  >
-    <Handle :position="(props.data.targetPosition as Position)" type="target" />
-    <Handle :position="(props.data.sourcePosition as Position)" type="source" />
-    <div class="text">
-      <section class="name">{{ props.data.name }}</section>
-    </div>
-  </div>
+  <n-popover trigger="click" :show-arrow="false">
+    <template #trigger>
+      <div
+        class="interaction-node"
+        ref="el"
+        :style="{ backgroundColor: props.data.bgc }"
+        @click="handleCheckIdea"
+      >
+        <Handle
+          :position="(props.data.targetPosition as Position)"
+          type="target"
+        />
+        <Handle
+          :position="(props.data.sourcePosition as Position)"
+          type="source"
+        />
+        <div class="text">
+          <section class="name">{{ props.data.name }}</section>
+        </div>
+      </div>
+    </template>
+    <div>或许不想知道你的花园长得咋样</div>
+    <template #footer>
+      <n-space>
+        <n-button
+          v-for="(item, index) in popoverRenderFooter.buttons"
+          :key="index"
+          :color="item.color"
+          @click="item.onClick"
+        >{{ item.text }}</n-button>
+      </n-space>
+    </template>
+  </n-popover>
 </template>
 
 <style lang="scss" scoped>
