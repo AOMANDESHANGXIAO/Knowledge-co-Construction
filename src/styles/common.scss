@@ -9,11 +9,15 @@
   --theme-color: #2563eb;
   --default-theme-color: #2563eb;
   --dark-color: #222d3c;
-  --light-dark-color:#171717;
+  --light-dark-color: #171717;
   --user-color: #2563eb;
   --normal-line-color: #e5e7eb;
-  --approve-line-color: #40A578;
-  --reject-line-color: #EE4E4E;
+  --agree-line-color: #40a578;
+  --disagree-line-color: #ee4e4e;
+  --ask-line-color: #4335a7;
+  --response-line-color: #f9a825;
+  --idea-line-color: #fff;
+  --group-line-color: #fff;
   --light-dark-bgc-color: #2d3748;
 }
 
@@ -22,6 +26,6 @@
 }
 
 @font-face {
-  font-family: "PingFang";
-  src: url("@/assets/fonts/PingFangHK-Regular.otf");
+  font-family: 'PingFang';
+  src: url('@/assets/fonts/PingFangHK-Regular.otf');
 }

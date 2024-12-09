@@ -1,3 +1,4 @@
+import { Position as VueFlowPosition } from '@vue-flow/core'
 export interface CreateTopicArgs {
   content: string
   creator_id: number
@@ -71,12 +72,7 @@ export type NodeType =
   | 'ask'
   | 'response'
 
-export interface Node {
-  id: string
-  type: NodeType
-  data: Data
-  position: Position
-}
+export type Node = TopicNodeData | GroupNodeData | InteractionNodeData
 
 export interface Position {
   x: number
@@ -85,10 +81,12 @@ export interface Position {
 
 export type TopicNodeData = {
   id: string
-  type: string
+  type: 'topic'
   data: {
     id: string
     text: string
+    sourcePosition: VueFlowPosition
+    targetPosition: VueFlowPosition
   }
   position: Position
 }
@@ -102,21 +100,27 @@ export type GroupNodeData = {
     bgc: string
     group_id: string
     node_id: string
+    sourcePosition: VueFlowPosition
+    targetPosition: VueFlowPosition
   }
   position: Position
 }
+export type InteractionNodeType = 'idea' | 'agree' | 'disagree' | 'ask' | 'response'
 export type InteractionNodeData = {
   id: string
-  type: 'idea' | 'agree' | 'disagree' | 'ask' | 'response'
+  type: InteractionNodeType
   position: Position
   data: {
+    type: InteractionNodeType
     name: string
     id: string
     bgc: string
     student_id: string
+    sourcePosition: VueFlowPosition
+    targetPosition: VueFlowPosition
   }
 }
-export type Data = TopicNodeData | GroupNodeData | InteractionNodeData
+// export type Data = TopicNodeData | GroupNodeData | InteractionNodeData
 
 export interface Edge {
   id: string

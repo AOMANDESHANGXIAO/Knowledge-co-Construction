@@ -8,21 +8,25 @@ import '@vue-flow/controls/dist/style.css'
 import { nextTick } from 'vue'
 import topicNode from './components/topicNode/index.vue'
 import groupNode from './components/groupNode/index.vue'
-import questionNode from './components/questionNode/index.vue'
-import ideaNode from './components/ideaNode/index.vue'
-import { queryFlowDataApi } from '@/apis/flow/index.ts'
+import InteractionNode from './components/InteractionNode/index.vue'
 import useRequest from '@/hooks/Async/useRequest'
-import { QueryFlowResponse } from '@/apis/flow/type'
 import useQueryParam from '@/hooks/router/useQueryParam'
 import { EDGE_COLORS } from './option'
-import type { Node, Edge, LayoutDir } from './type'
+import type { LayoutDir } from './type'
 import { useLayout } from '@/hooks/VueFlow/useLayout'
-import { getStuNodeIds, getGroupNodeId } from './utils'
+import { getGroupNodeId } from './utils'
 import { useNotification } from './hook'
 import { useUserStore } from '@/store/modules/user/index.ts'
 import useState from '@/hooks/State/useState.ts'
-import { NodeInteraction } from '@/apis/flow/type'
 import eventBus from '@/hooks/eventBus'
+import ViewPointAPI from '@/apis/viewpoint'
+import {
+  GetViewPointListResponse,
+  Node,
+  Edge,
+  NotResponsed,
+} from '@/apis/viewpoint/interface'
+
 /**
  * WARNING: 设置nodes和edges状态时在一个函数内最好只更新一次
  * 不要在一个函数内更新多次
@@ -34,18 +38,6 @@ defineOptions({
   name: 'MyVueFlow',
 })
 
-// const props = withDefaults(
-//   defineProps({
-//     updateVueFlowEffects: { type: Function, default: () => {} },
-//     onMountedEffect: { type: Function, default: () => {} },
-//     onUpdateValues: { type: Function, default: () => {} },
-//   }),
-//   () => ({
-//     updateVueFlowEffects: () => {},
-//     onMountedEffect: () => {},
-//     onUpdateValues: () => {},
-//   })
-// )
 const props = withDefaults(
   defineProps<{
     updateVueFlowEffects?: () => void
@@ -53,7 +45,7 @@ const props = withDefaults(
     onUpdateValues?: (args: {
       nodes: Node[]
       edges: Edge[]
-      related: NodeInteraction[]
+      notResponsed: NotResponsed[]
     }) => void
   }>(),
   {
@@ -98,59 +90,16 @@ const group_id = getOneUserInfo<string>('group_id')
 
 const { setHighlightNotification } = useNotification()
 
-const stateFormatter = (data: QueryFlowResponse) => {
+const stateFormatter = (data: GetViewPointListResponse) => {
   return {
     nodes: data.nodes.map(node => {
-      if (node.type === 'idea') {
-        const { data } = node
-        return {
-          ...node,
-          data: {
-            name: data.name,
-            id: String(data.id),
-            bgc: data.bgc,
-            student_id: String(data.student_id),
-            highlight: false,
-            targetPosition: Position.Top,
-            sourcePosition: Position.Bottom,
-          },
-        }
-      } else if (node.type === 'group') {
-        return {
-          ...node,
-          data: {
-            groupName: node.data.groupName,
-            groupConclusion: node.data.groupConclusion,
-            bgc: node.data.bgc,
-            group_id: node.data.group_id,
-            node_id: node.data.node_id,
-            targetPosition: Position.Top,
-            sourcePosition: Position.Bottom,
-          },
-        }
-      } else if (node.type === 'question') {
-        const { data } = node
-        return {
-          ...node,
-          data: {
-            name: data.name,
-            id: String(data.id),
-            bgc: data.bgc,
-            student_id: String(data.student_id),
-            highlight: false,
-            targetPosition: Position.Top,
-            sourcePosition: Position.Bottom,
-          },
-        }
-      } else {
-        return {
-          ...node,
-          data: {
-            text: node.data.text,
-            sourcePosition: Position.Top,
-            targetPosition: Position.Bottom,
-          },
-        }
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          sourcePosition: Position.Top,
+          targetPosition: Position.Bottom,
+        },
       }
     }),
     edges: data.edges.map(edge => {
@@ -162,21 +111,29 @@ const stateFormatter = (data: QueryFlowResponse) => {
         },
       }
     }),
-    related: data.related,
+    notResponsed: data.notResponsed,
+  }
+}
+interface VueFlowEdge extends Edge {
+  style: {
+    stroke: string
   }
 }
 const [nodes, setNodes] = useState<Node[]>([])
 
-const [edges, setEdges] = useState<Edge[]>([])
+const [edges, setEdges] = useState<VueFlowEdge[]>([])
 
 const { loading, run } = useRequest({
   apiFn: async () => {
-    return await queryFlowDataApi(topicId.value, Number(student_id))
+    return ViewPointAPI.getViewPointList({
+      topic_id: topicId.value,
+      student_id: Number(student_id),
+    })
   },
   onSuccess: (data: {
     nodes: Node[]
-    edges: Edge[]
-    related: NodeInteraction[]
+    edges: VueFlowEdge[]
+    notResponsed: NotResponsed[]
   }) => {
     console.log('queryFlowDataApidata', data)
     setNodes(data.nodes)
@@ -186,7 +143,7 @@ const { loading, run } = useRequest({
       props.onUpdateValues({
         nodes: data.nodes,
         edges: data.edges,
-        related: data.related,
+        notResponsed: data.notResponsed,
       })
   },
   onFail: () => {},
@@ -213,21 +170,13 @@ const handleLayout = async (direction: LayoutDir) => {
     node.data.sourcePosition = sourcePosition
     node.data.targetPosition = targetPosition
   })
-  // 查询是否有回复自己的
-  const stuNodeIds = getStuNodeIds(nodesValue, student_id)
 
   const positionNodes: { nodes: string[] } = { nodes: [] }
+  // 查找团队节点
+  const groupNodeId = getGroupNodeId(nodesValue, +group_id)
 
-  if (stuNodeIds.length) {
-    nodesValue = setHighlightNotification(edgesValue, student_id, nodesValue)
-    positionNodes.nodes = stuNodeIds
-  } else {
-    // 查找团队节点
-    const groupNodeId = getGroupNodeId(nodesValue, +group_id)
-
-    if (groupNodeId) {
-      positionNodes.nodes = [groupNodeId]
-    }
+  if (groupNodeId) {
+    positionNodes.nodes = [groupNodeId]
   }
 
   nodesValue = layout(nodesValue, edgesValue, direction)
@@ -262,8 +211,8 @@ const getState = () => {
   }
 }
 /**
- * 
- * @param id 
+ *
+ * @param id
  * 发布订阅模式，发出信号，子组件接收到后执行相应情况
  */
 const publishMessage = (id: string) => {
@@ -297,17 +246,25 @@ defineExpose({
     >
       <!-- bind your custom node type to a component by using slots, slot names are always `node-<type>` -->
       <template #node-topic="props">
-        <topicNode :data="props.data" />
+        <topicNode :data="props.data" v-bind="$attrs" />
       </template>
       <template #node-group="props">
-        <!-- <groupNode :data="props.data" @click="onClickGroupNode" /> -->
         <groupNode :data="props.data" v-bind="$attrs" />
       </template>
       <template #node-idea="props">
-        <ideaNode :data="props.data" v-bind="$attrs" />
+        <InteractionNode :data="props.data" v-bind="$attrs" />
       </template>
-      <template #node-question="props">
-        <questionNode :data="props.data" v-bind="$attrs" />
+      <template #node-agree="props">
+        <InteractionNode :data="props.data" v-bind="$attrs"></InteractionNode>
+      </template>
+      <template #node-disagree="props">
+        <InteractionNode :data="props.data" v-bind="$attrs"></InteractionNode>
+      </template>
+      <template #node-ask="props">
+        <InteractionNode :data="props.data" v-bind="$attrs"></InteractionNode>
+      </template>
+      <template #node-response="props">
+        <InteractionNode :data="props.data" v-bind="$attrs"></InteractionNode>
       </template>
 
       <Background

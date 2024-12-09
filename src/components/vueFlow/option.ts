@@ -3,16 +3,21 @@
  */
 import { useCssVar } from '@vueuse/core'
 
-const GENERIC_LINE_COLOR = useCssVar('--normal-line-color').value
-const APPROVE_LINE_COLOR = useCssVar('--approve-line-color').value
-const REJECT_LINE_COLOR = useCssVar('--reject-line-color').value
+const agree = useCssVar('--agree-line-color').value
+const disagree = useCssVar('--disagree-line-color').value
+const ask = useCssVar('--ask-line-color').value
+const response = useCssVar('--response-line-color').value
+const idea = useCssVar('--idea-line-color').value
+const group = useCssVar('--group-line-color').value
 
 const EDGE_COLORS = {
-  group_to_discuss: GENERIC_LINE_COLOR,
-  idea_to_group: GENERIC_LINE_COLOR,
-  approve: APPROVE_LINE_COLOR,
-  reject: REJECT_LINE_COLOR,
-  default: '#fff',
+  agree,
+  disagree,
+  ask,
+  response,
+  idea,
+  group,
+  topic: '#fff',
 }
 
 export { EDGE_COLORS }

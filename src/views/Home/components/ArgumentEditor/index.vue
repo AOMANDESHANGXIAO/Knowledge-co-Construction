@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import ChatGptInput from '../newChatGpt/index.vue'
 import { Span } from 'naive-ui/es/legacy-grid/src/interface'
-import { useClipboard } from '@vueuse/core'
-import { useMessage } from 'naive-ui'
+// import { useMessage } from 'naive-ui'
 defineOptions({
   name: 'index',
 })
@@ -14,6 +13,7 @@ const props = withDefaults(
       value: string
       placeholder: string
       tags: string[]
+      setter: (value: string) => void
     }[]
     arrow: {
       text: string
@@ -54,14 +54,12 @@ const props = withDefaults(
 const arrowColor = computed(() => {
   return props.arrow.color
 })
-const { copy } = useClipboard()
-const message = useMessage()
-const onClickTag = (content: string) => {
+const onClickTag = (content: string, index: number) => {
   try {
-    copy(content)
-    message.success('复制成功')
+    const oldValue = props.inputValues[index].value
+    props.inputValues[index].setter(oldValue + content)
   } catch (error) {
-    message.error('复制失败')
+    console.log(error)
   }
 }
 </script>
@@ -82,8 +80,8 @@ const onClickTag = (content: string) => {
             <section class="editor-item-layout">
               <div
                 class="editor-item"
-                v-for="(item, index) in props.inputValues"
-                :key="index"
+                v-for="(item, inputValueIndex) in props.inputValues"
+                :key="inputValueIndex"
               >
                 <div class="editor-title">{{ item.title }}</div>
                 <el-input
@@ -100,7 +98,7 @@ const onClickTag = (content: string) => {
                     size="small"
                     v-for="(tag, index) in item.tags"
                     :key="index"
-                    @click="onClickTag(tag)"
+                    @click="onClickTag(tag, inputValueIndex)"
                     style="cursor: pointer"
                     >{{ tag }}</n-tag
                   >

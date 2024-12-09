@@ -43,9 +43,7 @@ import { NButton, NForm } from 'naive-ui'
 import { uploadFilesApi, uploadCourseWorkApi } from '@/apis/upload/index.ts'
 import useTable from '@/hooks/Async/useTable.ts'
 import UploadField from '@/components/UploadField/index.vue'
-import { downloadFileApi } from '@/apis/files/index.ts'
 import CourseWorkAPI from '@/apis/courseWork'
-import ChatGptComponent from './components/ChatGptComponent/index.vue'
 import type { Scaffold } from './components/ChatGptComponent/chatgptComponent.type'
 import { ArgumentType } from './components/ArgumentFlowComponent/type.ts'
 import { getArgumentList } from '@/utils/formatter/argument.formatter.ts'
@@ -63,7 +61,8 @@ import { THEME_COLOR } from '@/config.ts'
 import ContextMenu from '@imengyu/vue3-context-menu'
 import { Edge, Node } from '@/components/vueFlow/type.ts'
 import ArgumentEditor from './components/ArgumentEditor/index.vue'
-
+import ViewPointAPI from '@/apis/viewpoint/index.ts'
+import { GetViewPointListResponse } from '@/apis/viewpoint/interface.ts'
 const { getOneUserInfo } = useUserStore()
 
 const [dialogVisible, setDialogVisible] = useState(false)
@@ -236,18 +235,6 @@ const handleClickConclusionBtn = () => {
 
   openArgumentEditor()
 }
-
-/**
- * 记录正在回复的观点
- */
-const replyNodes: NodeType[] = []
-const replyEdges: EdgeType[] = []
-
-/**
- * 记录修改的观点
- */
-const modifiedNodes: NodeType[] = []
-const modifiedEdges: EdgeType[] = []
 
 /**
  * 请求参数
@@ -1312,30 +1299,42 @@ const argumentEditorOptions = ref({
   title: '编辑器',
   inputValues: [
     {
-      title:'结论',
-      value:'',
-      placeholder:'你的主要观点是什么?',
-      tags: ['词条1','词条2']
+      title: '结论',
+      value: '',
+      placeholder: '你的主要观点是什么?',
+      tags: ['词条1', '词条2'],
+      setter(value: string) {
+        this.value = value
+      },
     },
     {
-      title:'理由',
-      value:'',
-      placeholder:'你这么说有什么道理?',
-      tags: ['词条1','词条2']
+      title: '理由',
+      value: '',
+      placeholder: '你这么说有什么道理?',
+      tags: ['词条1', '词条2'],
+      setter(value: string) {
+        this.value = value
+      },
     },
     {
-      title:'局限性',
-      value:'',
-      placeholder:'你这么说有什么局限性?',
-      tags: ['词条1','词条2']
-    }
+      title: '局限性',
+      value: '',
+      placeholder: '你这么说有什么局限性?',
+      tags: ['词条1', '词条2'],
+      setter(value: string) {
+        this.value = value
+      },
+    },
   ],
-  arrow:{
+  arrow: {
     text: '提交',
     color: THEME_COLOR,
   },
   prompt: 'What Your reply',
 })
+const onClickInteractionNode = () => {
+  console.log('onClickInteractionNode')
+}
 </script>
 
 <template>
@@ -1352,8 +1351,7 @@ const argumentEditorOptions = ref({
         "
         :onUpdateValues="onFlowComponentValueUpdate"
         @onClickGroupNode="onClickGroupNode"
-        @onClickIdeaNode="onClickIdeaNode"
-        @onClickQuestionNode="onClickQuestionNode"
+        @onClickInteractionNode="onClickInteractionNode"
       >
         <!-- 右上角插槽放一些控制按钮 -->
         <template #top-right>
