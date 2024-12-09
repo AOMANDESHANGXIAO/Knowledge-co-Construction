@@ -4,7 +4,9 @@ const route = useRoute()
 </script>
 
 <template>
-  <router-view :key="route.path" />
+  <n-message-provider>
+    <router-view :key="route.path" />
+  </n-message-provider>
 </template>
 
 <style scoped lang="scss"></style>

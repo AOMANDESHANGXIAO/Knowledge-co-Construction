@@ -69,6 +69,7 @@ declare module 'vue' {
     NInput: typeof import('naive-ui')['NInput']
     NList: typeof import('naive-ui')['NList']
     NListItem: typeof import('naive-ui')['NListItem']
+    NMessageProvider: typeof import('naive-ui')['NMessageProvider']
     NModal: typeof import('naive-ui')['NModal']
     NModalProvider: typeof import('naive-ui')['NModalProvider']
     NodePopover: typeof import('./../components/NodePopover/index.vue')['default']

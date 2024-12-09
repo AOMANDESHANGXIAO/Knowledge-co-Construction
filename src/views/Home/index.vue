@@ -1332,7 +1332,7 @@ const argumentEditorOptions = ref({
   ],
   arrow:{
     text: '提交',
-    color: '#E195AB',
+    color: THEME_COLOR,
   },
   prompt: 'What Your reply',
 })

@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import ChatGptInput from '../newChatGpt/index.vue'
 import { Span } from 'naive-ui/es/legacy-grid/src/interface'
+import { useClipboard } from '@vueuse/core'
+import { useMessage } from 'naive-ui'
 defineOptions({
   name: 'index',
 })
@@ -52,6 +54,16 @@ const props = withDefaults(
 const arrowColor = computed(() => {
   return props.arrow.color
 })
+const { copy } = useClipboard()
+const message = useMessage()
+const onClickTag = (content: string) => {
+  try {
+    copy(content)
+    message.success('复制成功')
+  } catch (error) {
+    message.error('复制失败')
+  }
+}
 </script>
 
 <template>
@@ -79,6 +91,8 @@ const arrowColor = computed(() => {
                   :autosize="{ minRows: 2, maxRows: 6 }"
                   v-model="item.value"
                   :placeholder="item.placeholder"
+                  :maxlength="200"
+                  show-word-limit
                 />
                 <div class="tags-container">
                   <n-tag
@@ -86,6 +100,8 @@ const arrowColor = computed(() => {
                     size="small"
                     v-for="(tag, index) in item.tags"
                     :key="index"
+                    @click="onClickTag(tag)"
+                    style="cursor: pointer"
                     >{{ tag }}</n-tag
                   >
                 </div>
@@ -135,8 +151,8 @@ const arrowColor = computed(() => {
 
 <style lang="scss" scoped>
 .editor-modal-layout {
-  width: 70vw;
-  height: 70vh;
+  width: 80vw;
+  height: 80vh;
   background-color: #fff;
   padding: 10px;
   display: flex;

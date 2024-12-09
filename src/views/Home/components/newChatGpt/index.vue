@@ -59,7 +59,7 @@ const getParams = () => {
   }
 }
 const scrollToBottom = () => {
-  const dom = document.querySelector('#chat-history')
+  const dom = document.querySelector('#chat-window')
   if (dom) {
     dom.scrollTo(0, dom.scrollHeight)
   }
