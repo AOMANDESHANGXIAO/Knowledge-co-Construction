@@ -170,10 +170,24 @@ const popoverDataMap: {
     idea: {
       buttons: [
         {
-          text: '1修改',
-          color: BLUE,
+          text: '赞成',
+          color: GREEN,
           onClick: () => {
-            console.log('修改自己观点')
+            console.log('赞成')
+          },
+        },
+        {
+          text: '困惑',
+          color: YELLOW,
+          onClick: () => {
+            console.log('困惑')
+          },
+        },
+        {
+          text: '反对',
+          color: RED,
+          onClick: () => {
+            console.log('反对')
           },
         },
       ],
@@ -181,10 +195,10 @@ const popoverDataMap: {
     ask: {
       buttons: [
         {
-          text: '2修改',
+          text: '解释',
           color: BLUE,
           onClick: () => {
-            console.log('修改自己提問')
+            console.log('解释')
           },
         },
       ],
@@ -192,10 +206,24 @@ const popoverDataMap: {
     response: {
       buttons: [
         {
-          text: '2修改',
-          color: BLUE,
+          text: '赞成',
+          color: GREEN,
           onClick: () => {
-            console.log('修改自己的回应')
+            console.log('赞成')
+          },
+        },
+        {
+          text: '困惑',
+          color: YELLOW,
+          onClick: () => {
+            console.log('困惑')
+          },
+        },
+        {
+          text: '反对',
+          color: RED,
+          onClick: () => {
+            console.log('反对')
           },
         },
       ],
@@ -203,10 +231,24 @@ const popoverDataMap: {
     disagree: {
       buttons: [
         {
-          text: '2修改',
-          color: BLUE,
+          text: '赞成',
+          color: GREEN,
           onClick: () => {
-            console.log('修改自己的反驳')
+            console.log('赞成')
+          },
+        },
+        {
+          text: '困惑',
+          color: YELLOW,
+          onClick: () => {
+            console.log('困惑')
+          },
+        },
+        {
+          text: '反对',
+          color: RED,
+          onClick: () => {
+            console.log('反对')
           },
         },
       ],
@@ -214,16 +256,62 @@ const popoverDataMap: {
     agree: {
       buttons: [
         {
-          text: '2修改',
-          color: BLUE,
+          text: '赞成',
+          color: GREEN,
           onClick: () => {
-            console.log('修改自己的赞同')
+            console.log('赞成')
+          },
+        },
+        {
+          text: '困惑',
+          color: YELLOW,
+          onClick: () => {
+            console.log('困惑')
+          },
+        },
+        {
+          text: '反对',
+          color: RED,
+          onClick: () => {
+            console.log('反对')
           },
         },
       ],
     },
   },
 }
+const titleReflectDataMap = {
+  idea: {
+    text: '观点',
+    color: BLUE,
+  },
+  agree: {
+    text: '赞成',
+    color: GREEN,
+  },
+  disagree: {
+    text: '反对',
+    color: RED,
+  },
+  ask: {
+    text: '困惑',
+    color: YELLOW,
+  },
+  response: {
+    text: '回应',
+    color: PURPLE,
+  },
+}
+const popoverRenderHeader = computed(() => {
+  const data = titleReflectDataMap[props.data.type]
+  if (checkIsStudentSelfNode()) {
+    return {
+      ...data,
+      text: '我的' + data.text,
+    }
+  }
+  return data
+})
 const popoverRenderFooter = computed(() => {
   if (checkIsStudentSelfNode()) {
     return {
@@ -258,6 +346,27 @@ const popoverRenderFooter = computed(() => {
         </div>
       </div>
     </template>
+    <template #header>
+      <div style="display: flex; align-items: center">
+        <div
+          :style="{
+            width: '10px',
+            height: '20px',
+            'background-color': popoverRenderHeader.color,
+          }"
+        ></div>
+        <n-text
+          strong
+          depth="1"
+          :style="{
+            color: popoverRenderHeader.color,
+            fontSize: '20px',
+            marginLeft: '10px',
+          }"
+          >{{ popoverRenderHeader.text }}
+        </n-text>
+      </div>
+    </template>
     <div>或许不想知道你的花园长得咋样</div>
     <template #footer>
       <n-space>
@@ -266,7 +375,8 @@ const popoverRenderFooter = computed(() => {
           :key="index"
           :color="item.color"
           @click="item.onClick"
-        >{{ item.text }}</n-button>
+          >{{ item.text }}</n-button
+        >
       </n-space>
     </template>
   </n-popover>
