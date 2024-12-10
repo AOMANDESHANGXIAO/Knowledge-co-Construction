@@ -61,13 +61,16 @@ import { THEME_COLOR } from '@/config.ts'
 import ContextMenu from '@imengyu/vue3-context-menu'
 import { Edge, Node } from '@/components/vueFlow/type.ts'
 import ArgumentEditor from './components/ArgumentEditor/index.vue'
-import { options } from './components/ArgumentEditor/option.ts'
+import { options, resetOptions } from './components/ArgumentEditor/option.ts'
 import ViewPointAPI from '@/apis/viewpoint/index.ts'
 // import { GetViewPointListResponse } from '@/apis/viewpoint/interface.ts'
+import { GetTopicResponse } from '../../apis/viewpoint/interface'
 import {
   GetInteractionResponse,
   InteractionNodeType,
 } from '../../apis/viewpoint/interface'
+import { useNotification } from 'naive-ui'
+
 const { getOneUserInfo } = useUserStore()
 
 const [dialogVisible, setDialogVisible] = useState(false)
@@ -1263,6 +1266,8 @@ const onRightClick = (e: MouseEvent) => {
  * 论点编辑器模块
  */
 const showModal = ref(false)
+const closeModal = () => (showModal.value = false)
+const openModal = () => (showModal.value = true)
 const buttons = ref<
   Array<{
     title: string
@@ -1275,7 +1280,11 @@ const buttons = ref<
     title: '发表观点',
     icon: IconName.Idea,
     action: () => {
-      showModal.value = true
+      setEditorType('idea')
+
+      showContentList.value = false
+      openModal()
+      refreshArgumentEditor()
     },
   },
   {
@@ -1302,35 +1311,65 @@ const buttons = ref<
 ])
 
 const editorType = ref<InteractionNodeType>('idea')
-const contentList = ref<GetInteractionResponse['list']>([])
 const setEditorType = (type: InteractionNodeType) => {
   editorType.value = type
+  options[editorType.value].inputValues.forEach(item => {
+    item.value = ''
+    console.log('item', item)
+  })
 }
+const contentList = ref<GetInteractionResponse['list']>([])
+const showContentList = ref(true)
 const { key, refresh: refreshArgumentEditor } = useRefresh()
 const onClickInteractionButton = (payload: {
   target: string
   contentList: GetInteractionResponse['list']
   action: InteractionNodeType
 }) => {
+  resetOptions()
   setEditorType(payload.action)
+  showContentList.value = true
   contentList.value = payload.contentList
-  showModal.value = true
+  openModal()
   refreshArgumentEditor()
   console.log('onClickInteractionButton ===> payload', payload)
 }
+const topic = ref('')
+useRequest({
+  apiFn: async () => {
+    return ViewPointAPI.getTopic({
+      topic_id: topicId.value,
+    })
+  },
+  onSuccess(data: GetTopicResponse) {
+    topic.value = data.content
+  },
+  immediate: true,
+})
 const argumentEditorOptions = computed(() => {
   const state = options[editorType.value]
   return {
     ...state,
     contentList: contentList.value,
+    showContentList: showContentList.value,
+    textFormatContent: topic.value,
   }
 })
-const onClickInteractionNode = (payload: {
-  target: string
-  contentList: GetInteractionResponse['list']
-  action: InteractionNodeType
-}) => {
-  console.log('onClickInteractionNode ===> payload', payload)
+const notification = useNotification()
+type inputValues = { key: string; value: string; required: boolean }[]
+const okValidator = (list: inputValues) => {
+  return list.filter(item => item.required).every(item => item.value)
+}
+const onOK = (inputValues: inputValues) => {
+  if (!okValidator(inputValues)) {
+    notification.warning({
+      content: '请先填写必填项哦~',
+      meta: '提示',
+      duration: 2500,
+      keepAliveOnHover: true,
+    })
+  }
+  console.log('onOK ===> inputValues', inputValues)
 }
 </script>
 
@@ -1347,7 +1386,6 @@ const onClickInteractionNode = (payload: {
           }
         "
         @onClickGroupNode="onClickGroupNode"
-        @onClickInteractionNode="onClickInteractionNode"
         @onClickInteractionButton="onClickInteractionButton"
       >
         <!-- 右上角插槽放一些控制按钮 -->
@@ -1397,6 +1435,8 @@ const onClickInteractionNode = (payload: {
       <ArgumentEditor
         v-bind="argumentEditorOptions"
         :key="key"
+        @close="closeModal"
+        @ok="onOK"
       ></ArgumentEditor>
     </n-modal>
 

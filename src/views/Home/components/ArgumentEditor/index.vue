@@ -15,6 +15,7 @@ const props = withDefaults(
       key: string
       placeholder: string
       tags: string[]
+      required: boolean
       setter: (value: string) => void
     }[]
     arrow: {
@@ -22,6 +23,8 @@ const props = withDefaults(
       color: string
     }
     contentList: GetInteractionResponse['list']
+    showContentList: boolean
+    textFormatContent: string
     colSizes?: {
       left: Span
       middle: Span
@@ -51,6 +54,8 @@ const props = withDefaults(
       middle: true,
       right: true,
     }),
+    showContentList: true,
+    textFormatContent: '',
   }
 )
 const inputValues = ref(props.inputValues)
@@ -59,12 +64,23 @@ const arrowColor = computed(() => {
 })
 const onClickTag = (content: string, index: number) => {
   try {
-    const oldValue = props.inputValues[index].value
-    props.inputValues[index].setter(oldValue + content)
+    const oldValue = inputValues.value[index].value
+    inputValues.value[index].setter(oldValue + content)
   } catch (error) {
     console.log(error)
   }
 }
+const handleOK = () => {
+  const res = inputValues.value.map(item => {
+    return {
+      key: item.key,
+      value: item.value,
+      required: item.required,
+    }
+  })
+  emits('ok', res)
+}
+const emits = defineEmits(['close', 'ok'])
 </script>
 
 <template>
@@ -86,7 +102,10 @@ const onClickTag = (content: string, index: number) => {
                 v-for="(item, inputValueIndex) in inputValues"
                 :key="item.key"
               >
-                <div class="editor-title">{{ item.title }}</div>
+                <div class="editor-title">
+                  <span v-if="item.required" style="color: red">*</span
+                  ><span>{{ ' '+ item.title }}</span>
+                </div>
                 <el-input
                   type="textarea"
                   :autosize="{ minRows: 2, maxRows: 6 }"
@@ -131,6 +150,7 @@ const onClickTag = (content: string, index: number) => {
             <div class="right-content-layout">
               <section class="inner-container">
                 <div
+                  v-if="showContentList"
                   v-for="item in contentList"
                   style="
                     margin-bottom: 10px;
@@ -147,14 +167,34 @@ const onClickTag = (content: string, index: number) => {
                   </n-h3>
                   <n-text>{{ item.value }}</n-text>
                 </div>
+                <div
+                  v-else
+                  style="
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                  "
+                >
+                  <n-text>{{ textFormatContent }}</n-text>
+                </div>
               </section>
             </div>
           </n-col>
         </n-row>
       </main>
       <footer>
-        <n-button type="info" secondary>取 消</n-button>
-        <n-button type="info">发 送</n-button>
+        <n-button
+          type="info"
+          secondary
+          @click="
+            () => {
+              emits('close')
+            }
+          "
+          >取 消</n-button
+        >
+        <n-button type="info" @click="handleOK">发 送</n-button>
       </footer>
     </section>
     <!-- ChatGpt -->
@@ -213,6 +253,7 @@ const onClickTag = (content: string, index: number) => {
           .tags-container {
             margin-top: 5px;
             display: flex;
+            flex-wrap: wrap;
             gap: 5px;
           }
         }
