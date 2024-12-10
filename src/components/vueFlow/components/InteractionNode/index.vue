@@ -4,10 +4,15 @@ import { Handle, Position } from '@vue-flow/core'
 import { useAnimate } from '@vueuse/core' // 引入 useAnimation
 import animate from '@/components/vueFlow/animate.ts'
 import eventBus from '@/hooks/eventBus.ts'
-import { InteractionNodeType } from '@/apis/viewpoint/interface.ts'
+import {
+  InteractionNodeType,
+  GetInteractionResponse,
+} from '@/apis/viewpoint/interface.ts'
 import ViewPointAPI from '@/apis/viewpoint'
 import { useUserStore } from '@/store/modules/user'
-
+import useRequest from '@/hooks/Async/useRequest'
+import { BLUE, GREEN, YELLOW, PURPLE, RED } from '@/config'
+// import { ThumbsUpSharp, ThumbsDownSharp } from '@vicons/ionicons5'
 interface Props {
   data: {
     type: InteractionNodeType
@@ -52,13 +57,6 @@ const handlePlay = () => {
 
 defineExpose({ handlePlay })
 
-const handleCheckIdea = () => {
-  // 返回id
-  emits('onClickInteractionNode', {
-    nodeId: props.data.id,
-    studentId: String(props.data.student_id),
-  })
-}
 onMounted(() => {
   eventBus.on('animate', (id: string) => {
     if (id === props.data.id) {
@@ -93,12 +91,47 @@ interface DataMap {
     buttons: Buttons[]
   }
 }
-const BLUE = '#2563eb'
-const GREEN = '#40a578'
-const YELLOW = '#f9a825'
-const RED = '#ee4e4e'
-const PURPLE = '#4335a7'
 
+/**
+ * 写一个柯里化函数
+ */
+const params = computed(() => {
+  return {
+    student_id: Number(props.data.student_id),
+    id: Number(props.data.id),
+  }
+})
+const GetDataAPIFunctionMap = {
+  idea: () => ViewPointAPI.getIdea(params.value),
+  ask: () => ViewPointAPI.getAsk(params.value),
+  response: () => ViewPointAPI.getResponse(params.value),
+  agree: () => ViewPointAPI.getAgree(params.value),
+  disagree: () => ViewPointAPI.getDisAgree(params.value),
+}
+function APIFactory() {
+  return GetDataAPIFunctionMap[props.data.type]
+}
+const requestAPI = APIFactory()
+const contentList = ref<GetInteractionResponse['list']>([])
+const { run: getData } = useRequest({
+  apiFn: async () => {
+    return requestAPI()
+  },
+  onSuccess(data: GetInteractionResponse) {
+    contentList.value = data.list
+  },
+})
+const handleCheckIdea = () => {
+  /**
+   * 查询
+   */
+  getData()
+  // 返回id
+  emits('onClickInteractionNode', {
+    nodeId: props.data.id,
+    studentId: String(props.data.student_id),
+  })
+}
 const popoverDataMap: {
   self: DataMap
   notSelf: DataMap
@@ -367,7 +400,22 @@ const popoverRenderFooter = computed(() => {
         </n-text>
       </div>
     </template>
-    <div>或许不想知道你的花园长得咋样</div>
+    <div>
+      <div
+        v-for="item in contentList"
+        style="margin-bottom: 10px; border-bottom: 1px solid rgb(0, 0, 0, 0.4)"
+      >
+        <n-h3
+          prefix="bar"
+          type="info"
+          :key="item.key"
+          style="margin-bottom: 5px"
+        >
+          <n-text>{{ item.title }}</n-text>
+        </n-h3>
+        <n-text>{{ item.value }}</n-text>
+      </div>
+    </div>
     <template #footer>
       <n-space>
         <n-button

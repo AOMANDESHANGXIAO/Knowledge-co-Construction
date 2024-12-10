@@ -144,40 +144,57 @@ export interface GetTopicResponse {
   content: string
   status: string
 }
+export interface GetNodeResponseList {
+  title: string
+  value: string
+  key: string
+}
+
 export interface GetGroupResponse {
-  idea_conclusion: string
-  idea_reason: string
-  idea_limitation: string
+  // idea_conclusion: string
+  // idea_reason: string
+  // idea_limitation: string
+  list:GetNodeResponseList[]
   target_viewpoint_id: string
 }
 export interface GetIdeaResponse {
-  idea_conclusion: string
-  idea_reason: string
-  idea_limitation: string
+  // idea_conclusion: string
+  // idea_reason: string
+  // idea_limitation: string
+  list:GetNodeResponseList[]
   target: number
   target_viewpoint_id: string
 }
 export interface GetAgreeResponse {
-  agree_viewpoint: string
-  agree_reason: string
-  agree_supplement: string
+  // agree_viewpoint: string
+  // agree_reason: string
+  // agree_supplement: string
+  list:GetNodeResponseList[]
   target_viewpoint_id: string
   target_student_id: string
 }
 export interface GetDisagreeResponse {
-  disagree_viewpoint: string
-  disagree_reason: string
-  disagree_suggestion: string
+  // disagree_viewpoint: string
+  // disagree_reason: string
+  // disagree_suggestion: string
+  list:GetNodeResponseList[]
   target_viewpoint_id: string
   target_student_id: string
 }
 export interface GetAskResponse {
-  ask_question: string
+  // ask_question: string
+  list:GetNodeResponseList[]
   target_viewpoint_id: string
   target_student_id: string
 }
 export interface GetResponseResponse {
-  response_content: string
+  // response_content: string
+  list:GetNodeResponseList[]
+  target_viewpoint_id: string
+  target_student_id: string
+}
+export interface GetInteractionResponse {
+  list:GetNodeResponseList[]
   target_viewpoint_id: string
   target_student_id: string
 }
