@@ -201,3 +201,43 @@ export interface GetInteractionResponse {
 export interface CreateNodeResponse {
   id: string
 }
+export interface CommonUpdateArgs {
+  student_id: number;
+  id: number;
+}
+export interface UpdateIdeaArgs extends CommonUpdateArgs {
+  idea_conclusion: string;
+  idea_reason: string;
+  idea_limitation: string;
+}
+export interface UpdateGroupArgs {
+  student_id: number;
+  id: number;
+  idea_conclusion: string;
+  idea_limitation: string;
+  idea_reason: string;
+}
+export interface UpdateAgreeArgs {
+  student_id: number;
+  id: number;
+  agree_reason: string;
+  agree_supplement: string;
+  agree_viewpoint: string;
+}
+export interface UpdateDisAgreeArgs {
+  student_id: number;
+  id: number;
+  disagree_reason: string;
+  disagree_suggestion: string;
+  disagree_viewpoint: string;
+}
+export interface UpdateAskArgs {
+  student_id: number;
+  id: number;
+  ask_question: string;
+}
+export interface UpdateResponseArgs {
+  student_id: number;
+  id: number;
+  response_content: string;
+}

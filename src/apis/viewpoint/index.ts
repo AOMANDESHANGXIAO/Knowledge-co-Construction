@@ -18,6 +18,12 @@ import {
   GetDisagreeResponse,
   GetIdeaResponse,
   GetGroupResponse,
+  UpdateIdeaArgs,
+  UpdateDisAgreeArgs,
+  UpdateAgreeArgs,
+  UpdateGroupArgs,
+  UpdateAskArgs,
+  UpdateResponseArgs,
 } from './interface'
 
 const BASE_ROUTER = '/viewpoint'
@@ -140,6 +146,60 @@ class ViewPointAPI {
       method: 'get',
       url: `${BASE_ROUTER}/response`,
       params,
+    })
+  }
+  static updateIdea(args: UpdateIdeaArgs): Response<{
+    id: string
+  }> {
+    return Service({
+      method: 'patch',
+      url: `${BASE_ROUTER}/idea`,
+      data: args,
+    })
+  }
+  static updateDisAgree(args: UpdateDisAgreeArgs): Response<{
+    id: string
+  }> {
+    return Service({
+      method: 'patch',
+      url: `${BASE_ROUTER}/disagree`,
+      data: args,
+    })
+  }
+  static updateAgree(args: UpdateAgreeArgs): Response<{
+    id: string
+  }> {
+    return Service({
+      method: 'patch',
+      url: `${BASE_ROUTER}/agree`,
+      data: args,
+    })
+  }
+  static updateGroup(args: UpdateGroupArgs): Response<{
+    id: string
+  }> {
+    return Service({
+      method: 'patch',
+      url: `${BASE_ROUTER}/group`,
+      data: args,
+    })
+  }
+  static updateAsk(args: UpdateAskArgs): Response<{
+    id: string
+  }> {
+    return Service({
+      method: 'patch',
+      url: `${BASE_ROUTER}/ask`,
+      data: args,
+    })
+  }
+  static updateResponse(args: UpdateResponseArgs): Response<{
+    id: string
+  }> {
+    return Service({
+      method: 'patch',
+      url: `${BASE_ROUTER}/response`,
+      data: args,
     })
   }
 }

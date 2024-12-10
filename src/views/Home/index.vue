@@ -1412,6 +1412,7 @@ const onOK = (inputValues: inputValues) => {
   } = {
     topic_id: topicId.value,
     target: target.value,
+    id: target.value,
     student_id: studentId,
   }
   inputValues.forEach(item => {
