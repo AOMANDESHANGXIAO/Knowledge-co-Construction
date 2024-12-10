@@ -4,6 +4,10 @@ import useQueryParam from '@/hooks/router/useQueryParam'
 import { useUserStore } from '@/store/modules/user'
 import { marked } from 'marked'
 import { TrashBinOutline } from '@vicons/ionicons5'
+import Icon from './icon.vue'
+import { useMessage } from 'naive-ui'
+import { useClipboard } from '@vueuse/core'
+
 defineOptions({
   name: 'index',
 })
@@ -32,7 +36,16 @@ interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
 }
-const messages = ref<ChatMessage[]>([])
+const messages = ref<ChatMessage[]>([
+  {
+    role: 'user',
+    content: '你好',
+  },
+  {
+    role: 'assistant',
+    content: '你好，我是ChatGPT，很高兴见到你。',
+  },
+])
 const input = ref('')
 const isReceiving = ref(false)
 const pushMsg = () => {
@@ -111,16 +124,30 @@ const isSendingDisabled = computed(() => {
 const clear = () => {
   messages.value = []
 }
+const message = useMessage()
+const { copy } = useClipboard()
+const onClickCopy = (msg: string) => {
+  try {
+    copy(msg)
+    message.success('复制成功')
+  } catch (error) {
+    message.error('复制失败')
+  }
+}
+const onClickRefresh = (index: number) => {
+  const originalPrompt = messages.value[index - 1]?.content
+  messages.value = messages.value.filter(
+    (_, i) => i !== index && i !== index - 1
+  )
+  input.value = originalPrompt
+  sendMessage()
+}
 </script>
 
 <template>
   <div class="card">
     <div class="mask" v-if="props.showMask">
-      <n-result
-        status="info"
-        title="提示"
-        description="先自己敲20个字吧~"
-      >
+      <n-result status="info" title="提示" description="先自己敲20个字吧~">
       </n-result>
     </div>
     <div class="chat-header">
@@ -133,6 +160,7 @@ const clear = () => {
       <ul class="message-list" v-if="messages.length">
         <section
           v-for="(item, index) in messages"
+          class="pop-container"
           :class="item.role"
           :key="index"
         >
@@ -143,6 +171,10 @@ const clear = () => {
           ></div>
           <div class="inner" v-else>
             {{ item.content }}
+          </div>
+          <div class="icon-btn" v-if="item.role === 'assistant'">
+            <Icon name="copy" :size="16" @click="onClickCopy(item.content)" />
+            <Icon name="refresh" :size="16" @click="onClickRefresh(index)" />
           </div>
         </section>
       </ul>
@@ -193,7 +225,7 @@ const clear = () => {
     align-items: center;
     width: 100%;
     height: 100%;
-    background-color: rgba(255,255,255,0.5);
+    background-color: rgba(255, 255, 255, 0.5);
   }
 }
 
@@ -232,6 +264,17 @@ const clear = () => {
   padding: 0;
   --msg-font-size: 14px;
   --msg-padding: 10px;
+  .pop-container {
+    position: relative;
+  }
+  .icon-btn {
+    position: absolute;
+    bottom: -20px;
+    left: 20px;
+    width: 100%;
+    display: flex;
+    gap: 10px;
+  }
   .assistant,
   .user {
     display: flex;
