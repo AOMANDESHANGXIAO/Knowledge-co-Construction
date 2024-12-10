@@ -12,7 +12,9 @@ import ViewPointAPI from '@/apis/viewpoint'
 import { useUserStore } from '@/store/modules/user'
 import useRequest from '@/hooks/Async/useRequest'
 import { BLUE, GREEN, YELLOW, PURPLE, RED } from '@/config'
-// import { ThumbsUpSharp, ThumbsDownSharp } from '@vicons/ionicons5'
+import { ThumbsUpSharp, ThumbsDownSharp, Refresh } from '@vicons/ionicons5'
+import { useMessage } from 'naive-ui'
+
 interface Props {
   data: {
     type: InteractionNodeType
@@ -113,12 +115,19 @@ function APIFactory() {
 }
 const requestAPI = APIFactory()
 const contentList = ref<GetInteractionResponse['list']>([])
-const { run: getData } = useRequest({
+const message = useMessage()
+const { run: getData, loading } = useRequest({
   apiFn: async () => {
     return requestAPI()
   },
   onSuccess(data: GetInteractionResponse) {
     contentList.value = data.list
+  },
+  onError() {
+    message.error('请求出错啦,请重新尝试')
+  },
+  onFail() {
+    message.error('请求出错啦,请重新尝试')
   },
 })
 const handleCheckIdea = () => {
@@ -358,76 +367,102 @@ const popoverRenderFooter = computed(() => {
 </script>
 
 <template>
-  <n-popover trigger="click" :show-arrow="false">
-    <template #trigger>
-      <div
-        class="interaction-node"
-        ref="el"
-        :style="{ backgroundColor: props.data.bgc }"
-        @click="handleCheckIdea"
-      >
-        <Handle
-          :position="(props.data.targetPosition as Position)"
-          type="target"
-        />
-        <Handle
-          :position="(props.data.sourcePosition as Position)"
-          type="source"
-        />
-        <div class="text">
-          <section class="name">{{ props.data.name }}</section>
+  <n-message-provider>
+    <n-popover trigger="click" :show-arrow="false" style="min-width: 250px;">
+      <template #trigger>
+        <div
+          class="interaction-node"
+          ref="el"
+          :style="{ backgroundColor: props.data.bgc }"
+          @click="handleCheckIdea"
+        >
+          <Handle
+            :position="(props.data.targetPosition as Position)"
+            type="target"
+          />
+          <Handle
+            :position="(props.data.sourcePosition as Position)"
+            type="source"
+          />
+          <div class="text">
+            <section class="name">{{ props.data.name }}</section>
+          </div>
+        </div>
+      </template>
+      <template #header>
+        <div style="display: flex; align-items: center; position: relative">
+          <div
+            :style="{
+              width: '10px',
+              height: '20px',
+              'background-color': popoverRenderHeader.color,
+            }"
+          ></div>
+          <n-text
+            strong
+            depth="1"
+            :style="{
+              color: popoverRenderHeader.color,
+              fontSize: '20px',
+              marginLeft: '10px',
+            }"
+            >{{ popoverRenderHeader.text }}
+          </n-text>
+          <n-button
+            tertiary
+            circle
+            type="primary"
+            style="position: absolute; right: 10px"
+            :loading="loading"
+            @click="
+              () => {
+                getData()
+              }
+            "
+          >
+            <template #icon>
+              <n-icon><Refresh /></n-icon>
+            </template>
+          </n-button>
+        </div>
+      </template>
+      <div>
+        <div
+          v-if="contentList.length"
+          v-for="item in contentList"
+          style="
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgb(0, 0, 0, 0.4);
+          "
+        >
+          <n-h3
+            prefix="bar"
+            type="info"
+            :key="item.key"
+            style="margin-bottom: 5px"
+          >
+            <n-text>{{ item.title }}</n-text>
+          </n-h3>
+          <n-text>{{ item.value }}</n-text>
+        </div>
+        <div style="width: 100%" v-else>
+          <n-skeleton text :repeat="2" />
+          <n-skeleton text style="width: 60%" />
         </div>
       </div>
-    </template>
-    <template #header>
-      <div style="display: flex; align-items: center">
-        <div
-          :style="{
-            width: '10px',
-            height: '20px',
-            'background-color': popoverRenderHeader.color,
-          }"
-        ></div>
-        <n-text
-          strong
-          depth="1"
-          :style="{
-            color: popoverRenderHeader.color,
-            fontSize: '20px',
-            marginLeft: '10px',
-          }"
-          >{{ popoverRenderHeader.text }}
-        </n-text>
-      </div>
-    </template>
-    <div>
-      <div
-        v-for="item in contentList"
-        style="margin-bottom: 10px; border-bottom: 1px solid rgb(0, 0, 0, 0.4)"
-      >
-        <n-h3
-          prefix="bar"
-          type="info"
-          :key="item.key"
-          style="margin-bottom: 5px"
-        >
-          <n-text>{{ item.title }}</n-text>
-        </n-h3>
-        <n-text>{{ item.value }}</n-text>
-      </div>
-    </div>
-    <template #footer>
-      <n-space>
-        <n-button
-          v-for="(item, index) in popoverRenderFooter.buttons"
-          :key="index"
-          :color="item.color"
-          @click="item.onClick"
-          >{{ item.text }}</n-button
-        >
-      </n-space>
-    </template>
-  </n-popover>
+      <template #footer>
+        <n-space justify="center">
+          <n-button
+            v-for="(item, index) in popoverRenderFooter.buttons"
+            :key="index"
+            :color="item.color"
+            @click="item.onClick"
+            >{{ item.text }}</n-button
+          >
+        </n-space>
+      </template>
+    </n-popover>
+  </n-message-provider>
 </template>
 
 <style lang="scss" scoped>
