@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { GetInteractionResponse } from '@/apis/viewpoint/interface'
 import ChatGptInput from '../newChatGpt/index.vue'
 import { Span } from 'naive-ui/es/legacy-grid/src/interface'
 // import { useMessage } from 'naive-ui'
@@ -11,6 +12,7 @@ const props = withDefaults(
     inputValues: {
       title: string
       value: string
+      key: string
       placeholder: string
       tags: string[]
       setter: (value: string) => void
@@ -19,7 +21,7 @@ const props = withDefaults(
       text: string
       color: string
     }
-    prompt: string
+    contentList: GetInteractionResponse['list']
     colSizes?: {
       left: Span
       middle: Span
@@ -51,6 +53,7 @@ const props = withDefaults(
     }),
   }
 )
+const inputValues = ref(props.inputValues)
 const arrowColor = computed(() => {
   return props.arrow.color
 })
@@ -80,8 +83,8 @@ const onClickTag = (content: string, index: number) => {
             <section class="editor-item-layout">
               <div
                 class="editor-item"
-                v-for="(item, inputValueIndex) in props.inputValues"
-                :key="inputValueIndex"
+                v-for="(item, inputValueIndex) in inputValues"
+                :key="item.key"
               >
                 <div class="editor-title">{{ item.title }}</div>
                 <el-input
@@ -127,7 +130,23 @@ const onClickTag = (content: string, index: number) => {
           >
             <div class="right-content-layout">
               <section class="inner-container">
-                <n-text>{{ props.prompt }}</n-text>
+                <div
+                  v-for="item in contentList"
+                  style="
+                    margin-bottom: 10px;
+                    border-bottom: 1px solid rgb(0, 0, 0, 0.4);
+                  "
+                >
+                  <n-h3
+                    prefix="bar"
+                    type="info"
+                    :key="item.key"
+                    style="margin-bottom: 5px"
+                  >
+                    <n-text>{{ item.title }}</n-text>
+                  </n-h3>
+                  <n-text>{{ item.value }}</n-text>
+                </div>
               </section>
             </div>
           </n-col>
@@ -180,8 +199,9 @@ const onClickTag = (content: string, index: number) => {
       .editor-item-layout {
         display: flex;
         flex-direction: column;
-        justify-content: space-around;
+        justify-content: space-between;
         gap: 10px;
+        height: 100%;
         .editor-item {
           flex: 1;
           background-color: var(--light-bgc);
@@ -217,8 +237,9 @@ const onClickTag = (content: string, index: number) => {
           border-radius: 5px;
           padding: 20px;
           display: flex;
+          flex-direction: column;
           justify-content: center;
-          align-items: center;
+          // align-items: center;
         }
       }
     }

@@ -48,6 +48,14 @@ const emits = defineEmits<{
       studentId: string
     }
   ): void
+  (
+    e: 'onClickInteractionButton',
+    payload: {
+      target: string
+      contentList: GetInteractionResponse['list']
+      action: InteractionNodeType
+    }
+  ): void
 }>()
 const el = ref<HTMLElement | null>(null)
 const keyframes = ref(animate)
@@ -215,21 +223,33 @@ const popoverDataMap: {
           text: '赞成',
           color: GREEN,
           onClick: () => {
-            console.log('赞成')
+            emits('onClickInteractionButton', {
+              target: props.data.id,
+              contentList: contentList.value,
+              action: 'agree',
+            })
           },
         },
         {
           text: '困惑',
           color: YELLOW,
           onClick: () => {
-            console.log('困惑')
+            emits('onClickInteractionButton', {
+              target: props.data.id,
+              contentList: contentList.value,
+              action: 'ask',
+            })
           },
         },
         {
           text: '反对',
           color: RED,
           onClick: () => {
-            console.log('反对')
+            emits('onClickInteractionButton', {
+              target: props.data.id,
+              contentList: contentList.value,
+              action: 'disagree',
+            })
           },
         },
       ],
@@ -240,7 +260,11 @@ const popoverDataMap: {
           text: '解释',
           color: BLUE,
           onClick: () => {
-            console.log('解释')
+            emits('onClickInteractionButton', {
+              target: props.data.id,
+              contentList: contentList.value,
+              action: 'response',
+            })
           },
         },
       ],
@@ -251,21 +275,33 @@ const popoverDataMap: {
           text: '赞成',
           color: GREEN,
           onClick: () => {
-            console.log('赞成')
+            emits('onClickInteractionButton', {
+              target: props.data.id,
+              contentList: contentList.value,
+              action: 'agree',
+            })
           },
         },
         {
           text: '困惑',
           color: YELLOW,
           onClick: () => {
-            console.log('困惑')
+            emits('onClickInteractionButton', {
+              target: props.data.id,
+              contentList: contentList.value,
+              action: 'ask',
+            })
           },
         },
         {
           text: '反对',
           color: RED,
           onClick: () => {
-            console.log('反对')
+            emits('onClickInteractionButton', {
+              target: props.data.id,
+              contentList: contentList.value,
+              action: 'disagree',
+            })
           },
         },
       ],
@@ -276,21 +312,33 @@ const popoverDataMap: {
           text: '赞成',
           color: GREEN,
           onClick: () => {
-            console.log('赞成')
+            emits('onClickInteractionButton', {
+              target: props.data.id,
+              contentList: contentList.value,
+              action: 'agree',
+            })
           },
         },
         {
           text: '困惑',
           color: YELLOW,
           onClick: () => {
-            console.log('困惑')
+            emits('onClickInteractionButton', {
+              target: props.data.id,
+              contentList: contentList.value,
+              action: 'ask',
+            })
           },
         },
         {
           text: '反对',
           color: RED,
           onClick: () => {
-            console.log('反对')
+            emits('onClickInteractionButton', {
+              target: props.data.id,
+              contentList: contentList.value,
+              action: 'disagree',
+            })
           },
         },
       ],
@@ -301,21 +349,33 @@ const popoverDataMap: {
           text: '赞成',
           color: GREEN,
           onClick: () => {
-            console.log('赞成')
+            emits('onClickInteractionButton', {
+              target: props.data.id,
+              contentList: contentList.value,
+              action: 'agree',
+            })
           },
         },
         {
           text: '困惑',
           color: YELLOW,
           onClick: () => {
-            console.log('困惑')
+            emits('onClickInteractionButton', {
+              target: props.data.id,
+              contentList: contentList.value,
+              action: 'ask',
+            })
           },
         },
         {
           text: '反对',
           color: RED,
           onClick: () => {
-            console.log('反对')
+            emits('onClickInteractionButton', {
+              target: props.data.id,
+              contentList: contentList.value,
+              action: 'disagree',
+            })
           },
         },
       ],
@@ -368,7 +428,7 @@ const popoverRenderFooter = computed(() => {
 
 <template>
   <n-message-provider>
-    <n-popover trigger="click" :show-arrow="false" style="min-width: 250px;">
+    <n-popover trigger="click" :show-arrow="false" style="min-width: 250px">
       <template #trigger>
         <div
           class="interaction-node"

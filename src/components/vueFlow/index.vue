@@ -15,7 +15,7 @@ import { EDGE_COLORS } from './option'
 import type { LayoutDir } from './type'
 import { useLayout } from '@/hooks/VueFlow/useLayout'
 import { getGroupNodeId } from './utils'
-import { useNotification } from './hook'
+// import { useNotification } from './hook'
 import { useUserStore } from '@/store/modules/user/index.ts'
 import useState from '@/hooks/State/useState.ts'
 import eventBus from '@/hooks/eventBus'
@@ -88,7 +88,7 @@ const { getOneUserInfo } = useUserStore()
 const student_id = getOneUserInfo<string>('id')
 const group_id = getOneUserInfo<string>('group_id')
 
-const { setHighlightNotification } = useNotification()
+// const { setHighlightNotification } = useNotification()
 
 const stateFormatter = (data: GetViewPointListResponse) => {
   return {

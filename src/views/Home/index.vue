@@ -61,8 +61,13 @@ import { THEME_COLOR } from '@/config.ts'
 import ContextMenu from '@imengyu/vue3-context-menu'
 import { Edge, Node } from '@/components/vueFlow/type.ts'
 import ArgumentEditor from './components/ArgumentEditor/index.vue'
+import { options } from './components/ArgumentEditor/option.ts'
 import ViewPointAPI from '@/apis/viewpoint/index.ts'
-import { GetViewPointListResponse } from '@/apis/viewpoint/interface.ts'
+// import { GetViewPointListResponse } from '@/apis/viewpoint/interface.ts'
+import {
+  GetInteractionResponse,
+  InteractionNodeType,
+} from '../../apis/viewpoint/interface'
 const { getOneUserInfo } = useUserStore()
 
 const [dialogVisible, setDialogVisible] = useState(false)
@@ -692,117 +697,117 @@ const uploadCommunisticFieldRef = ref<InstanceType<typeof UploadField> | null>(
 const clearCommunisticField = () => {
   uploadCommunisticFieldRef.value?.clearFileList()
 }
-const { run: uploadCommunisticFilesApi } = useRequest({
-  apiFn: async () => {
-    const fileList = uploadCommunisticFieldRef.value?.getFileList() as FileList
-    return uploadFilesApi(
-      {
-        topic_id: topicId.value,
-        is_public: 1,
-        student_id: +studentId,
-      },
-      fileList
-    )
-  },
-  onSuccess() {
-    ElNotification({
-      title: 'Success',
-      message: '上传成功',
-      type: 'success',
-      position: 'bottom-right',
-    })
-    clearCommunisticField()
-    getCommunisticFileData()
-  },
-  onFail() {
-    ElNotification({
-      title: 'Error',
-      message: '上传失败',
-      type: 'error',
-      position: 'bottom-right',
-    })
-  },
-  onError() {
-    ElNotification({
-      title: 'Error',
-      message: '上传失败',
-      type: 'error',
-      position: 'bottom-right',
-    })
-  },
-})
+// const { run: uploadCommunisticFilesApi } = useRequest({
+//   apiFn: async () => {
+//     const fileList = uploadCommunisticFieldRef.value?.getFileList() as FileList
+//     return uploadFilesApi(
+//       {
+//         topic_id: topicId.value,
+//         is_public: 1,
+//         student_id: +studentId,
+//       },
+//       fileList
+//     )
+//   },
+//   onSuccess() {
+//     ElNotification({
+//       title: 'Success',
+//       message: '上传成功',
+//       type: 'success',
+//       position: 'bottom-right',
+//     })
+//     clearCommunisticField()
+//     getCommunisticFileData()
+//   },
+//   onFail() {
+//     ElNotification({
+//       title: 'Error',
+//       message: '上传失败',
+//       type: 'error',
+//       position: 'bottom-right',
+//     })
+//   },
+//   onError() {
+//     ElNotification({
+//       title: 'Error',
+//       message: '上传失败',
+//       type: 'error',
+//       position: 'bottom-right',
+//     })
+//   },
+// })
 /**
  * 交作业模块
  */
-const isFinished = ref<boolean>(false)
-const { run: queryCourseWorkUpload } = useRequest({
-  apiFn: async () => {
-    return CourseWorkAPI.findCourseWorkUpload({
-      topic_id: topicId.value,
-      student_id: +studentId,
-    })
-  },
-  onSuccess(res: any) {
-    isFinished.value = Object.keys(res).length !== 0
-  },
-})
-// 查询是否提交了作业
-const courseWorkContent = ref('')
-const { run: getTopicCourseWork } = useRequest({
-  apiFn: async () => {
-    return CourseWorkAPI.findOne(topicId.value)
-  },
-  onSuccess(res: { courseWork: string | null }) {
-    if (res.courseWork === null) {
-      courseWorkContent.value = ''
-    } else {
-      courseWorkContent.value = res.courseWork
-    }
-    console.log('courseWorkContent', courseWorkContent.value)
-  },
-})
-const courseWorkUploadFiledRef = ref<InstanceType<typeof UploadField> | null>(
-  null
-)
-const { run: uploadCourseWork } = useRequest({
-  apiFn: async () => {
-    const fileList = courseWorkUploadFiledRef.value?.getFileList() as FileList
-    const file = fileList[0]
-    return uploadCourseWorkApi(
-      {
-        topic_id: topicId.value,
-        student_id: +studentId,
-      },
-      file
-    )
-  },
-  onSuccess() {
-    ElNotification({
-      title: 'Success',
-      message: '上传成功',
-      type: 'success',
-      position: 'bottom-right',
-    })
-    courseWorkUploadFiledRef.value?.clearFileList()
-    // getTopicCourseWork()
-  },
-  onFail() {
-    ElNotification({
-      title: 'Error',
-      message: '上传失败',
-      type: 'error',
-      position: 'bottom-right',
-    })
-  },
-  onError() {
-    ElNotification({
-      title: 'Error',
-      message: '上传失败',
-      type: 'error',
-      position: 'bottom-right',
-    })
-  },
-})
+// const isFinished = ref<boolean>(false)
+// const { run: queryCourseWorkUpload } = useRequest({
+//   apiFn: async () => {
+//     return CourseWorkAPI.findCourseWorkUpload({
+//       topic_id: topicId.value,
+//       student_id: +studentId,
+//     })
+//   },
+//   onSuccess(res: any) {
+//     isFinished.value = Object.keys(res).length !== 0
+//   },
+// })
+// // 查询是否提交了作业
+// const courseWorkContent = ref('')
+// const { run: getTopicCourseWork } = useRequest({
+//   apiFn: async () => {
+//     return CourseWorkAPI.findOne(topicId.value)
+//   },
+//   onSuccess(res: { courseWork: string | null }) {
+//     if (res.courseWork === null) {
+//       courseWorkContent.value = ''
+//     } else {
+//       courseWorkContent.value = res.courseWork
+//     }
+//     console.log('courseWorkContent', courseWorkContent.value)
+//   },
+// })
+// const courseWorkUploadFiledRef = ref<InstanceType<typeof UploadField> | null>(
+//   null
+// )
+// const { run: uploadCourseWork } = useRequest({
+//   apiFn: async () => {
+//     const fileList = courseWorkUploadFiledRef.value?.getFileList() as FileList
+//     const file = fileList[0]
+//     return uploadCourseWorkApi(
+//       {
+//         topic_id: topicId.value,
+//         student_id: +studentId,
+//       },
+//       file
+//     )
+//   },
+//   onSuccess() {
+//     ElNotification({
+//       title: 'Success',
+//       message: '上传成功',
+//       type: 'success',
+//       position: 'bottom-right',
+//     })
+//     courseWorkUploadFiledRef.value?.clearFileList()
+//     // getTopicCourseWork()
+//   },
+//   onFail() {
+//     ElNotification({
+//       title: 'Error',
+//       message: '上传失败',
+//       type: 'error',
+//       position: 'bottom-right',
+//     })
+//   },
+//   onError() {
+//     ElNotification({
+//       title: 'Error',
+//       message: '上传失败',
+//       type: 'error',
+//       position: 'bottom-right',
+//     })
+//   },
+// })
 const argumentTypeChinese = {
   [ArgumentType.Claim]: '论点',
   [ArgumentType.Data]: '论据',
@@ -1020,24 +1025,24 @@ const { run: checkQuestionApi } = useRequest({
 })
 let checkQuestionNodeId = ref(0)
 
-const onClickQuestionNode = async (payload: {
-  nodeId: number
-  studentId: number
-}) => {
-  checkQuestionNodeId.value = payload.nodeId
-  // 拿到nodes和edges
-  const res = vueFlowRef.value!.getState()
-  // 查找这个问题指向的观点是什么?
-  const node = flowTool.findTargetNodeBySourceId({
-    nodes: res.nodes,
-    edges: res.edges,
-    node_id: String(payload.nodeId),
-  })
-  targetNodeId = node!.id
-  openCheckQuestionDialog()
-  getReponseContentApi()
-  checkQuestionApi()
-}
+// const onClickQuestionNode = async (payload: {
+//   nodeId: number
+//   studentId: number
+// }) => {
+//   checkQuestionNodeId.value = payload.nodeId
+//   // 拿到nodes和edges
+//   const res = vueFlowRef.value!.getState()
+//   // 查找这个问题指向的观点是什么?
+//   const node = flowTool.findTargetNodeBySourceId({
+//     nodes: res.nodes,
+//     edges: res.edges,
+//     node_id: String(payload.nodeId),
+//   })
+//   targetNodeId = node!.id
+//   openCheckQuestionDialog()
+//   getReponseContentApi()
+//   checkQuestionApi()
+// }
 /**
  * 查看问题回复的观点
  */
@@ -1295,45 +1300,37 @@ const buttons = ref<
     action: () => router.push({ path: '/' }),
   },
 ])
-const argumentEditorOptions = ref({
-  title: '编辑器',
-  inputValues: [
-    {
-      title: '结论',
-      value: '',
-      placeholder: '你的主要观点是什么?',
-      tags: ['词条1', '词条2'],
-      setter(value: string) {
-        this.value = value
-      },
-    },
-    {
-      title: '理由',
-      value: '',
-      placeholder: '你这么说有什么道理?',
-      tags: ['词条1', '词条2'],
-      setter(value: string) {
-        this.value = value
-      },
-    },
-    {
-      title: '局限性',
-      value: '',
-      placeholder: '你这么说有什么局限性?',
-      tags: ['词条1', '词条2'],
-      setter(value: string) {
-        this.value = value
-      },
-    },
-  ],
-  arrow: {
-    text: '提交',
-    color: THEME_COLOR,
-  },
-  prompt: 'What Your reply',
+
+const editorType = ref<InteractionNodeType>('idea')
+const contentList = ref<GetInteractionResponse['list']>([])
+const setEditorType = (type: InteractionNodeType) => {
+  editorType.value = type
+}
+const { key, refresh: refreshArgumentEditor } = useRefresh()
+const onClickInteractionButton = (payload: {
+  target: string
+  contentList: GetInteractionResponse['list']
+  action: InteractionNodeType
+}) => {
+  setEditorType(payload.action)
+  contentList.value = payload.contentList
+  showModal.value = true
+  refreshArgumentEditor()
+  console.log('onClickInteractionButton ===> payload', payload)
+}
+const argumentEditorOptions = computed(() => {
+  const state = options[editorType.value]
+  return {
+    ...state,
+    contentList: contentList.value,
+  }
 })
-const onClickInteractionNode = () => {
-  console.log('onClickInteractionNode')
+const onClickInteractionNode = (payload: {
+  target: string
+  contentList: GetInteractionResponse['list']
+  action: InteractionNodeType
+}) => {
+  console.log('onClickInteractionNode ===> payload', payload)
 }
 </script>
 
@@ -1349,9 +1346,9 @@ const onClickInteractionNode = () => {
             getResponseNodesValue()
           }
         "
-        :onUpdateValues="onFlowComponentValueUpdate"
         @onClickGroupNode="onClickGroupNode"
         @onClickInteractionNode="onClickInteractionNode"
+        @onClickInteractionButton="onClickInteractionButton"
       >
         <!-- 右上角插槽放一些控制按钮 -->
         <template #top-right>
@@ -1397,7 +1394,10 @@ const onClickInteractionNode = () => {
 
     <!-- 论点编辑器dialog -->
     <n-modal v-model:show="showModal">
-      <ArgumentEditor v-bind="argumentEditorOptions"></ArgumentEditor>
+      <ArgumentEditor
+        v-bind="argumentEditorOptions"
+        :key="key"
+      ></ArgumentEditor>
     </n-modal>
 
     <!-- 学习仪表盘dialog -->
