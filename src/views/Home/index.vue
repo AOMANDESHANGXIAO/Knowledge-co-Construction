@@ -57,7 +57,7 @@ import { ArgumentNode, ArgumentEdge } from '@/apis/flow/type.ts'
 import { QueryNodeContentData } from '@/apis/flow/type'
 import { convertToHTML } from './components/ArgumentFlowComponent/utils.ts'
 import MsgNotice from './components/messageNotice/index.vue'
-import { THEME_COLOR } from '@/config.ts'
+import { BLUE, GREEN, PURPLE, RED, THEME_COLOR, YELLOW } from '@/config.ts'
 import ContextMenu from '@imengyu/vue3-context-menu'
 import { Edge, Node } from '@/components/vueFlow/type.ts'
 import ArgumentEditor from './components/ArgumentEditor/index.vue'
@@ -70,6 +70,7 @@ import ViewPointAPI from '@/apis/viewpoint/index.ts'
 import {
   GetTopicResponse,
   CreateNodeResponse,
+  NotResponsed,
 } from '../../apis/viewpoint/interface'
 import {
   GetInteractionResponse,
@@ -1467,9 +1468,7 @@ const onOK = (inputValues: inputValues) => {
       })
       closeModal()
       centerNodeId.value = data.id
-      console.log('OnSuccess centerNodeId', centerNodeId.value)
       vueFlowRefresh()
-      // vueFlowRef.value?.refreshData()
     },
     onError() {
       notification.error({
@@ -1495,6 +1494,76 @@ const onOK = (inputValues: inputValues) => {
   console.log('params', params)
   // console.log('onOK ===> inputValues', inputValues)
 }
+/**
+//  * 处理消息提示
+ */
+const notResponsedlist = ref<NotResponsed[]>([])
+const activeTabKey = ref<'agree' | 'disagree' | 'ask' | 'response'>('agree')
+const onTabBarChange = (key: string) => {
+  activeTabKey.value = key as 'agree' | 'disagree' | 'ask' | 'response'
+}
+const getNotResponsedList = (payload: { notResponsed: NotResponsed[] }) => {
+  console.log('payload', payload.notResponsed)
+  notResponsedlist.value = payload.notResponsed
+}
+const tabBarList = computed<{ content: string; key: string; num: number }[]>(
+  () => {
+    return [
+      {
+        content: '支持',
+        key: 'agree',
+        num: notResponsedlist.value.filter(item => item.type === 'agree')
+          .length,
+        color: GREEN,
+      },
+      {
+        content: '反对',
+        key: 'disagree',
+        num: notResponsedlist.value.filter(item => item.type === 'disagree')
+          .length,
+        color: RED,
+      },
+      {
+        content: '困惑',
+        key: 'ask',
+        num: notResponsedlist.value.filter(item => item.type === 'ask').length,
+        color: YELLOW,
+      },
+      {
+        content: '解释',
+        key: 'response',
+        num: notResponsedlist.value.filter(item => item.type === 'response')
+          .length,
+        color: PURPLE,
+      },
+    ]
+  }
+)
+const notResponsedColor = computed(() => {
+  switch (activeTabKey.value) {
+    case 'agree':
+      return GREEN
+    case 'disagree':
+      return RED
+    case 'ask':
+      return YELLOW
+    case 'response':
+      return PURPLE
+    default:
+      return BLUE
+  }
+})
+const ideaPool = computed(() => {
+  return notResponsedlist.value
+    .filter(item => item.type === activeTabKey.value)
+    .map(item => {
+      return {
+        color: notResponsedColor.value,
+        content: item.name,
+        id: item.id,
+      }
+    })
+})
 </script>
 
 <template>
@@ -1505,13 +1574,9 @@ const onOK = (inputValues: inputValues) => {
         :key="vueFlowKey"
         :center-id="centerNodeId"
         ref="vueFlowRef"
-        :update-vue-flow-effects="
-          () => {
-            getDashBoardData()
-            getResponseNodesValue()
-          }
-        "
+        :update-vue-flow-effects="() => {}"
         :onMountedEffect="onMountedVueFlow"
+        :onUpdateValues="getNotResponsedList"
         @onClickGroupNode="onClickGroupNode"
         @onClickInteractionButton="onClickInteractionButton"
       >
@@ -1520,25 +1585,18 @@ const onOK = (inputValues: inputValues) => {
           <div class="layout-panel">
             <n-popover trigger="click" style="padding: 0">
               <template #trigger>
-                <button
-                  title="消息提示"
-                  @click="handleClickNotice"
-                  style="position: relative"
-                >
+                <button title="消息提示" @click="" style="position: relative">
                   <Icon :name="IconName.Notice"></Icon>
-                  <div
-                    class="notification-badge"
-                    v-if="allNotResponsed.length > 0"
-                  >
-                    {{ allNotResponsed.length }}
+                  <div class="notification-badge">
+                    {{ notResponsedlist.length }}
                   </div>
                 </button>
               </template>
               <MsgNotice
-                :tab-bar-list="msgTabBarList"
-                v-model:active-key="activeKey"
-                :idea-list="ideaList"
-                @on-change="onTagChange"
+                :tab-bar-list="tabBarList"
+                v-model:active-key="activeTabKey"
+                :idea-list="ideaPool"
+                @on-change="onTabBarChange"
                 @on-click-tag="onClickTag"
               ></MsgNotice>
             </n-popover>

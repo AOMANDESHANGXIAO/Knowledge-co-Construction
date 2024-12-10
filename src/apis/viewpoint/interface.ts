@@ -134,7 +134,6 @@ export interface Edge {
   _type: NodeType
   animated: boolean
 }
-
 export interface NotResponsed {
   type: 'agree' | 'disagree' | 'ask' | 'response'
   id: string

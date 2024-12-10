@@ -141,6 +141,7 @@ const onClickRefresh = (index: number) => {
   )
   input.value = originalPrompt
   sendMessage()
+  input.value = ''
 }
 </script>
 

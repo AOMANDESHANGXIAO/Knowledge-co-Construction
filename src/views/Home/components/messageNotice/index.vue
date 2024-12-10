@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+// import { TagColor } from 'naive-ui/es/tag/src/common-props';
+
 defineOptions({
   name: 'msgNotice',
 })
@@ -8,11 +10,12 @@ const props = withDefaults(
       content: string
       key: string
       num: number
+      color: string
     }>
     activeKey: string
     ideaList: Array<{
-      nickname: string
-      type: 'primary' | 'info' | 'warning' | 'success' | 'error'
+      type?: 'primary' | 'info' | 'warning' | 'success' | 'error'
+      color: string
       content: string
       id: string
     }>
@@ -39,6 +42,9 @@ const onClickTag = (id: string) => {
       <div class="tab-bar">
         <section
           class="tab-bar-item"
+          :style="{
+            '--bgc-color': item.color,
+          }"
           v-for="item in tabBarList"
           :key="item.key"
           :class="{ active: item.key === activeKey }"
@@ -53,12 +59,16 @@ const onClickTag = (id: string) => {
           v-if="ideaList.length > 0"
           v-for="(item, index) in ideaList"
           @click="onClickTag(item.id)"
-          :type="item.type"
+          :color="{
+            color: item.color,
+            textColor: '#fff',
+            borderColor: item.color,
+          }"
           :key="index"
           style="margin-right: 5px; margin-bottom: 5px; cursor: pointer"
         >
           <n-ellipsis style="max-width: 100px">
-            {{ item.nickname + ':' + item.content }}
+            {{ item.content }}
           </n-ellipsis>
         </n-tag>
         <n-empty description="观点池为空~" v-else> </n-empty>
@@ -86,6 +96,7 @@ const onClickTag = (id: string) => {
     .tab-bar-item {
       position: relative;
       flex: 1;
+      padding: 0 10px;
       box-sizing: content-box;
       height: 30px;
       line-height: 30px;
