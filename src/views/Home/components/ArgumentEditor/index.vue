@@ -35,6 +35,7 @@ const props = withDefaults(
       middle: boolean
       right: boolean
     }
+    okLoading: boolean
   }>(),
   {
     title: '编辑器',
@@ -56,6 +57,7 @@ const props = withDefaults(
     }),
     showContentList: true,
     textFormatContent: '',
+    okLoading: false,
   }
 )
 const inputValues = ref(props.inputValues)
@@ -104,7 +106,7 @@ const emits = defineEmits(['close', 'ok'])
               >
                 <div class="editor-title">
                   <span v-if="item.required" style="color: red">*</span
-                  ><span>{{ ' '+ item.title }}</span>
+                  ><span>{{ ' ' + item.title }}</span>
                 </div>
                 <el-input
                   type="textarea"
@@ -194,7 +196,9 @@ const emits = defineEmits(['close', 'ok'])
           "
           >取 消</n-button
         >
-        <n-button type="info" @click="handleOK">发 送</n-button>
+        <n-button type="info" @click="handleOK" :loading="props.okLoading"
+          >发 送</n-button
+        >
       </footer>
     </section>
     <!-- ChatGpt -->

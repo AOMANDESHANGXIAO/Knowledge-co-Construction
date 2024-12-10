@@ -1320,6 +1320,7 @@ const setEditorType = (type: InteractionNodeType) => {
 }
 const contentList = ref<GetInteractionResponse['list']>([])
 const showContentList = ref(true)
+const target = ref('')
 const { key, refresh: refreshArgumentEditor } = useRefresh()
 const onClickInteractionButton = (payload: {
   target: string
@@ -1328,6 +1329,7 @@ const onClickInteractionButton = (payload: {
 }) => {
   resetOptions()
   setEditorType(payload.action)
+  target.value = payload.target
   showContentList.value = true
   contentList.value = payload.contentList
   openModal()
@@ -1346,6 +1348,7 @@ useRequest({
   },
   immediate: true,
 })
+const okLoading = ref(false)
 const argumentEditorOptions = computed(() => {
   const state = options[editorType.value]
   return {
@@ -1353,6 +1356,7 @@ const argumentEditorOptions = computed(() => {
     contentList: contentList.value,
     showContentList: showContentList.value,
     textFormatContent: topic.value,
+    okLoading: okLoading.value,
   }
 })
 const notification = useNotification()
@@ -1360,6 +1364,28 @@ type inputValues = { key: string; value: string; required: boolean }[]
 const okValidator = (list: inputValues) => {
   return list.filter(item => item.required).every(item => item.value)
 }
+const getRequestAPI = () => {
+  switch (editorType.value) {
+    case 'idea': {
+      return ViewPointAPI.createIdea
+    }
+    case 'agree': {
+      return ViewPointAPI.createAgree
+    }
+    case 'disagree': {
+      return ViewPointAPI.createDisAgree
+    }
+    case 'ask': {
+      return ViewPointAPI.createAsk
+    }
+    case 'response': {
+      return ViewPointAPI.createResponse
+    }
+    default:
+      throw new Error('Invalid editor type')
+  }
+}
+const { key: vueFlowKey, refresh: vueFlowRefresh } = useRefresh()
 const onOK = (inputValues: inputValues) => {
   if (!okValidator(inputValues)) {
     notification.warning({
@@ -1369,7 +1395,59 @@ const onOK = (inputValues: inputValues) => {
       keepAliveOnHover: true,
     })
   }
-  console.log('onOK ===> inputValues', inputValues)
+  const api = getRequestAPI()
+  const params: {
+    topic_id: string | number
+    target: string
+    [key: string]: string | number
+  } = {
+    topic_id: topicId.value,
+    target: target.value,
+    student_id: studentId,
+  }
+  inputValues.forEach(item => {
+    params[item.key] = item.value
+  })
+  useRequest({
+    apiFn: async () => {
+      okLoading.value = true
+      // @ts-ignore
+      return api(params)
+    },
+    onSuccess() {
+      notification.success({
+        content: '提交成功!',
+        meta: '成功',
+        duration: 2500,
+        keepAliveOnHover: true,
+      })
+      closeModal()
+      vueFlowRefresh()
+      // vueFlowRef.value?.refreshData()
+    },
+    onError() {
+      notification.error({
+        content: '提交失败!',
+        meta: '失败',
+        duration: 2500,
+        keepAliveOnHover: true,
+      })
+    },
+    onFail() {
+      notification.error({
+        content: '提交失败!',
+        meta: '失败',
+        duration: 2500,
+        keepAliveOnHover: true,
+      })
+    },
+    onFinally() {
+      okLoading.value = false
+    },
+    immediate: true,
+  })
+  console.log('params', params)
+  // console.log('onOK ===> inputValues', inputValues)
 }
 </script>
 
@@ -1378,6 +1456,7 @@ const onOK = (inputValues: inputValues) => {
     <!-- 知识建构图谱 -->
     <div class="vue-flow-container" @click.right.stop="onRightClick">
       <flowComponent
+        :key="vueFlowKey"
         ref="vueFlowRef"
         :update-vue-flow-effects="
           () => {
