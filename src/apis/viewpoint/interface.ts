@@ -154,14 +154,14 @@ export interface GetGroupResponse {
   // idea_conclusion: string
   // idea_reason: string
   // idea_limitation: string
-  list:GetNodeResponseList[]
+  list: GetNodeResponseList[]
   target_viewpoint_id: string
 }
 export interface GetIdeaResponse {
   // idea_conclusion: string
   // idea_reason: string
   // idea_limitation: string
-  list:GetNodeResponseList[]
+  list: GetNodeResponseList[]
   target: number
   target_viewpoint_id: string
 }
@@ -169,7 +169,7 @@ export interface GetAgreeResponse {
   // agree_viewpoint: string
   // agree_reason: string
   // agree_supplement: string
-  list:GetNodeResponseList[]
+  list: GetNodeResponseList[]
   target_viewpoint_id: string
   target_student_id: string
 }
@@ -177,24 +177,27 @@ export interface GetDisagreeResponse {
   // disagree_viewpoint: string
   // disagree_reason: string
   // disagree_suggestion: string
-  list:GetNodeResponseList[]
+  list: GetNodeResponseList[]
   target_viewpoint_id: string
   target_student_id: string
 }
 export interface GetAskResponse {
   // ask_question: string
-  list:GetNodeResponseList[]
+  list: GetNodeResponseList[]
   target_viewpoint_id: string
   target_student_id: string
 }
 export interface GetResponseResponse {
   // response_content: string
-  list:GetNodeResponseList[]
+  list: GetNodeResponseList[]
   target_viewpoint_id: string
   target_student_id: string
 }
 export interface GetInteractionResponse {
-  list:GetNodeResponseList[]
+  list: GetNodeResponseList[]
   target_viewpoint_id: string
   target_student_id: string
+}
+export interface CreateNodeResponse {
+  id: string
 }

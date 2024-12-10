@@ -64,7 +64,10 @@ import ArgumentEditor from './components/ArgumentEditor/index.vue'
 import { options, resetOptions } from './components/ArgumentEditor/option.ts'
 import ViewPointAPI from '@/apis/viewpoint/index.ts'
 // import { GetViewPointListResponse } from '@/apis/viewpoint/interface.ts'
-import { GetTopicResponse } from '../../apis/viewpoint/interface'
+import {
+  GetTopicResponse,
+  CreateNodeResponse,
+} from '../../apis/viewpoint/interface'
 import {
   GetInteractionResponse,
   InteractionNodeType,
@@ -1385,6 +1388,12 @@ const getRequestAPI = () => {
       throw new Error('Invalid editor type')
   }
 }
+const centerNodeId = ref('')
+const onMountedVueFlow = () => {
+  setTimeout(() => {
+    centerNodeId.value = ''
+  },1000)
+}
 const { key: vueFlowKey, refresh: vueFlowRefresh } = useRefresh()
 const onOK = (inputValues: inputValues) => {
   if (!okValidator(inputValues)) {
@@ -1414,7 +1423,7 @@ const onOK = (inputValues: inputValues) => {
       // @ts-ignore
       return api(params)
     },
-    onSuccess() {
+    onSuccess(data: CreateNodeResponse) {
       notification.success({
         content: '提交成功!',
         meta: '成功',
@@ -1422,6 +1431,8 @@ const onOK = (inputValues: inputValues) => {
         keepAliveOnHover: true,
       })
       closeModal()
+      centerNodeId.value = data.id
+      console.log('OnSuccess centerNodeId', centerNodeId.value)
       vueFlowRefresh()
       // vueFlowRef.value?.refreshData()
     },
@@ -1457,6 +1468,7 @@ const onOK = (inputValues: inputValues) => {
     <div class="vue-flow-container" @click.right.stop="onRightClick">
       <flowComponent
         :key="vueFlowKey"
+        :center-id="centerNodeId"
         ref="vueFlowRef"
         :update-vue-flow-effects="
           () => {
@@ -1464,6 +1476,7 @@ const onOK = (inputValues: inputValues) => {
             getResponseNodesValue()
           }
         "
+        :onMountedEffect="onMountedVueFlow"
         @onClickGroupNode="onClickGroupNode"
         @onClickInteractionButton="onClickInteractionButton"
       >

@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { Handle, Position } from '@vue-flow/core'
 // import icon from './components/icon/index.vue'
-import { useAnimate } from '@vueuse/core' // 引入 useAnimation
-import animate from '@/components/vueFlow/animate.ts'
+// import { useAnimate } from '@vueuse/core' // 引入 useAnimation
+// import animate from '@/components/vueFlow/animate.ts'
 import eventBus from '@/hooks/eventBus.ts'
 import {
   InteractionNodeType,
@@ -58,11 +58,10 @@ const emits = defineEmits<{
   ): void
 }>()
 const el = ref<HTMLElement | null>(null)
-const keyframes = ref(animate)
-const { play } = useAnimate(el, keyframes, 1000)
+const isAnimate = ref(false)
 
 const handlePlay = () => {
-  play()
+  isAnimate.value = true
 }
 
 defineExpose({ handlePlay })
@@ -435,6 +434,8 @@ const popoverRenderFooter = computed(() => {
           ref="el"
           :style="{ backgroundColor: props.data.bgc }"
           @click="handleCheckIdea"
+          :class="isAnimate?'highlight':''"
+          @animationend="isAnimate=false"
         >
           <Handle
             :position="(props.data.targetPosition as Position)"
@@ -551,6 +552,38 @@ $node-width: 60px;
     width: 100%;
     height: 100%;
     // padding: 10px;
+  }
+}
+.interaction-node:hover{
+  .text {
+    .name {
+      text-decoration: underline;
+    }
+  }
+}
+.highlight {
+  animation: highlight 1s ease-in-out;
+}
+@keyframes highlight {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  25% {
+    transform: scale(1.2);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  75% {
+    transform: scale(1.2);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
   }
 }
 </style>

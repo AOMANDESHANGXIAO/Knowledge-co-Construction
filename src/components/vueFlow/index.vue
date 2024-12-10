@@ -47,11 +47,13 @@ const props = withDefaults(
       edges: Edge[]
       notResponsed: NotResponsed[]
     }) => void
+    centerId: string
   }>(),
   {
     updateVueFlowEffects: () => {},
     onMountedEffect: () => {},
     onUpdateValues: () => {},
+    centerId: '',
   }
 )
 
@@ -170,24 +172,20 @@ const handleLayout = async (direction: LayoutDir) => {
     node.data.sourcePosition = sourcePosition
     node.data.targetPosition = targetPosition
   })
-
-  const positionNodes: { nodes: string[] } = { nodes: [] }
+  console.log('props.centerId', props.centerId)
+  const centerNodeId = props.centerId || getGroupNodeId(nodesValue, +group_id)
   // 查找团队节点
-  const groupNodeId = getGroupNodeId(nodesValue, +group_id)
-
-  if (groupNodeId) {
-    positionNodes.nodes = [groupNodeId]
-  }
 
   nodesValue = layout(nodesValue, edgesValue, direction)
 
   setNodes(nodesValue)
   setEdges(edgesValue)
-
+  // console.log('vueFlowed centerNodeId 1', centerNodeId)
   await nextTick(() => {
     setTimeout(() => {
-      if (positionNodes.nodes.length) {
-        fitView(positionNodes)
+      if (centerNodeId) {
+        // console.log('vueFlowed centerNodeId 2', centerNodeId)
+        setFitViewOnNodeCenter(centerNodeId)
       } else {
         fitView()
       }
