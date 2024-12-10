@@ -61,12 +61,16 @@ import { THEME_COLOR } from '@/config.ts'
 import ContextMenu from '@imengyu/vue3-context-menu'
 import { Edge, Node } from '@/components/vueFlow/type.ts'
 import ArgumentEditor from './components/ArgumentEditor/index.vue'
-import { options, resetOptions } from './components/ArgumentEditor/option.ts'
+import {
+  options,
+  getReviseOptions,
+} from './components/ArgumentEditor/option.ts'
 import ViewPointAPI from '@/apis/viewpoint/index.ts'
 // import { GetViewPointListResponse } from '@/apis/viewpoint/interface.ts'
 import {
   GetTopicResponse,
   CreateNodeResponse,
+  GetNodeResponseList,
 } from '../../apis/viewpoint/interface'
 import {
   GetInteractionResponse,
@@ -1284,7 +1288,8 @@ const buttons = ref<
     icon: IconName.Idea,
     action: () => {
       setEditorType('idea')
-
+      resetOptions()
+      mode.value = 'post'
       showContentList.value = false
       openModal()
       refreshArgumentEditor()
@@ -1316,28 +1321,45 @@ const buttons = ref<
 const editorType = ref<InteractionNodeType>('idea')
 const setEditorType = (type: InteractionNodeType) => {
   editorType.value = type
-  options[editorType.value].inputValues.forEach(item => {
-    item.value = ''
-    console.log('item', item)
-  })
 }
 const contentList = ref<GetInteractionResponse['list']>([])
 const showContentList = ref(true)
 const target = ref('')
+const mode = ref<'post' | 'patch'>('post')
 const { key, refresh: refreshArgumentEditor } = useRefresh()
+const resetOptions = () => {
+  options[editorType.value].inputValues.forEach(item => {
+    item.value = ''
+  })
+}
+const setInputValues = (contentList: GetInteractionResponse['list']) => {
+  options[editorType.value].inputValues.forEach(item => {
+    const target = contentList.find(content => content.key === item.key)
+    if (target) {
+      item.value = target.value
+    }
+  })
+}
 const onClickInteractionButton = (payload: {
   target: string
   contentList: GetInteractionResponse['list']
   action: InteractionNodeType
+  mode: 'post' | 'patch'
 }) => {
-  resetOptions()
   setEditorType(payload.action)
+  // resetOptions()
   target.value = payload.target
   showContentList.value = true
   contentList.value = payload.contentList
+  mode.value = payload.mode
+  if (payload.mode === 'post') {
+    resetOptions()
+  } else {
+    // console.log('payload.contentList', payload.contentList)
+    setInputValues(payload.contentList)
+  }
   openModal()
   refreshArgumentEditor()
-  console.log('onClickInteractionButton ===> payload', payload)
 }
 const topic = ref('')
 useRequest({
@@ -1353,7 +1375,14 @@ useRequest({
 })
 const okLoading = ref(false)
 const argumentEditorOptions = computed(() => {
-  const state = options[editorType.value]
+  const state =
+    mode.value === 'post'
+      ? options[editorType.value]
+      : getReviseOptions(
+          editorType.value,
+          options[editorType.value].inputValues
+        )
+
   return {
     ...state,
     contentList: contentList.value,
@@ -1367,22 +1396,28 @@ type inputValues = { key: string; value: string; required: boolean }[]
 const okValidator = (list: inputValues) => {
   return list.filter(item => item.required).every(item => item.value)
 }
-const getRequestAPI = () => {
+const getRequestAPI = (mode: 'post' | 'patch') => {
   switch (editorType.value) {
     case 'idea': {
-      return ViewPointAPI.createIdea
+      return mode === 'post' ? ViewPointAPI.createIdea : ViewPointAPI.updateIdea
     }
     case 'agree': {
-      return ViewPointAPI.createAgree
+      return mode === 'post'
+        ? ViewPointAPI.createAgree
+        : ViewPointAPI.updateAgree
     }
     case 'disagree': {
-      return ViewPointAPI.createDisAgree
+      return mode === 'post'
+        ? ViewPointAPI.createDisAgree
+        : ViewPointAPI.updateDisAgree
     }
     case 'ask': {
-      return ViewPointAPI.createAsk
+      return mode === 'post' ? ViewPointAPI.createAsk : ViewPointAPI.updateAsk
     }
     case 'response': {
-      return ViewPointAPI.createResponse
+      return mode === 'post'
+        ? ViewPointAPI.createResponse
+        : ViewPointAPI.updateResponse
     }
     default:
       throw new Error('Invalid editor type')
@@ -1392,7 +1427,7 @@ const centerNodeId = ref('')
 const onMountedVueFlow = () => {
   setTimeout(() => {
     centerNodeId.value = ''
-  },1000)
+  }, 1000)
 }
 const { key: vueFlowKey, refresh: vueFlowRefresh } = useRefresh()
 const onOK = (inputValues: inputValues) => {
@@ -1404,7 +1439,7 @@ const onOK = (inputValues: inputValues) => {
       keepAliveOnHover: true,
     })
   }
-  const api = getRequestAPI()
+  const api = getRequestAPI(mode.value)
   const params: {
     topic_id: string | number
     target: string

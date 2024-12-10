@@ -1,24 +1,44 @@
 import { THEME_COLOR, GREEN, RED, PURPLE, YELLOW } from '@/config'
 import { InteractionNodeType } from '@/apis/viewpoint/interface'
-const options: Record<
-  InteractionNodeType,
-  {
-    title: string
-    inputValues: {
-      title: string
-      key: string
-      value: string
-      placeholder: string
-      tags: string[]
-      required: boolean
-      setter(value: string): void
-    }[]
-    arrow: {
-      text: string
-      color: string
-    }
+type InputValue = {
+  title: string
+  key: string
+  value: string
+  placeholder: string
+  tags: string[]
+  required: boolean
+  setter(value: string): void
+}
+type Option = {
+  title: string
+  inputValues: InputValue[]
+  arrow: {
+    text: string
+    color: string
   }
-> = {
+}
+type OptionRecord = Record<InteractionNodeType, Option>
+const ChineseOptions = {
+  idea: '观点',
+  agree: '同意',
+  disagree: '不同意',
+  ask: '困惑',
+  response: '回应',
+}
+const getReviseOptions = (
+  type: InteractionNodeType,
+  inputValues: InputValue[]
+): Option => {
+  return {
+    title: `修改${ChineseOptions[type]}`,
+    inputValues,
+    arrow: {
+      text: '修改',
+      color: THEME_COLOR,
+    },
+  }
+}
+const options: OptionRecord = {
   idea: {
     title: '发布观点',
     inputValues: [
@@ -215,4 +235,4 @@ const resetOptions = () => {
     item.value = ''
   })
 }
-export { options, resetOptions }
+export { options, resetOptions, getReviseOptions }

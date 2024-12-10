@@ -12,7 +12,7 @@ import ViewPointAPI from '@/apis/viewpoint'
 import { useUserStore } from '@/store/modules/user'
 import useRequest from '@/hooks/Async/useRequest'
 import { BLUE, GREEN, YELLOW, PURPLE, RED } from '@/config'
-import { ThumbsUpSharp, ThumbsDownSharp, Refresh } from '@vicons/ionicons5'
+import { Refresh } from '@vicons/ionicons5'
 import { useMessage } from 'naive-ui'
 
 interface Props {
@@ -54,6 +54,7 @@ const emits = defineEmits<{
       target: string
       contentList: GetInteractionResponse['list']
       action: InteractionNodeType
+      mode: 'post' | 'patch'
     }
   ): void
 }>()
@@ -162,7 +163,12 @@ const popoverDataMap: {
           text: '修改',
           color: BLUE,
           onClick: () => {
-            console.log('修改自己观点')
+            emits('onClickInteractionButton', {
+              target: props.data.id,
+              contentList: contentList.value,
+              action: 'idea',
+              mode: 'patch',
+            })
           },
         },
       ],
@@ -173,7 +179,12 @@ const popoverDataMap: {
           text: '修改',
           color: BLUE,
           onClick: () => {
-            console.log('修改自己提問')
+            emits('onClickInteractionButton', {
+              target: props.data.id,
+              contentList: contentList.value,
+              action: 'ask',
+              mode: 'patch',
+            })
           },
         },
       ],
@@ -184,7 +195,12 @@ const popoverDataMap: {
           text: '修改',
           color: BLUE,
           onClick: () => {
-            console.log('修改自己的回应')
+            emits('onClickInteractionButton', {
+              target: props.data.id,
+              contentList: contentList.value,
+              action: 'response',
+              mode: 'patch',
+            })
           },
         },
       ],
@@ -195,7 +211,12 @@ const popoverDataMap: {
           text: '修改',
           color: BLUE,
           onClick: () => {
-            console.log('修改自己的反驳')
+            emits('onClickInteractionButton', {
+              target: props.data.id,
+              contentList: contentList.value,
+              action: 'disagree',
+              mode: 'patch',
+            })
           },
         },
       ],
@@ -206,7 +227,12 @@ const popoverDataMap: {
           text: '修改',
           color: BLUE,
           onClick: () => {
-            console.log('修改自己的赞同')
+            emits('onClickInteractionButton', {
+              target: props.data.id,
+              contentList: contentList.value,
+              action: 'agree',
+              mode: 'patch',
+            })
           },
         },
       ],
@@ -226,6 +252,7 @@ const popoverDataMap: {
               target: props.data.id,
               contentList: contentList.value,
               action: 'agree',
+              mode: 'post',
             })
           },
         },
@@ -237,6 +264,7 @@ const popoverDataMap: {
               target: props.data.id,
               contentList: contentList.value,
               action: 'ask',
+              mode: 'post',
             })
           },
         },
@@ -248,6 +276,7 @@ const popoverDataMap: {
               target: props.data.id,
               contentList: contentList.value,
               action: 'disagree',
+              mode: 'post',
             })
           },
         },
@@ -263,6 +292,7 @@ const popoverDataMap: {
               target: props.data.id,
               contentList: contentList.value,
               action: 'response',
+              mode: 'post',
             })
           },
         },
@@ -278,6 +308,7 @@ const popoverDataMap: {
               target: props.data.id,
               contentList: contentList.value,
               action: 'agree',
+              mode: 'post',
             })
           },
         },
@@ -289,6 +320,7 @@ const popoverDataMap: {
               target: props.data.id,
               contentList: contentList.value,
               action: 'ask',
+              mode: 'post',
             })
           },
         },
@@ -300,6 +332,7 @@ const popoverDataMap: {
               target: props.data.id,
               contentList: contentList.value,
               action: 'disagree',
+              mode: 'post',
             })
           },
         },
@@ -315,6 +348,7 @@ const popoverDataMap: {
               target: props.data.id,
               contentList: contentList.value,
               action: 'agree',
+              mode: 'post',
             })
           },
         },
@@ -326,6 +360,7 @@ const popoverDataMap: {
               target: props.data.id,
               contentList: contentList.value,
               action: 'ask',
+              mode: 'post',
             })
           },
         },
@@ -337,6 +372,7 @@ const popoverDataMap: {
               target: props.data.id,
               contentList: contentList.value,
               action: 'disagree',
+              mode: 'post',
             })
           },
         },
@@ -352,6 +388,7 @@ const popoverDataMap: {
               target: props.data.id,
               contentList: contentList.value,
               action: 'agree',
+              mode: 'post',
             })
           },
         },
@@ -363,6 +400,7 @@ const popoverDataMap: {
               target: props.data.id,
               contentList: contentList.value,
               action: 'ask',
+              mode: 'post',
             })
           },
         },
@@ -374,6 +412,7 @@ const popoverDataMap: {
               target: props.data.id,
               contentList: contentList.value,
               action: 'disagree',
+              mode: 'post',
             })
           },
         },
@@ -434,8 +473,8 @@ const popoverRenderFooter = computed(() => {
           ref="el"
           :style="{ backgroundColor: props.data.bgc }"
           @click="handleCheckIdea"
-          :class="isAnimate?'highlight':''"
-          @animationend="isAnimate=false"
+          :class="isAnimate ? 'highlight' : ''"
+          @animationend="isAnimate = false"
         >
           <Handle
             :position="(props.data.targetPosition as Position)"
@@ -554,7 +593,7 @@ $node-width: 60px;
     // padding: 10px;
   }
 }
-.interaction-node:hover{
+.interaction-node:hover {
   .text {
     .name {
       text-decoration: underline;
