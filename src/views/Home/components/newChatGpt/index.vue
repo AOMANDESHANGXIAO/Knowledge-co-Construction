@@ -11,9 +11,11 @@ defineOptions({
 const props = withDefaults(
   defineProps<{
     disabled: boolean
+    showMask: boolean
   }>(),
   {
     disabled: false,
+    showMask: true,
   }
 )
 // 配置 marked
@@ -113,6 +115,14 @@ const clear = () => {
 
 <template>
   <div class="card">
+    <div class="mask" v-if="props.showMask">
+      <n-result
+        status="info"
+        title="提示"
+        description="先自己敲20个字吧~"
+      >
+      </n-result>
+    </div>
     <div class="chat-header">
       <div>ChatGpt</div>
       <div class="icon" @click="clear">
@@ -120,7 +130,7 @@ const clear = () => {
       </div>
     </div>
     <div class="chat-window" id="chat-window">
-      <ul class="message-list">
+      <ul class="message-list" v-if="messages.length">
         <section
           v-for="(item, index) in messages"
           :class="item.role"
@@ -136,6 +146,9 @@ const clear = () => {
           </div>
         </section>
       </ul>
+      <div class="empty-tips" v-else>
+        <n-text>在底部的输入框键入文字与我交流吧...😊</n-text>
+      </div>
     </div>
     <div class="chat-input">
       <input
@@ -161,6 +174,7 @@ const clear = () => {
 <style lang="scss" scoped>
 /* From Uiverse.io by ahmed150up */
 .card {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -169,6 +183,18 @@ const clear = () => {
   border: 1px solid #ccc;
   border-radius: 5px;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  .mask {
+    z-index: 999;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255,255,255,0.5);
+  }
 }
 
 .chat-header {
@@ -193,6 +219,11 @@ const clear = () => {
   // height: 220px;
   flex: 1;
   overflow-y: scroll;
+  .empty-tips {
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+  }
 }
 
 .message-list {

@@ -70,7 +70,6 @@ import ViewPointAPI from '@/apis/viewpoint/index.ts'
 import {
   GetTopicResponse,
   CreateNodeResponse,
-  GetNodeResponseList,
 } from '../../apis/viewpoint/interface'
 import {
   GetInteractionResponse,

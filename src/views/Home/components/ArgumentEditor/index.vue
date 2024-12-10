@@ -82,6 +82,19 @@ const handleOK = () => {
   })
   emits('ok', res)
 }
+const MIN_INPUT_LENGTH = 20
+const checkShowMask = computed(() => {
+  /**
+   * 必须要手敲20个字符才可以使用ChatGpt
+   */
+  let allInput = ''
+  inputValues.value.forEach(element => {
+    allInput += element.value
+  })
+  console.log('computed input value: ', allInput, 'length: ', allInput.length)
+  return !(allInput.length >= MIN_INPUT_LENGTH)
+})
+
 const emits = defineEmits(['close', 'ok'])
 </script>
 
@@ -204,7 +217,10 @@ const emits = defineEmits(['close', 'ok'])
     <!-- ChatGpt -->
     <section class="right">
       <div class="chatgpt-layout">
-        <ChatGptInput :disabled="false"></ChatGptInput>
+        <ChatGptInput
+          :disabled="false"
+          :show-mask="checkShowMask"
+        ></ChatGptInput>
       </div>
     </section>
   </div>
