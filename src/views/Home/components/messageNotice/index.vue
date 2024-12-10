@@ -4,7 +4,7 @@
 defineOptions({
   name: 'msgNotice',
 })
-const props = withDefaults(
+withDefaults(
   defineProps<{
     tabBarList: Array<{
       content: string

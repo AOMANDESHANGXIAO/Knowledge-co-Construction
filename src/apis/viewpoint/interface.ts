@@ -57,7 +57,6 @@ export interface GetViewPointListArgs {
   topic_id: number
   student_id: number
 }
-// TODO: 补全回复的Response类型
 export interface GetViewPointListResponse {
   nodes: Node[]
   edges: Edge[]

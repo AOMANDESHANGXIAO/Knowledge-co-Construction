@@ -170,26 +170,6 @@ const onClickGroupNode = (payload: {
   openArgumentEditor()
 }
 
-const onClickIdeaNode = (payload: { nodeId: string; studentId: string }) => {
-  setRequestParams({ focusNodeId: payload.nodeId })
-  const selfStudentId = getOneUserInfo('id') as string
-  const isSelfIdea = payload.studentId === String(selfStudentId)
-  setControllerState(Role.Idea, Action.Check, false, isSelfIdea)
-  setCondition('checkIdea') // 点击观点节点时，论证图编辑器渲染为查看观点
-  console.log('click idea node', payload)
-  openArgumentEditor()
-}
-
-const handleClickProposeIdeaBtn = () => {
-  const inSelfGroup = false
-  const inSelfIdea = true
-  // 设置论证图编辑器请求的参数，为空字符串表示不需要查询
-  setRequestParams({ focusNodeId: '' })
-  setControllerState(Role.Idea, Action.Modify, inSelfGroup, inSelfIdea)
-  setCondition('proposeIdea') // 点击发表观点按钮时，论证图编辑器渲染为发表观点
-  openArgumentEditor()
-}
-
 /**
  * 查询topic话题信息
  */
@@ -299,90 +279,6 @@ const {
     })
   },
 })
-
-const handleSubmit = () => {
-  const { nodes, edges } = argumentFlowRef.value!.getArgumentState()
-
-  const nodesValue = nodes.value
-  const edgesValue = edges.value
-  if (!validator(nodesValue)) return
-
-  switch (condition.value) {
-    case 'modifyIdea': {
-      submitModifyIdea({
-        topic_id: topicId.value,
-        student_id: +studentId,
-        modifyNodeId: +requestParams.focusNodeId,
-        nodes: nodesValue,
-        edges: edgesValue,
-      })
-      break
-    }
-    case 'modifyConclusion': {
-      // console.log('修改小组结论')
-      const groupNode = getGroupNode()
-
-      if (!groupNode) return
-      const groupNodeId = groupNode.id
-      submitModifyGroupConclusion({
-        student_id: +studentId,
-        groupNodeId: groupNodeId,
-        nodes: nodesValue,
-        edges: edgesValue,
-      })
-      break
-    }
-    case 'replyIdea': {
-      if (controller.value.reply === 'none') return
-      submitReplyIdea({
-        replyType: controller.value.reply as 'approve' | 'reject',
-        replyNodeId: +requestParams.focusNodeId,
-        topic_id: topicId.value,
-        student_id: +studentId,
-        nodes: nodesValue,
-        edges: edgesValue,
-      })
-      break
-    }
-    case 'proposeIdea': {
-      submitProposeIdea({
-        topic_id: topicId.value,
-        student_id: +studentId,
-        nodes: nodesValue,
-        edges: edgesValue,
-      })
-      break
-    }
-    case 'proposeConclusion': {
-      const groupNode = getGroupNode()
-
-      if (!groupNode) return
-      const groupNodeId = groupNode.id
-
-      submitProposeGroupConclusion({
-        student_id: +studentId,
-        groupNodeId: groupNodeId,
-        nodes: nodesValue,
-        edges: edgesValue,
-      })
-      break
-    }
-    case 'responseQuestion': {
-      console.log('responseQuestion submitting...')
-      console.log('nodes', nodesValue)
-      console.log('edges', edgesValue)
-      submitResponseQuestion({
-        topic_id: topicId.value,
-        student_id: +studentId,
-        nodes: nodesValue,
-        edges: edgesValue,
-        questionNodeId: String(checkQuestionNodeId.value),
-      })
-      console.log('submitResponseQuestion finished')
-      break
-    }
-  }
-}
 
 const handleLayout = (direction: LayoutDirection) => {
   vueFlowRef.value?.handleLayout(direction)
@@ -575,27 +471,15 @@ type FileListItem = {
   upload_time: string
   nickname: string
 }
-const formatDate = (timeString: string) => {
-  const date = new Date(timeString)
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0') // 月份从0开始，所以要加1
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  const seconds = String(date.getSeconds()).padStart(2, '0')
-
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
-}
 const queryGroupFilesParams = ref({
   topic_id: topicId.value,
   group_id: getOneUserInfo('group_id'),
   keyword: '',
 })
-const {
-  data: groupFileData,
-  getData: getGroupFileData,
-  sort: groupFileSort,
-} = useTable<typeof queryGroupFilesParams.value, FileListItem>({
+const { getData: getGroupFileData } = useTable<
+  typeof queryGroupFilesParams.value,
+  FileListItem
+>({
   url: '/files/group',
   queryParams: queryGroupFilesParams,
   immediate: true,
@@ -704,9 +588,6 @@ const {
 const uploadCommunisticFieldRef = ref<InstanceType<typeof UploadField> | null>(
   null
 )
-const clearCommunisticField = () => {
-  uploadCommunisticFieldRef.value?.clearFileList()
-}
 // const { run: uploadCommunisticFilesApi } = useRequest({
 //   apiFn: async () => {
 //     const fileList = uploadCommunisticFieldRef.value?.getFileList() as FileList
@@ -870,118 +751,15 @@ const checkNodesAndEdges = (
   return count === conditions.length
 }
 // 要让ChatGpt的Component拿到论证图谱的nodes和edges
-const chatGptPromptScofflds: Scaffold[] = [
-  {
-    title: '给一个论证框架',
-    description: '请根据我的话题,给出一个基本的论证',
-    key: 'argument',
-    getPrompt: () => {
-      return `论证话题为: """${topicContent.value}"""。请你基于图尔敏的论证模型给出一个论证。`
-    },
-    ShowInQuickPrompt: true,
-    validate: () => {
-      return true
-    },
-    onValidateError: () => {
-      ElMessage.error('请先完整输入论证内容')
-    },
-  },
-  {
-    title: '指出不足之处',
-    description: '请你帮我分析我的论证有什么不足之处',
-    key: 'limitation',
-    getPrompt: () => {
-      return `我想论证的话题为"""
-      ${topicContent.value}
-      """"。这是我的论证:"""${getFormattedArgument()}"""。请你指出我的论证的不足之处或者逻辑有问题之处。`
-    },
-    ShowInQuickPrompt: true,
-    validate: () => {
-      return checkNodesAndEdges([
-        {
-          nodeType: ArgumentType.Claim,
-          minWordCount: 10,
-        },
-        {
-          nodeType: ArgumentType.Data,
-          minWordCount: 10,
-        },
-      ])
-    },
-    onValidateError: () => {
-      ElNotification({
-        title: '提示',
-        message: '请先完整输入论证内容,至少填写前提和结论,每个元素至少10个字。',
-        type: 'warning',
-      })
-    },
-  },
-]
 
-const nodesForChatGpt = ref<NodeType[]>([])
-const edgesForChatGpt = ref<EdgeType[]>([])
 // 进行防抖，多次触发只更新一次
 
 const questionDialogVisible = ref(false)
-const openQuestionDialog = () => {
-  questionDialogVisible.value = true
-}
-const closeQuestionDialog = () => {
-  questionDialogVisible.value = false
-}
 const questionIdeaNodes = ref<NodeType[]>([])
 let replyNodeId = 0
 // 提问的Dialog打开
 const questionFormModel = ref({
   question: '',
-})
-const questionFormModelRules = {
-  question: [{ required: true, message: '请输入问题', trigger: 'change' }],
-}
-const questionScaffoldList = ref([
-  {
-    title: '厘清概念与定义',
-    list: [
-      '你为什么这么说?XXX',
-      'XX与我们所讨论的有什么关系?',
-      'XX到底是什么意思?',
-    ],
-  },
-  {
-    title: '探究假设与前提',
-    list: [
-      '请解释你为什么XXX',
-      '你好像假设了XXX',
-      '你怎样证明或者反对该假设?',
-      '你同意还是反对XX?',
-    ],
-  },
-  {
-    title: '探究理由与证据',
-    list: ['这些理由足够充分吗?', '你有什么证据支持?', '你怎么知道这个的?'],
-  },
-  {
-    title: '质疑观点与视角',
-    list: [
-      '另一种看待此问题的方式是XXX,这听起来有道理吗?',
-      '其他看待此问题的视角是什么?',
-      'XX的优点和缺点是什么?',
-    ],
-  },
-  {
-    title: '探究后果与影响',
-    list: ['这个会怎么影响XX?', '这个假设的后果是什么?', '为什么XXX是重要的?'],
-  },
-  {
-    title: '探究问题本身',
-    list: ['你提的这个问题有什么意义?', '为什么要论证XX?'],
-  },
-])
-const onClickQuestionTag = (word: string) => {
-  questionFormModel.value.question += word
-}
-const isQuestionargumentList = computed(() => {
-  return getArgumentList(questionIdeaNodes.value)
 })
 
 const getQuestionArgs = () => {
@@ -994,23 +772,13 @@ const getQuestionArgs = () => {
   }
 }
 // question
-const { run: createNewQuestionApi, loading: questionSubmitLoading } =
-  useRequest({
-    apiFn: () => {
-      const args = getQuestionArgs()
-      return questionIdea(args)
-    },
-  })
+const { run: createNewQuestionApi } = useRequest({
+  apiFn: () => {
+    const args = getQuestionArgs()
+    return questionIdea(args)
+  },
+})
 const questionFormRef = ref<InstanceType<typeof NForm> | null>(null)
-const onClickQuestionSubmitBtn = () => {
-  console.log('onClickQuestionSubmitBtn')
-  console.log(questionFormRef.value)
-  if (questionFormModel.value.question.trim().length === 0) {
-    ElMessage.error('请输入问题')
-    return
-  }
-  createNewQuestionApi()
-}
 // 检查questionNode
 const getCheckQuestionParams = () => {
   return {
@@ -1070,12 +838,6 @@ const responseArgumentState = ref<{
   nodes: [],
   edges: [],
 })
-const responseArgumentHTML = computed(() => {
-  return convertToHTML({
-    nodes: responseArgumentState.value.nodes,
-    edges: responseArgumentState.value.edges,
-  })
-})
 const { run: getReponseContentApi } = useRequest({
   apiFn: () => {
     const params = getReponseContentParams()
@@ -1090,22 +852,9 @@ const { run: getReponseContentApi } = useRequest({
 })
 
 const checkQuestionVisible = ref(false)
-const openCheckQuestionDialog = () => {
-  checkQuestionVisible.value = true
-}
 const closeCheckQuestionDialog = () => {
   checkQuestionVisible.value = false
 }
-const onClickResponseQuestion = () => {
-  closeCheckQuestionDialog()
-  setCondition('responseQuestion')
-  openArgumentEditor()
-  console.log('onClickReponseQuestion')
-}
-/**
- * 消息提示功能
- */
-const handleClickNotice = () => {}
 
 const activeKey = ref<'support' | 'ask' | 'oppose'>('support')
 interface Idea {
@@ -1156,22 +905,6 @@ const notifactionStudentToInteract = ({
     duration: 0,
   })
 }
-const onFlowComponentValueUpdate = ({
-  related,
-}: {
-  nodes: Node[]
-  edges: Edge[]
-  related: NodeInteraction[]
-}) => {
-  relatedValue.value = [...related]
-  if (relatedValue.value.length === 0) return
-  notifactionStudentToInteract({
-    support: related.filter(item => item.type === 'approve').length,
-    ask: related.filter(item => item.type === 'question_to_idea').length,
-    oppose: related.filter(item => item.type === 'reject').length,
-  })
-  console.log('onFlowComponentValueUpdate.related', related)
-}
 const filterMap: Record<
   'support' | 'oppose' | 'ask',
   (item: NodeInteraction) => boolean
@@ -1179,57 +912,6 @@ const filterMap: Record<
   support: (item: NodeInteraction) => item.type === 'approve',
   oppose: (item: NodeInteraction) => item.type === 'reject',
   ask: (item: NodeInteraction) => item.type === 'question_to_idea',
-}
-const allNotResponsed = computed(() => {
-  return relatedValue.value.filter(item => !item.responsed)
-})
-const ideaList = computed<Idea[]>(() => {
-  const filterFunc = filterMap[activeKey.value]
-  let type: Idea['type'] = 'info'
-  if (activeKey.value === 'ask') {
-    type = 'info'
-  } else if (activeKey.value === 'support') {
-    type = 'success'
-  } else {
-    type = 'error'
-  }
-  return relatedValue.value
-    .filter(item => !item.responsed)
-    .filter(item => {
-      return filterFunc(item)
-    })
-    .map(item => {
-      return {
-        nickname: item.sourceNodeStudent,
-        type,
-        id: item.source,
-        content: item.sourceNodeContent,
-      }
-    })
-})
-const msgTabBarList = computed(() => {
-  return [
-    {
-      content: '支持我的',
-      key: 'support',
-      num: relatedValue.value.filter(item => item.type === 'approve').length,
-    },
-    {
-      content: '反对我的',
-      key: 'oppose',
-      num: relatedValue.value.filter(item => item.type === 'reject').length,
-    },
-    {
-      content: '向我提问的',
-      key: 'ask',
-      num: relatedValue.value.filter(item => item.type === 'question_to_idea')
-        .length,
-    },
-  ]
-})
-const onTagChange = (key: string) => {
-  console.log('key', key)
-  activeKey.value = key as 'support' | 'ask' | 'oppose'
 }
 const onClickTag = (id: string) => {
   console.log('id', id)
@@ -1244,14 +926,6 @@ const responseEdges = ref<{
   reject: [],
   question: [],
 })
-const getResponseNodesValue = () => {
-  const res = flowTool.getResponseNodes({
-    nodes: vueFlowRef.value!.getState().nodes,
-    edges: vueFlowRef.value!.getState().edges,
-    student_id: studentId,
-  })
-  responseEdges.value = res
-}
 
 const onRightClick = (e: MouseEvent) => {
   //prevent the browser's default menu
@@ -1506,39 +1180,38 @@ const getNotResponsedList = (payload: { notResponsed: NotResponsed[] }) => {
   console.log('payload', payload.notResponsed)
   notResponsedlist.value = payload.notResponsed
 }
-const tabBarList = computed<{ content: string; key: string; num: number }[]>(
-  () => {
-    return [
-      {
-        content: '支持',
-        key: 'agree',
-        num: notResponsedlist.value.filter(item => item.type === 'agree')
-          .length,
-        color: GREEN,
-      },
-      {
-        content: '反对',
-        key: 'disagree',
-        num: notResponsedlist.value.filter(item => item.type === 'disagree')
-          .length,
-        color: RED,
-      },
-      {
-        content: '困惑',
-        key: 'ask',
-        num: notResponsedlist.value.filter(item => item.type === 'ask').length,
-        color: YELLOW,
-      },
-      {
-        content: '解释',
-        key: 'response',
-        num: notResponsedlist.value.filter(item => item.type === 'response')
-          .length,
-        color: PURPLE,
-      },
-    ]
-  }
-)
+const tabBarList = computed<
+  { content: string; key: string; num: number; color: string }[]
+>(() => {
+  return [
+    {
+      content: '支持',
+      key: 'agree',
+      num: notResponsedlist.value.filter(item => item.type === 'agree').length,
+      color: GREEN,
+    },
+    {
+      content: '反对',
+      key: 'disagree',
+      num: notResponsedlist.value.filter(item => item.type === 'disagree')
+        .length,
+      color: RED,
+    },
+    {
+      content: '困惑',
+      key: 'ask',
+      num: notResponsedlist.value.filter(item => item.type === 'ask').length,
+      color: YELLOW,
+    },
+    {
+      content: '解释',
+      key: 'response',
+      num: notResponsedlist.value.filter(item => item.type === 'response')
+        .length,
+      color: PURPLE,
+    },
+  ]
+})
 const notResponsedColor = computed(() => {
   switch (activeTabKey.value) {
     case 'agree':
@@ -1587,7 +1260,10 @@ const ideaPool = computed(() => {
               <template #trigger>
                 <button title="消息提示" @click="" style="position: relative">
                   <Icon :name="IconName.Notice"></Icon>
-                  <div class="notification-badge">
+                  <div
+                    class="notification-badge"
+                    v-if="notResponsedlist.length"
+                  >
                     {{ notResponsedlist.length }}
                   </div>
                 </button>
@@ -1639,118 +1315,6 @@ const ideaPool = computed(() => {
         :time-line-list="timeLineList"
         :word-cloud-text-list="cloudWordData"
       />
-    </el-dialog>
-
-    <!-- 提问Dialog -->
-    <el-dialog
-      v-model="questionDialogVisible"
-      width="80%"
-      :close-on-click-modal="false"
-      :close-on-press-escape="false"
-    >
-      <n-row :gutter="20">
-        <n-col :span="12">
-          <n-form
-            ref="questionFormRef"
-            :model="questionFormModel"
-            :rules="questionFormModelRules"
-          >
-            <n-form-item path="question" label="问题">
-              <n-input
-                v-model:value="questionFormModel.question"
-                type="textarea"
-                placeholder="请输入想提的问题..."
-              >
-              </n-input>
-            </n-form-item>
-          </n-form>
-          <!-- 提示正在提问的观点 -->
-          <div class="notice-is-reply-container">
-            <n-text type="primary" style="font-size: 20px"
-              >正在提问的观点</n-text
-            >
-            <div>
-              <div v-for="(item, index) in isQuestionargumentList" :key="index">
-                <n-text type="info"> {{ item.type + ':' }}</n-text>
-                <n-text>{{ item.text }}</n-text>
-              </div>
-            </div>
-          </div>
-        </n-col>
-        <n-col :span="12">
-          <n-collapse>
-            <n-collapse-item
-              v-for="(item, index) in questionScaffoldList"
-              :title="item.title"
-              :name="item.title"
-              :key="index"
-            >
-              <div class="tags-content">
-                <n-tag
-                  v-for="(word, _index) in item.list"
-                  :key="_index"
-                  type="primary"
-                  @click="onClickQuestionTag(word)"
-                  >{{ word }}</n-tag
-                >
-              </div>
-            </n-collapse-item>
-          </n-collapse>
-        </n-col>
-      </n-row>
-
-      <template #footer>
-        <div class="dialog-footer">
-          <n-button @click="closeQuestionDialog">取 消</n-button>
-          <n-button
-            type="primary"
-            :loading="questionSubmitLoading"
-            @click="onClickQuestionSubmitBtn"
-            style="margin-left: 10px"
-            >确 认</n-button
-          >
-        </div>
-      </template>
-    </el-dialog>
-
-    <!-- check question dialog -->
-    <el-dialog
-      v-model="checkQuestionVisible"
-      :append-to-body="true"
-      width="80%"
-    >
-      <div class="check-question-dialog">
-        <div style="font-size: 24px">
-          <strong
-            ><n-text type="primary">{{
-              questionContent.nickname + '的提问' || '正在加载...'
-            }}</n-text></strong
-          >
-        </div>
-        <div>
-          <n-text>{{ questionContent.content || '正在加载...' }}</n-text>
-        </div>
-      </div>
-      <div class="response-idea-container" style="margin-top: 20px">
-        <div style="font-size: 24px">
-          <strong
-            ><n-text type="primary">该问题针对以下论点提问</n-text></strong
-          >
-        </div>
-        <div v-html="responseArgumentHTML || '正在加载...'"></div>
-      </div>
-
-      <template #footer>
-        <div class="dialog-footer">
-          <n-button @click="closeCheckQuestionDialog">取 消</n-button>
-          <n-button
-            type="primary"
-            @click="onClickResponseQuestion"
-            style="margin-left: 10px"
-            >回 应</n-button
-          >
-        </div>
-      </template>
     </el-dialog>
   </n-modal-provider>
 </template>
