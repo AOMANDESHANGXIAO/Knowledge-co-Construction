@@ -100,6 +100,9 @@ interface DataMap {
   agree: {
     buttons: Buttons[]
   }
+  group: {
+    buttons: Buttons[]
+  }
 }
 
 /**
@@ -117,6 +120,7 @@ const GetDataAPIFunctionMap = {
   response: () => ViewPointAPI.getResponse(params.value),
   agree: () => ViewPointAPI.getAgree(params.value),
   disagree: () => ViewPointAPI.getDisAgree(params.value),
+  group: () => ViewPointAPI.getGroup(params.value),
 }
 function APIFactory() {
   return GetDataAPIFunctionMap[props.data.type]
@@ -157,6 +161,9 @@ const popoverDataMap: {
    * 是自己的观点
    */
   self: {
+    group: {
+      buttons: [],
+    },
     idea: {
       buttons: [
         {
@@ -242,6 +249,9 @@ const popoverDataMap: {
    * 不是自己的观点
    */
   notSelf: {
+    group: {
+      buttons: [],
+    },
     idea: {
       buttons: [
         {
@@ -440,6 +450,10 @@ const titleReflectDataMap = {
   response: {
     text: '回应',
     color: PURPLE,
+  },
+  group: {
+    text: '组',
+    color: '#000',
   },
 }
 const popoverRenderHeader = computed(() => {

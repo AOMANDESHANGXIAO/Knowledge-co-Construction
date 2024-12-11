@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-// import { TagColor } from 'naive-ui/es/tag/src/common-props';
+import { useCssVar } from '@vueuse/core'
 
 defineOptions({
   name: 'msgNotice',
@@ -27,7 +27,10 @@ withDefaults(
   }
 )
 const emits = defineEmits(['update:activeKey', 'onChange', 'onClickTag'])
-const onClickTabBarItem = (key: string) => {
+const el = ref<HTMLElement | null>(null)
+const colorTheme = useCssVar('--color-theme', el)
+const onClickTabBarItem = (key: string, color: string) => {
+  colorTheme.value = color
   emits('update:activeKey', key)
   emits('onChange', key)
 }
@@ -37,18 +40,15 @@ const onClickTag = (id: string) => {
 </script>
 
 <template>
-  <div class="msg-notice-layout">
+  <div class="msg-notice-layout" ref="el">
     <n-card title="观点池(点击去回复)">
       <div class="tab-bar">
         <section
           class="tab-bar-item"
-          :style="{
-            '--bgc-color': item.color,
-          }"
           v-for="item in tabBarList"
           :key="item.key"
           :class="{ active: item.key === activeKey }"
-          @click="onClickTabBarItem(item.key)"
+          @click="onClickTabBarItem(item.key, item.color)"
         >
           {{ item.content }}
           <div class="notification-badge" v-if="item.num">{{ item.num }}</div>

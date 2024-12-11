@@ -7,6 +7,7 @@ import ViewPointAPI from '@/apis/viewpoint'
 import { GetInteractionResponse } from '@/apis/viewpoint/interface'
 import useRequest from '@/hooks/Async/useRequest'
 import { useMessage } from 'naive-ui'
+import { InteractionNodeType } from '@/apis/viewpoint/interface'
 
 defineOptions({
   name: 'groupNode',
@@ -35,6 +36,15 @@ const emits = defineEmits<{
   (
     e: 'onClickGroupNode',
     payload: { groupId: string; nodeId: string; groupConclusion: string }
+  ): void
+  (
+    e: 'onClickEditButton',
+    payload: {
+      id: string
+      contentList: GetInteractionResponse['list']
+      type: InteractionNodeType
+      mode: 'post' | 'patch'
+    }
   ): void
 }>()
 
@@ -71,21 +81,36 @@ const { run: getData, loading } = useRequest({
   },
 })
 const footerButton = computed(() => {
-  const button = {
+  const buttonOption = {
     text: '去总结',
     type: 'info',
     onClick() {
-      console.log('去总结')
+      /**
+       * 首次总结小组观点
+       */
+      emits('onClickEditButton', {
+        id: String(props.data.node_id),
+        contentList: contentList.value,
+        type: 'group',
+        mode: 'post',
+      })
     },
   }
-
-  if(contentList.value.length>0) {
-    button.text = '去编辑',
-    button.onClick = () => {
-      console.log('去编辑')
+  if (contentList.value.length > 0) {
+    buttonOption.text = '去编辑'
+    buttonOption.onClick = () => {
+      /**
+       * 编辑小组观点
+       */
+      emits('onClickEditButton', {
+        id: String(props.data.node_id),
+        contentList: contentList.value,
+        type: 'group',
+        mode: 'patch',
+      })
     }
   }
-  return button
+  return buttonOption
 })
 </script>
 
@@ -167,7 +192,11 @@ const footerButton = computed(() => {
         <n-text>{{ item.value }}</n-text>
       </div>
       <div style="width: 100%" v-else>
-        <n-result status="warning" title="提示" description="还没有总结观点呢~"></n-result>
+        <n-result
+          status="warning"
+          title="提示"
+          description="还没有总结观点呢~"
+        ></n-result>
       </div>
     </div>
     <template #footer v-if="isSelfGroup">

@@ -24,6 +24,7 @@ const ChineseOptions = {
   disagree: '不同意',
   ask: '困惑',
   response: '回应',
+  group: '小组观点',
 }
 const getReviseOptions = (
   type: InteractionNodeType,
@@ -31,6 +32,16 @@ const getReviseOptions = (
 ): Option => {
   return {
     title: `修改${ChineseOptions[type]}`,
+    inputValues,
+    arrow: {
+      text: '修改',
+      color: THEME_COLOR,
+    },
+  }
+}
+const getGroupReviseOptions = (inputValues: InputValue[]): Option => {
+  return {
+    title: '修改小组观点',
     inputValues,
     arrow: {
       text: '修改',
@@ -229,10 +240,57 @@ const options: OptionRecord = {
       color: PURPLE,
     },
   },
+  group: {
+    title: '总结小组观点',
+    inputValues: [
+      {
+        title: '结论',
+        key: 'idea_conclusion',
+        value: '',
+        placeholder: '你的主要观点是什么?',
+        tags: ['我认为XXX'],
+        required: true,
+        setter(value: string) {
+          this.value = value
+        },
+      },
+      {
+        title: '理由',
+        key: 'idea_reason',
+        value: '',
+        placeholder: '你这么说有什么理由?',
+        tags: [
+          '因为XXX,所以XXX',
+          '有新闻表明XXX',
+          '就我自己的经历表明XXX',
+          '有人/书说过XXX',
+        ],
+        required: true,
+        setter(value: string) {
+          this.value = value
+        },
+      },
+      {
+        title: '局限性',
+        key: 'idea_limitation',
+        value: '',
+        placeholder: '你这么说有什么局限性?',
+        tags: ['当XXX情况下不成立', '只有XXX情况下', '除非XXX'],
+        required: false,
+        setter(value: string) {
+          this.value = value
+        },
+      },
+    ],
+    arrow: {
+      text: '发布',
+      color: THEME_COLOR,
+    },
+  },
 }
 const resetOptions = () => {
   options.idea.inputValues.forEach(item => {
     item.value = ''
   })
 }
-export { options, resetOptions, getReviseOptions }
+export { options, resetOptions, getReviseOptions, getGroupReviseOptions }

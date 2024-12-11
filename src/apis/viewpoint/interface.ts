@@ -110,6 +110,7 @@ export type InteractionNodeType =
   | 'disagree'
   | 'ask'
   | 'response'
+  | 'group'
 export type InteractionNodeData = {
   id: string
   type: InteractionNodeType
