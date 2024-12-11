@@ -20,6 +20,12 @@ export interface LinksItem {
 export interface GetGroupInteractionResponse {
   seriesData: SeriesDataItem[]
   links: LinksItem[]
+  notResponsed: {
+    id: string
+    name: string
+    type: 'agree' | 'ask' | 'agree' | 'disagree' | 'response' | 'idea'
+    color: string
+  }[]
 }
 
 export class DataAnalysisAPI {

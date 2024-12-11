@@ -5,49 +5,55 @@
  * 2. 哪个小组观点没有人关注。提醒大家去关注一下。
  */
 import RelationShipGraph from '@/components/common/relationshipGraph/index.vue'
-import {
-  DataAnalysisAPI,
-  GetGroupInteractionResponse,
-} from '@/apis/dataAnalysis'
-import useRequest from '@/hooks/Async/useRequest'
-import useQueryParam from '@/hooks/router/useQueryParam'
-import { useUserStore } from '@/store/modules/user'
+import { GetGroupInteractionResponse } from '@/apis/dataAnalysis'
 
 defineOptions({
   name: 'index',
 })
 
-const topic_id = useQueryParam('topic_id')
-const { getOneUserInfo } = useUserStore()
-const groupId = getOneUserInfo<string>('group_id')
-const interactionData = ref<GetGroupInteractionResponse>()
+// 接收 props
+const props = defineProps<{
+  interactionData: GetGroupInteractionResponse | undefined
+  notResponsedList: GetGroupInteractionResponse['notResponsed']
+}>()
 
-useRequest({
-  apiFn: async () => {
-    return DataAnalysisAPI.getGroupInteractionData({
-      topic_id: topic_id.value,
-      group_id: groupId,
-    })
-  },
-  onSuccess(data: GetGroupInteractionResponse) {
-    interactionData.value = data
-  },
-  immediate: true,
-})
+const emits = defineEmits<{
+  (e: 'clickTag', id: string): void
+}>()
+
+const onClickTag = (id: string) => {
+  // console.log('点击了标签', id)
+  emits('clickTag', id)
+}
 </script>
 
 <template>
   <div class="group-analysis-layout">
     <div class="relation-graph-container">
       <div class="main">
-        <RelationShipGraph v-bind="interactionData"></RelationShipGraph>
+        <RelationShipGraph v-bind="props.interactionData"></RelationShipGraph>
       </div>
       <div class="footer">
-        <n-h2>小组交互图</n-h2>
+        <n-h2>小组成员交互图</n-h2>
       </div>
     </div>
     <div class="attention-text-container">
-      <p>请关注一下哪些小组的观点没有被关注</p>
+      <n-h2 prefix="bar" type="info">未被关注的观点</n-h2>
+      <n-text>你可以点击去访问该观点~</n-text>
+      <div class="idea-pool-container">
+        <n-tag
+          v-for="(item, index) in notResponsedList"
+          style="cursor: pointer"
+          :color="{
+            color: item.color,
+            textColor: '#fff',
+            borderColor: item.color,
+          }"
+          :key="index"
+          @click="onClickTag(item.id)"
+          >{{ item.name }}</n-tag
+        >
+      </div>
     </div>
   </div>
 </template>
@@ -78,7 +84,17 @@ useRequest({
   }
   .attention-text-container {
     background-color: #fff;
+    padding: 10px;
     flex: 1;
+    .idea-pool-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      border: 1px solid var(--normal-line-color);
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 10px;
+    }
   }
 }
 </style>

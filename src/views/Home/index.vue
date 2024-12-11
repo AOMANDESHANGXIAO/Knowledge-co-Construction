@@ -48,6 +48,10 @@ import {
 import { useNotification } from 'naive-ui'
 import GroupAnalysis from './components/GroupAnalysis/index.vue'
 import WordCloudAnalysis from './components/WordCloudAnalysis/index.vue'
+import {
+  DataAnalysisAPI,
+  GetGroupInteractionResponse,
+} from '@/apis/dataAnalysis'
 
 const { getOneUserInfo } = useUserStore()
 
@@ -644,6 +648,30 @@ const showDashBoardModal = () => {
 const closeDashBoardModal = () => {
   dashBoardModalShow.value = false
 }
+const topic_id = useQueryParam('topic_id')
+// const { getOneUserInfo } = useUserStore()
+const groupId = getOneUserInfo<string>('group_id')
+const interactionData = ref<GetGroupInteractionResponse>()
+const notResponsedList = ref<GetGroupInteractionResponse['notResponsed']>([])
+
+// const emits = defineEmits<{
+//   (e: 'clickTag', id: string): void
+//   (e: 'onGetData', data: GetGroupInteractionResponse['notResponsed']): void
+// }>()
+
+useRequest({
+  apiFn: async () => {
+    return DataAnalysisAPI.getGroupInteractionData({
+      topic_id: topic_id.value,
+      group_id: groupId,
+    })
+  },
+  onSuccess(data: GetGroupInteractionResponse) {
+    interactionData.value = data
+    notResponsedList.value = data.notResponsed
+  },
+  immediate: true,
+})
 </script>
 
 <template>
@@ -700,8 +728,17 @@ const closeDashBoardModal = () => {
               :key="index"
               @click="button.action"
               :title="button.title"
+              style="position: relative"
             >
               <Icon :name="button.icon" />
+              <div
+                class="notification-badge"
+                v-if="
+                  notResponsedList.length > 0 && button.title === '小组交互'
+                "
+              >
+                {{ notResponsedList.length }}
+              </div>
             </button>
           </div>
         </template>
@@ -725,7 +762,10 @@ const closeDashBoardModal = () => {
           :is="
             currentView === 'GroupAnalysis' ? GroupAnalysis : WordCloudAnalysis
           "
+          :interaction-data="interactionData"
+          :not-responsed-list="notResponsedList"
           :key="currentView"
+          @clickTag="onClickTag"
         ></component>
       </div>
     </n-modal>
