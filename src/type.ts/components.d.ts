@@ -52,6 +52,7 @@ declare module 'vue' {
     MyAlert: typeof import('./../components/ElementPlusPackage/MyAlert.vue')['default']
     MyButton: typeof import('./../components/ElementPlusPackage/MyButton.vue')['default']
     MyDialog: typeof import('./../components/ElementPlusPackage/MyDialog.vue')['default']
+    MyWordCloudUI: typeof import('./../components/common/MyWordCloudUI/index.vue')['default']
     NAlert: typeof import('naive-ui')['NAlert']
     NButton: typeof import('naive-ui')['NButton']
     NCard: typeof import('naive-ui')['NCard']

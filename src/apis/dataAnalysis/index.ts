@@ -39,4 +39,16 @@ export class DataAnalysisAPI {
       params,
     })
   }
+  static getGroupWord(params: { topic_id: string }): Response<{
+    list: Array<{
+      group_name: string
+      text:string
+    }>
+  }> {
+    return Service({
+      method: 'get',
+      url: `${BASE_URL}/word`,
+      params,
+    })
+  }
 }
