@@ -282,7 +282,7 @@ defineExpose({
       </Panel>
 
       <!-- 提供一个左上角的插槽 -->
-      <Panel position="top-left">
+      <Panel class="process-panel" position="top-left">
         <slot name="top-left"></slot>
       </Panel>
     </VueFlow>

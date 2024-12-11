@@ -237,7 +237,7 @@ const footerButton = computed(() => {
     font-size: 20px;
     color: #242424;
     text-overflow: ellipsis;
-    -webkit-line-clamp: 3;
+    /* -webkit-line-clamp: 3; */
     display: -webkit-box;
     -webkit-box-orient: vertical;
   }

@@ -8,4 +8,6 @@ export enum IconName {
   Refresh = 'refresh',
   File = 'file',
   Notice = 'notice',
+  WordCloud = 'wordCloud',
+  Analysis = 'analysis'
 }

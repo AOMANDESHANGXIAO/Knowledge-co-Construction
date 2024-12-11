@@ -228,8 +228,8 @@ const emits = defineEmits(['close', 'ok'])
 
 <style lang="scss" scoped>
 .editor-modal-layout {
-  width: 80vw;
-  height: 80vh;
+  width: var(--dialog-modal-width);
+  height:var(--dialog-modal-height);
   background-color: #fff;
   padding: 10px;
   display: flex;

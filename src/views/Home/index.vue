@@ -21,10 +21,7 @@ import {
   queryWordCloudApi,
   QueryWordCloudResult,
 } from '@/apis/flow'
-import {
-  QueryDashBoardResponse,
-  TimeLineItem,
-} from '@/apis/flow/type'
+import { QueryDashBoardResponse, TimeLineItem } from '@/apis/flow/type'
 import useEvaluation from './hooks/useEvaluation'
 import _ from 'lodash'
 import router from '@/router/index.ts'
@@ -49,9 +46,10 @@ import {
   InteractionNodeType,
 } from '../../apis/viewpoint/interface'
 import { useNotification } from 'naive-ui'
+import GroupAnalysis from './components/GroupAnalysis/index.vue'
+import WordCloudAnalysis from './components/WordCloudAnalysis/index.vue'
 
 const { getOneUserInfo } = useUserStore()
-
 
 /**
  * 查询topic话题信息
@@ -259,7 +257,7 @@ const onRightClick = (e: MouseEvent) => {
   ContextMenu.showContextMenu({
     x: e.x,
     y: e.y,
-    items: buttons.value.map(btn => {
+    items: buttonsRight.value.map(btn => {
       return {
         label: btn.title,
         onClick: () => btn.action(),
@@ -274,14 +272,13 @@ const onRightClick = (e: MouseEvent) => {
 const showModal = ref(false)
 const closeModal = () => (showModal.value = false)
 const openModal = () => (showModal.value = true)
-const buttons = ref<
+const buttonsRight = ref<
   Array<{
     title: string
     icon: IconName
     action: (...args: any) => void
   }>
 >([
-  // { title: '小组文件', icon: IconName.File, action: handleClickGroupFileBtn },
   {
     title: '发表观点',
     icon: IconName.Idea,
@@ -311,6 +308,35 @@ const buttons = ref<
     action: () => router.push({ path: '/' }),
   },
 ])
+const buttonsLeft = ref<
+  {
+    title: string
+    icon: IconName
+    action: () => void
+  }[]
+>(
+  // 左边给一个学习分析按钮
+  // 1. 小组交互
+  // 2. 词云分析
+  [
+    {
+      title: '小组交互',
+      icon: IconName.Analysis,
+      action: () => {
+        currentView.value = 'GroupAnalysis'
+        showDashBoardModal()
+      },
+    },
+    {
+      title: '词云分析',
+      icon: IconName.WordCloud,
+      action: () => {
+        currentView.value = 'WordCloudAnalysis'
+        showDashBoardModal()
+      },
+    },
+  ]
+)
 
 const editorType = ref<InteractionNodeType>('idea')
 const setEditorType = (type: InteractionNodeType) => {
@@ -606,6 +632,18 @@ const onClickEditButton = (payload: {
     refreshArgumentEditor()
   }
 }
+
+/**
+ * 处理两个学习分析的仪表盘
+ */
+const currentView = ref<'GroupAnalysis' | 'WordCloudAnalysis'>('GroupAnalysis')
+const dashBoardModalShow = ref(false)
+const showDashBoardModal = () => {
+  dashBoardModalShow.value = true
+}
+const closeDashBoardModal = () => {
+  dashBoardModalShow.value = false
+}
 </script>
 
 <template>
@@ -616,7 +654,6 @@ const onClickEditButton = (payload: {
         :key="vueFlowKey"
         :center-id="centerNodeId"
         ref="vueFlowRef"
-        :update-vue-flow-effects="() => {}"
         :onMountedEffect="onMountedVueFlow"
         :onUpdateValues="getNotResponsedList"
         @onClickInteractionButton="onClickInteractionButton"
@@ -646,7 +683,7 @@ const onClickEditButton = (payload: {
               ></MsgNotice>
             </n-popover>
             <button
-              v-for="(button, index) in buttons"
+              v-for="(button, index) in buttonsRight"
               :key="index"
               :title="button.title"
               @click="button.action"
@@ -656,7 +693,18 @@ const onClickEditButton = (payload: {
           </div>
         </template>
         <!-- 左上角插槽放dashboard显示小组的互动等 -->
-        <template #top-left> </template>
+        <template #top-left>
+          <div class="layout-panel">
+            <button
+              v-for="(button, index) in buttonsLeft"
+              :key="index"
+              @click="button.action"
+              :title="button.title"
+            >
+              <Icon :name="button.icon" />
+            </button>
+          </div>
+        </template>
       </flowComponent>
     </div>
 
@@ -670,21 +718,17 @@ const onClickEditButton = (payload: {
       ></ArgumentEditor>
     </n-modal>
 
-    <!-- 学习仪表盘dialog -->
-    <el-dialog
-      v-model="dashBoardVisible"
-      width="1200px"
-      height="80vh"
-      :append-to-body="true"
-    >
-      <fullScreenDashBoard
-        :patterns="highLightPatterns"
-        :dashBoardRenderList="dashBoardRenderList"
-        :alerts="alertList"
-        :time-line-list="timeLineList"
-        :word-cloud-text-list="cloudWordData"
-      />
-    </el-dialog>
+    <!-- 学习分析的dialog -->
+    <n-modal v-model:show="dashBoardModalShow">
+      <div class="dialog-container">
+        <component
+          :is="
+            currentView === 'GroupAnalysis' ? GroupAnalysis : WordCloudAnalysis
+          "
+          :key="currentView"
+        ></component>
+      </div>
+    </n-modal>
   </n-modal-provider>
 </template>
 
@@ -697,8 +741,8 @@ const onClickEditButton = (payload: {
 }
 
 .dialog-container {
-  width: 100%;
-  height: 100%;
+  width: var(--dialog-modal-width);
+  height: var(--dialog-modal-height);
 }
 .chatgpt-container {
   width: 100%;
