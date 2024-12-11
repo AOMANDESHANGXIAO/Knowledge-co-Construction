@@ -1,5 +1,5 @@
 // src/api/viewpoint.api.ts
-import Service from '../index'
+import Service, { Response } from '../index'
 import {
   GetViewPointListArgs,
   CreateTopicArgs,
@@ -27,12 +27,6 @@ import {
 } from './interface'
 
 const BASE_ROUTER = '/viewpoint'
-type Response<T = any> = Promise<{
-  data: T
-  message: string
-  success: boolean
-  code: number
-}>
 
 class ViewPointAPI {
   static getViewPointList(

@@ -6,6 +6,7 @@ import * as echarts from 'echarts/core'
 import { TitleComponent, TooltipComponent } from 'echarts/components'
 import { GraphChart } from 'echarts/charts'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useResizeObserver } from '@vueuse/core'
 
 echarts.use([TitleComponent, TooltipComponent, GraphChart, CanvasRenderer])
 
@@ -29,8 +30,8 @@ interface LinksItem {
 }
 
 interface Props {
-  SeriesData: SeriesDataItem[]
-  Links: LinksItem[]
+  SeriesData?: SeriesDataItem[]
+  links?: LinksItem[]
 }
 
 const props = defineProps<Props>()
@@ -80,8 +81,7 @@ const option = computed(() => {
             name: 'Node 4',
           },
         ],
-        // links: [],
-        links: props.Links || [
+        links: props.links || [
           {
             source: 0,
             target: 1,
@@ -111,17 +111,19 @@ const option = computed(() => {
             target: 'Node 4',
           },
         ],
-        lineStyle: {
-          opacity: 0.9,
-          width: 2,
-          curveness: 0,
-        },
+        // lineStyle: {
+        //   opacity: 0.9,
+        //   width: 2,
+        //   curveness: 0,
+        // },
       },
     ],
   }
 })
 
 const drawRadarGraph = () => {
+  console.log('relationShip Graph drawing...')
+  console.log('options==>', option.value)
   myChart.value?.dispose()
   myChart.value = echarts.init(chartRef.value!)
   option && myChart.value?.setOption(option.value)
@@ -133,18 +135,29 @@ watch(
     drawRadarGraph()
   }
 )
+/**
+ * 监听窗口大小重新绘制
+ */
+const el = ref<HTMLElement | null>(null)
+
+useResizeObserver(el, () => {
+  drawRadarGraph()
+})
+onMounted(() => {
+  drawRadarGraph()
+})
 </script>
 
 <template>
-  <div class="relationship-graph">
+  <div class="relationship-graph" ref="el">
     <div class="echart-container" ref="chartRef"></div>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .relationship-graph {
-  width: 350px;
-  height: 350px;
+  width: 100%;
+  height: 100%;
   .echart-container {
     width: 100%;
     height: 100%;

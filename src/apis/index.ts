@@ -5,7 +5,12 @@ import router from '@/router'
 import { escapeData } from '@/utils/escapeHandler'
 
 axios.defaults.timeout = 10000 // 请求超时时间
-
+export type Response<T = any> = Promise<{
+  data: T
+  message: string
+  success: boolean
+  code: number
+}>
 // 开发环境
 export const BASE_URL = 'http://127.0.0.1:3000'
 // 生产环境
