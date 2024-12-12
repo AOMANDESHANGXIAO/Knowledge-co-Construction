@@ -141,6 +141,21 @@ const onClickRefresh = (index: number) => {
 onUnmounted(() => {
   props.onUnMountedEffect(messages.value)
 })
+/**
+ * 暴露一个方法，供父组件调用
+ */
+const emits = defineEmits(['cannotSend'])
+defineExpose({
+  send: (content: string) => {
+    if (props.showMask) {
+      emits('cannotSend')
+      return
+    }
+    input.value = content
+    sendMessage()
+    input.value = ''
+  },
+})
 </script>
 
 <template>

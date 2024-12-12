@@ -3,7 +3,7 @@ import { GetInteractionResponse } from '@/apis/viewpoint/interface'
 import ChatGptInput from '../newChatGpt/index.vue'
 import { Span } from 'naive-ui/es/legacy-grid/src/interface'
 import { useStorage } from '@vueuse/core'
-// import { useMessage } from 'naive-ui'
+import { useMessage } from 'naive-ui'
 defineOptions({
   name: 'index',
 })
@@ -115,6 +115,35 @@ const saveChatMessage = (
 ) => {
   ChatMessages.value = list
 }
+/**
+ * 添加一键润色，更有逻辑功能
+ */
+const chatGptRef = ref<InstanceType<typeof ChatGptInput> | null>(null)
+const getInputValue = (index: number) => {
+  return inputValues.value[index].value
+}
+const message = useMessage()
+const onRefine = (index: number) => {
+  const msg = getInputValue(index)
+  if(!msg.trim()) {
+    message.warning('请先输入内容')
+    return
+  }
+  const prompt = `请帮我润色这段文本,要求更加具有逻辑性,更加通顺。文本:"""${msg}"""`
+  chatGptRef.value?.send(prompt)
+}
+const onContinue = (index: number) => {
+  const msg = getInputValue(index)
+  if(!msg.trim()) {
+    message.warning('请先输入内容')
+    return
+  }
+  const prompt = `请帮我续写这段文本,要求具有逻辑性,更加通顺。文本:"""${msg}"""。大约50字。`
+  chatGptRef.value?.send(prompt)
+}
+const onCanNotSend = () => {
+  message.warning('请先输入20个字符')
+}
 </script>
 
 <template>
@@ -137,8 +166,28 @@ const saveChatMessage = (
                 :key="item.key"
               >
                 <div class="editor-title">
-                  <span v-if="item.required" style="color: red">*</span
-                  ><span>{{ ' ' + item.title }}</span>
+                  <div>
+                    <span v-if="item.required" style="color: red">*</span
+                    ><span>{{ ' ' + item.title }}</span>
+                  </div>
+                  <n-space>
+                    <n-button
+                      round
+                      size="tiny"
+                      type="info"
+                      secondary
+                      @click="onRefine(inputValueIndex)"
+                      >润色</n-button
+                    >
+                    <n-button
+                      round
+                      size="tiny"
+                      type="info"
+                      secondary
+                      @click="onContinue(inputValueIndex)"
+                      >续写</n-button
+                    >
+                  </n-space>
                 </div>
                 <el-input
                   type="textarea"
@@ -237,10 +286,12 @@ const saveChatMessage = (
     <section class="right">
       <div class="chatgpt-layout">
         <ChatGptInput
+          ref="chatGptRef"
           :init-messages="ChatMessages"
           :onUnMountedEffect="saveChatMessage"
           :disabled="false"
           :show-mask="checkShowMask"
+          @cannot-send="onCanNotSend"
         ></ChatGptInput>
       </div>
     </section>
@@ -289,6 +340,10 @@ const saveChatMessage = (
           padding: 5px;
           border-radius: 5px;
           .editor-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 30px;
             font-size: 18px;
           }
           .tags-container {
