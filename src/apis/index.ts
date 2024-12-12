@@ -12,7 +12,7 @@ export type Response<T = any> = Promise<{
   code: number
 }>
 // 开发环境
-export const BASE_URL = 'http://127.0.0.1:3000'
+export const BASE_URL = import.meta.env.VITE_API_URL
 // 生产环境
 // export const BASE_URL = 'http://122.51.107.161:3000'
 
