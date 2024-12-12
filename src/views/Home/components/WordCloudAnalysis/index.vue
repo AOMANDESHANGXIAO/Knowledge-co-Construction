@@ -1,7 +1,5 @@
 <script lang="ts" setup>
-// import { VueUiWordCloudDatasetItem } from 'vue-data-ui'
 import _ from 'lodash'
-// import { VueUiWordCloud } from 'vue-data-ui'
 import MyWordCloudUI from '@/components/common/MyWordCloudUI/index.vue'
 import { DataAnalysisAPI } from '@/apis/dataAnalysis'
 import useRequest from '@/hooks/Async/useRequest'
@@ -38,25 +36,6 @@ const generateWordCloudList = (text: string): WordCloudDataSetItem[] => {
   }
   return _.orderBy(list, ['value'], ['desc']).slice(0, SHOW_WORD_COUNT)
 }
-// const text =
-// '我好难过，感觉自己想要死掉。不想死，但是又想活下去。我好难过，感觉自己想要死掉。不想死，但是又想活下去。我好难过，感觉自己想要死掉。不想死，但是又想活下去。我好难过，感觉自己想要死掉。不想死，但是又想活下去。我好难过，感觉自己想要死掉。不想死，但是又想活下去。'
-// const dataset = computed(() => {
-//   const res = generateWordCloudList(text)
-//   console.log('word==>', res)
-//   return [
-//     {
-//       name: '相似',
-//       value: 10,
-//     },
-//   ]
-// })
-// const dataset = ref(generateWordCloudList(text))
-// const testDataSet = ref([
-//   {
-//     name: '相似',
-//     value: 10,
-//   },
-// ])
 const topic_id = useQueryParam('topic_id')
 const list = ref<
   {
@@ -64,7 +43,7 @@ const list = ref<
     text: string
   }[]
 >([])
-useRequest({
+const { run: getData } = useRequest({
   apiFn: async () => {
     return DataAnalysisAPI.getGroupWord({
       topic_id: topic_id.value,
@@ -80,19 +59,14 @@ useRequest({
   },
   immediate: true,
 })
-
-// const serious = ref({
-//   series: [
-//     {
-//       data: generateWordCloudList(text),
-//     },
-//   ],
-// })
+defineExpose({
+  getData,
+})
 </script>
 
 <template>
   <div class="word-cloud-layout">
-    <div v-for="(item, index) in list">
+    <div v-for="(item, _) in list">
       <n-h3 prefix="bar" type="info" style="margin-bottom: 5px">{{
         item.group_name
       }}</n-h3>

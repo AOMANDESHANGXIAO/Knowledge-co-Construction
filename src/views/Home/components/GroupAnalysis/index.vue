@@ -42,6 +42,7 @@ const onClickTag = (id: string) => {
       <n-text>你可以点击去访问该观点~</n-text>
       <div class="idea-pool-container">
         <n-tag
+          v-if="props.notResponsedList.length > 0"
           v-for="(item, index) in notResponsedList"
           style="cursor: pointer"
           :color="{
@@ -53,6 +54,9 @@ const onClickTag = (id: string) => {
           @click="onClickTag(item.id)"
           >{{ item.name }}</n-tag
         >
+        <div class="empty-container">
+          <n-empty description="还未有观点出现~"></n-empty>
+        </div>
       </div>
     </div>
   </div>

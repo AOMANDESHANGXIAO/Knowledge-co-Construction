@@ -6,23 +6,7 @@ import { IconName } from '@/components/Icons/HomePageIcon/type.ts'
 import { useUserStore } from '@/store/modules/user'
 import useQueryParam from '@/hooks/router/useQueryParam'
 import useRefresh from '../../hooks/Element/useRefresh'
-import useState from '@/hooks/State/useState.ts'
 import useRequest from '@/hooks/Async/useRequest'
-import fullScreenDashBoard from './components/DashBoardFullScreen/index.vue'
-import type { ComposeOption } from 'echarts/core'
-import type {
-  // 系列类型的定义后缀都为 SeriesOption
-  BarSeriesOption,
-  RadarSeriesOption,
-  GraphSeriesOption,
-} from 'echarts/charts'
-import {
-  queryDashBoard,
-  queryWordCloudApi,
-  QueryWordCloudResult,
-} from '@/apis/flow'
-import { QueryDashBoardResponse, TimeLineItem } from '@/apis/flow/type'
-import useEvaluation from './hooks/useEvaluation'
 import _ from 'lodash'
 import router from '@/router/index.ts'
 import MsgNotice from './components/messageNotice/index.vue'
@@ -70,184 +54,9 @@ const handleLayout = (direction: LayoutDirection) => {
   vueFlowRef.value?.handleLayout(direction)
 }
 
-const handleRereshFlowData = () => {
-  vueFlowRef.value?.refreshData()
-}
-
-/**
- * 处理dashBoard
- */
-const [dashBoardVisible, setDashBoardVisible] = useState(false)
-const currentProgress = ref<TimeLineItem['action']>('close')
-const progressTextMap = {
-  close: '讨论完成',
-  summary: '总结观点',
-  feedback: '同伴反馈',
-  propose: '发表观点',
-}
-const actionWeightMap = {
-  close: 4,
-  summary: 3,
-  feedback: 2,
-  propose: 1,
-}
-const timeLineList = ref<
-  {
-    type: 'success' | 'info' | 'warning' | 'error'
-    title: string
-    content: string
-    time: string
-  }[]
->([])
-
-/**
- * 查询仪表盘
- */
-const { run: getDashBoardData } = useRequest({
-  apiFn: async () => {
-    return await queryDashBoard({
-      topic_id: topicId.value,
-      student_id: getOneUserInfo('id'),
-      group_id: getOneUserInfo('group_id'),
-    })
-  },
-  onSuccess(response: QueryDashBoardResponse) {
-    setDashBoardData({
-      radar: {
-        ...response.radarOption,
-      },
-      graph: {
-        ...response.graphOption,
-      },
-      bar: {
-        ...response.barOption,
-      },
-    })
-    // console.log('timeLineList =>', response.timeLineList)
-    const sortedTimeLineList = _.orderBy(
-      response.timeLineList,
-      item => actionWeightMap[item.action],
-      ['asc']
-    )
-    currentProgress.value =
-      sortedTimeLineList[sortedTimeLineList.length - 1]?.action || 'close'
-    timeLineList.value = sortedTimeLineList.map(item => {
-      return {
-        type: item.action === 'close' ? 'success' : 'info',
-        title: item.action,
-        content:
-          item.action === currentProgress.value
-            ? `当前阶段: ${progressTextMap[item.action]}`
-            : progressTextMap[item.action],
-        time: item.created_time,
-      }
-    })
-  },
-  immediate: true,
-})
-
-const [dashBoardData, setDashBoardData] = useState<{
-  radar: ComposeOption<RadarSeriesOption>
-  graph: ComposeOption<GraphSeriesOption>
-  bar: ComposeOption<BarSeriesOption>
-}>({
-  radar: {},
-  graph: {},
-  bar: {},
-})
-
-const evaluationData = computed(() => {
-  return {
-    argumentData: dashBoardData.value.radar,
-    interactionData: dashBoardData.value.graph,
-    groupData: dashBoardData.value.bar,
-  }
-})
-
-// @ts-ignore
-const {
-  getEvaluatedArgument,
-  getEvaluatedGroupContribution,
-  getEvaluatedInteraction,
-  highLightPatterns,
-  // @ts-ignore
-} = useEvaluation(evaluationData)
-
-const dashBoardRenderList = ref<
-  {
-    title: string
-    option:
-      | ComposeOption<BarSeriesOption>
-      | ComposeOption<GraphSeriesOption>
-      | ComposeOption<RadarSeriesOption>
-    type: 'radar' | 'graph' | 'bar'
-  }[]
->([])
-
-watch(
-  () => dashBoardData.value,
-  (newVal, oldVal) => {
-    if (_.isEqual(newVal, oldVal)) return
-    dashBoardRenderList.value = [
-      {
-        title: '论证元素',
-        option: dashBoardData.value.radar,
-        type: 'radar',
-      },
-      {
-        title: '互动',
-        option: dashBoardData.value.graph,
-        type: 'graph',
-      },
-      {
-        title: '团队',
-        option: dashBoardData.value.bar,
-        type: 'bar',
-      },
-    ]
-  }
-)
-type AlertType = {
-  title: string
-  type: 'info' | 'success' | 'warning' | 'error'
-  suggestions: string[]
-}
-const alertList = ref<AlertType[]>([])
-
-watch(
-  () => dashBoardData.value,
-  (newVal, oldVal) => {
-    if (_.isEqual(newVal, oldVal)) return
-    alertList.value = [
-      getEvaluatedArgument() || {
-        title: '论证元素',
-        type: 'info',
-        suggestions: ['加载中...'],
-      },
-      getEvaluatedInteraction() || {
-        title: '论证元素',
-        type: 'info',
-        suggestions: ['加载中...'],
-      },
-      getEvaluatedGroupContribution() || {
-        title: '论证元素',
-        type: 'info',
-        suggestions: ['加载中...'],
-      },
-    ]
-  }
-)
-// 词云图查询
-const cloudWordData = ref<QueryWordCloudResult['list']>([])
-const { run: getCloudWordData } = useRequest({
-  apiFn: async () => {
-    return queryWordCloudApi({ topic_id: topicId.value })
-  },
-  onSuccess(data) {
-    cloudWordData.value = data.list
-  },
-})
-provide('getCloudWordData', getCloudWordData)
+// const handleRereshFlowData = () => {
+//   vueFlowRef.value?.refreshData()
+// }
 
 const onClickTag = (id: string) => {
   console.log('id', id)
@@ -276,6 +85,10 @@ const onRightClick = (e: MouseEvent) => {
 const showModal = ref(false)
 const closeModal = () => (showModal.value = false)
 const openModal = () => (showModal.value = true)
+const handleRefresh = () => {
+  getInteractionData()
+  vueFlowRefresh()
+}
 const buttonsRight = ref<
   Array<{
     title: string
@@ -295,7 +108,13 @@ const buttonsRight = ref<
       refreshArgumentEditor()
     },
   },
-  { title: '刷新界面', icon: IconName.Refresh, action: handleRereshFlowData },
+  {
+    title: '刷新界面',
+    icon: IconName.Refresh,
+    action: () => {
+      handleRefresh()
+    },
+  },
   {
     title: '垂直排列',
     icon: IconName.Vertical,
@@ -512,7 +331,8 @@ const onOK = (inputValues: inputValues) => {
       })
       closeModal()
       centerNodeId.value = data.id
-      vueFlowRefresh()
+      // vueFlowRefresh()
+      handleRefresh()
     },
     onError() {
       notification.error({
@@ -645,21 +465,13 @@ const dashBoardModalShow = ref(false)
 const showDashBoardModal = () => {
   dashBoardModalShow.value = true
 }
-const closeDashBoardModal = () => {
-  dashBoardModalShow.value = false
-}
 const topic_id = useQueryParam('topic_id')
 // const { getOneUserInfo } = useUserStore()
 const groupId = getOneUserInfo<string>('group_id')
 const interactionData = ref<GetGroupInteractionResponse>()
 const notResponsedList = ref<GetGroupInteractionResponse['notResponsed']>([])
 
-// const emits = defineEmits<{
-//   (e: 'clickTag', id: string): void
-//   (e: 'onGetData', data: GetGroupInteractionResponse['notResponsed']): void
-// }>()
-
-useRequest({
+const { run: getInteractionData } = useRequest({
   apiFn: async () => {
     return DataAnalysisAPI.getGroupInteractionData({
       topic_id: topic_id.value,
@@ -759,6 +571,7 @@ useRequest({
     <n-modal v-model:show="dashBoardModalShow">
       <div class="dialog-container">
         <component
+          ref="currentViewRef"
           :is="
             currentView === 'GroupAnalysis' ? GroupAnalysis : WordCloudAnalysis
           "
