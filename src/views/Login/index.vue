@@ -17,6 +17,15 @@ const isLogin = ref<boolean>(true)
 
 const toggleRegisterAndLogin = () => {
   isLogin.value = !isLogin.value
+  /**
+   * 自动登录
+   */
+   loginForm.value.username = registerForm.value.username
+   loginForm.value.password = registerForm.value.password
+   /**
+    * 提交登录
+    */
+   submitLogin()
 }
 
 const loginForm = ref<LoginForm>({
@@ -176,6 +185,9 @@ const submitRegister = () => {
           if (data.success) {
             ElMessage.success('注册成功!')
             toggleRegisterAndLogin()
+            /**
+             * 注册成功后，自动登录
+             */
           } else {
             ElMessage.error('注册失败')
           }
@@ -202,7 +214,7 @@ const submitRegister = () => {
         class="login-form-container"
         :class="{ 'is-transform-left': !isLogin }"
       >
-        <div class="title">登录Stream of Thoughts平台</div>
+        <div class="title">登录思维之流</div>
         <el-form
           style="width: 600px"
           :model="loginForm"
@@ -246,7 +258,7 @@ const submitRegister = () => {
         class="register-form-container"
         :class="{ 'is-not-transform': !isLogin }"
       >
-        <div class="title">注册Stream of Thoughts平台</div>
+        <div class="title">注册思维之流</div>
         <el-form
           style="width: 600px"
           :model="registerForm"
@@ -256,7 +268,7 @@ const submitRegister = () => {
           <el-form-item prop="class_id">
             <div class="sub-title">班级</div>
             <el-select
-              v-model="registerForm.class_id"
+              v-model="registerForm?.class_id"
               placeholder="选择您所在的班级 "
             >
               <el-option
