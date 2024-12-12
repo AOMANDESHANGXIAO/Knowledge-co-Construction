@@ -36,6 +36,8 @@ import {
   DataAnalysisAPI,
   GetGroupInteractionResponse,
 } from '@/apis/dataAnalysis'
+import ChatGptInput from './components/newChatGpt/index.vue'
+import { useStorage } from '@vueuse/core'
 
 const { getOneUserInfo } = useUserStore()
 
@@ -106,6 +108,14 @@ const buttonsRight = ref<
       showContentList.value = false
       openModal()
       refreshArgumentEditor()
+    },
+  },
+  {
+    title: '使用ChatGpt',
+    icon: IconName.ChatGpt,
+    action: () => {
+      console.log('打开ChatGpt')
+      openChatGptDialog()
     },
   },
   {
@@ -484,6 +494,20 @@ const { run: getInteractionData } = useRequest({
   },
   immediate: true,
 })
+/**
+ * 处理ChatGpt对话框
+ */
+const showChatGptDialog = ref(false)
+const openChatGptDialog = () => {
+  showChatGptDialog.value = true
+}
+const setMsgs = (msgs: { role: 'user' | 'assistant'; content: string }[]) => {
+  initMsgs.value = msgs
+}
+const initMsgs = useStorage(
+  'chatgpt-history',
+  [] as { role: 'user' | 'assistant'; content: string }[]
+)
 </script>
 
 <template>
@@ -580,6 +604,18 @@ const { run: getInteractionData } = useRequest({
           :key="currentView"
           @clickTag="onClickTag"
         ></component>
+      </div>
+    </n-modal>
+
+    <!-- ChatGpt对话框 -->
+    <n-modal v-model:show="showChatGptDialog">
+      <div class="dialog-container">
+        <ChatGptInput
+          :show-mask="false"
+          :disabled="false"
+          :init-messages="initMsgs"
+          :onUnMountedEffect="setMsgs"
+        ></ChatGptInput>
       </div>
     </n-modal>
   </n-modal-provider>

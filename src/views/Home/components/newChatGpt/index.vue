@@ -214,6 +214,7 @@ onUnmounted(() => {
   border: 1px solid #ccc;
   border-radius: 5px;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  overflow-y: hidden;
   .mask {
     z-index: 999;
     position: absolute;
@@ -249,6 +250,7 @@ onUnmounted(() => {
 .chat-window {
   // height: 220px;
   flex: 1;
+  overflow-x: hidden;
   overflow-y: scroll;
   .empty-tips {
     width: 100%;

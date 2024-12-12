@@ -113,7 +113,6 @@ const saveChatMessage = (
     content: string
   }[]
 ) => {
-  console.log('successfuly save chat message to local storage')
   ChatMessages.value = list
 }
 </script>

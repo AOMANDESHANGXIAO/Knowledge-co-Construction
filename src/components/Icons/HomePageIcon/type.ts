@@ -9,5 +9,6 @@ export enum IconName {
   File = 'file',
   Notice = 'notice',
   WordCloud = 'wordCloud',
-  Analysis = 'analysis'
+  Analysis = 'analysis',
+  ChatGpt = 'chatgpt'
 }
