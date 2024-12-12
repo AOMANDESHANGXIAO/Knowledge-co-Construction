@@ -14,12 +14,16 @@ defineOptions({
 
 const props = withDefaults(
   defineProps<{
+    initMessages: ChatMessage[]
     disabled: boolean
     showMask: boolean
+    onUnMountedEffect: (args: any) => void
   }>(),
   {
+    initMessages: () => [] as ChatMessage[],
     disabled: false,
     showMask: true,
+    onUnMountedEffect: () => {},
   }
 )
 // 配置 marked
@@ -36,16 +40,7 @@ interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
 }
-const messages = ref<ChatMessage[]>([
-  {
-    role: 'user',
-    content: '你好',
-  },
-  {
-    role: 'assistant',
-    content: '你好，我是ChatGPT，很高兴见到你。',
-  },
-])
+const messages = ref<ChatMessage[]>(props.initMessages)
 const input = ref('')
 const isReceiving = ref(false)
 const pushMsg = () => {
@@ -143,6 +138,9 @@ const onClickRefresh = (index: number) => {
   sendMessage()
   input.value = ''
 }
+onUnmounted(() => {
+  props.onUnMountedEffect(messages.value)
+})
 </script>
 
 <template>

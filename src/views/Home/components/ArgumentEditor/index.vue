@@ -2,6 +2,7 @@
 import { GetInteractionResponse } from '@/apis/viewpoint/interface'
 import ChatGptInput from '../newChatGpt/index.vue'
 import { Span } from 'naive-ui/es/legacy-grid/src/interface'
+import { useStorage } from '@vueuse/core'
 // import { useMessage } from 'naive-ui'
 defineOptions({
   name: 'index',
@@ -96,6 +97,25 @@ const checkShowMask = computed(() => {
 })
 
 const emits = defineEmits(['close', 'ok'])
+/**
+ * 存储和ChatGpt的对话到本地
+ */
+const ChatMessages = useStorage(
+  'chats',
+  [] as {
+    role: 'user' | 'assistant'
+    content: string
+  }[]
+)
+const saveChatMessage = (
+  list: {
+    role: 'user' | 'assistant'
+    content: string
+  }[]
+) => {
+  console.log('successfuly save chat message to local storage')
+  ChatMessages.value = list
+}
 </script>
 
 <template>
@@ -218,6 +238,8 @@ const emits = defineEmits(['close', 'ok'])
     <section class="right">
       <div class="chatgpt-layout">
         <ChatGptInput
+          :init-messages="ChatMessages"
+          :onUnMountedEffect="saveChatMessage"
           :disabled="false"
           :show-mask="checkShowMask"
         ></ChatGptInput>
@@ -229,7 +251,7 @@ const emits = defineEmits(['close', 'ok'])
 <style lang="scss" scoped>
 .editor-modal-layout {
   width: var(--dialog-modal-width);
-  height:var(--dialog-modal-height);
+  height: var(--dialog-modal-height);
   background-color: #fff;
   padding: 10px;
   display: flex;
