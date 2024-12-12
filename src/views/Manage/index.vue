@@ -3,7 +3,8 @@ import Icon from '@/components/Icons/ManagePageIcon/index.vue'
 import { Name } from '@/components/Icons/ManagePageIcon/type.ts'
 import { useRouter, useRoute } from 'vue-router'
 import LogOutButton from '@/components/LogOutButton/index.vue'
-import {useUserStore} from '@/store/modules/user/index.ts'
+import { useUserStore } from '@/store/modules/user/index.ts'
+// import router from '@/router'
 // 根据当前的路由确定el-menu-item的激活状态
 const router = useRouter()
 
@@ -13,10 +14,12 @@ const defaultActive = computed(() => {
 })
 
 const route = useRoute()
-const userStore = useUserStore()
+const { logout } = useUserStore()
 const handleLogOut = () => {
   console.log('loyOut')
-  userStore.logout()
+  logout()
+  // router.go(0)
+  console.log('2')
 }
 </script>
 
@@ -24,7 +27,7 @@ const handleLogOut = () => {
   <div class="manage-page">
     <el-row style="height: 100%">
       <el-col :span="3" style="height: 100%">
-        <h2>Stream of Thoughts</h2>
+        <h2>思维之流</h2>
         <el-menu
           mode="vertical"
           style="height: calc(100% - 60px); position: relative"

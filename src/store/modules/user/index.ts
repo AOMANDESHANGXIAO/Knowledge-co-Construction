@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { User } from './type.ts'
-import router from '@/router/index.ts'
+// import router from '@/router/index.ts'
+import { routerBus } from '@/router/index.ts'
 
 export const useUserStore = defineStore(
   'user',
@@ -44,7 +45,7 @@ export const useUserStore = defineStore(
       userInfo.value = defaultUserInfo
       // 退出登录时清除localStorage
       localStorage.removeItem('userInfo')
-      router.push('/')
+      routerBus.emit('logout')
     }
 
     // 在store初始化时加载用户信息

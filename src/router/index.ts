@@ -1,15 +1,14 @@
 // router/index.ts
 import { createRouter, createWebHashHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
-// import { watch } from 'vue'
-// import { useUserStore } from "@/store/modules/user";
+import { useEventBus } from '@vueuse/core'
 
 const routes: Array<RouteRecordRaw> = [
   {
     name: 'index',
     path: '/',
     redirect() {
-      if (localStorage.getItem('user')) {
+      if (localStorage.getItem('userInfo')) {
         return { path: '/manage' }
       }
       return { path: '/login' }
@@ -84,4 +83,17 @@ const router = createRouter({
   routes,
 })
 
+const routerBus = useEventBus<string>('router')
+
+function routerEventListener(event: string) {
+  if (event === 'logout') {
+    console.log('退出登录事件...')
+    /**
+     * 不起作用?WHY
+     */
+    router.push('/')
+  }
+}
+routerBus.on(routerEventListener)
+export { routerBus }
 export default router

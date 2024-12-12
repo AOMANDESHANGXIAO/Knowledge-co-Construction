@@ -77,7 +77,7 @@ const submitLogin = () => {
             // 存储用户信息
             const userStore = useUserStore()
             userStore.setUserInfo(data.data)
-            router.push('/manage')
+            router.push('/')
           } else {
             const msg = data.message
             ElMessage.error(msg)
@@ -100,7 +100,7 @@ const registerForm = ref<RegisterForm>({
   nickname: '',
   password: '',
   confirmPassword: '',
-  class_id: null,
+  class_id: undefined,
 })
 
 // 注册校验规则
@@ -268,7 +268,7 @@ const submitRegister = () => {
           <el-form-item prop="class_id">
             <div class="sub-title">班级</div>
             <el-select
-              v-model="registerForm?.class_id"
+              v-model="registerForm.class_id"
               placeholder="选择您所在的班级 "
             >
               <el-option

@@ -4,7 +4,7 @@ export interface LoginForm {
 }
 
 export interface RegisterForm {
-  class_id: number | null;
+  class_id: number | undefined;
   username: string;
   nickname: string;
   password: string;
