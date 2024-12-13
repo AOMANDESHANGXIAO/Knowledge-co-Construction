@@ -147,7 +147,7 @@ onUnmounted(() => {
 const emits = defineEmits(['cannotSend'])
 defineExpose({
   send: (content: string) => {
-    if (props.showMask) {
+    if (props.showMask||isReceiving.value) {
       emits('cannotSend')
       return
     }

@@ -137,7 +137,7 @@ const onClickSendfactory = (prompt: string) => {
 const onRefine = onClickSendfactory('请帮我润色这段文本,要求更加具有逻辑性,更加通顺。')
 const onContinue = onClickSendfactory('请帮我续写这段文本,要求具有逻辑性,并且通顺。大约50字。')
 const onCanNotSend = () => {
-  message.warning('请先输入20个字符')
+  message.warning('正在接收消息中，请稍等...')
 }
 </script>
 
