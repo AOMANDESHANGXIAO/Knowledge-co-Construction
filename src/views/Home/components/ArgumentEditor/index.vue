@@ -171,6 +171,7 @@ const onCanNotSend = () => {
                       size="tiny"
                       type="info"
                       secondary
+                      :disabled="checkShowMask"
                       @click="onRefine(inputValueIndex)"
                       >润色</n-button
                     >
@@ -179,6 +180,7 @@ const onCanNotSend = () => {
                       size="tiny"
                       type="info"
                       secondary
+                      :disabled="checkShowMask"
                       @click="onContinue(inputValueIndex)"
                       >续写</n-button
                     >

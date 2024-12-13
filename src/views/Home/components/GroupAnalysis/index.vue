@@ -54,7 +54,7 @@ const onClickTag = (id: string) => {
           @click="onClickTag(item.id)"
           >{{ item.name }}</n-tag
         >
-        <div class="empty-container">
+        <div class="empty-container" v-else>
           <n-empty description="还未有观点出现~"></n-empty>
         </div>
       </div>
@@ -63,6 +63,13 @@ const onClickTag = (id: string) => {
 </template>
 
 <style lang="scss" scoped>
+.empty-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
 .group-analysis-layout {
   width: 100%;
   height: 100%;
