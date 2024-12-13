@@ -147,7 +147,7 @@ onUnmounted(() => {
 const emits = defineEmits(['cannotSend'])
 defineExpose({
   send: (content: string) => {
-    if (props.showMask||isReceiving.value) {
+    if (props.showMask || isReceiving.value) {
       emits('cannotSend')
       return
     }
@@ -166,9 +166,14 @@ defineExpose({
     </div>
     <div class="chat-header">
       <div>ChatGpt</div>
-      <div class="icon" @click="clear">
-        <n-icon><TrashBinOutline /></n-icon>
-      </div>
+      <n-popconfirm @positive-click="clear" positive-text="确认" negative-text="取消">
+        <template #trigger>
+          <div class="icon" @click="clear">
+            <n-icon><TrashBinOutline /></n-icon>
+          </div>
+        </template>
+        你确定要清空聊天记录吗？
+      </n-popconfirm>
     </div>
     <div class="chat-window" id="chat-window">
       <ul class="message-list" v-if="messages.length">

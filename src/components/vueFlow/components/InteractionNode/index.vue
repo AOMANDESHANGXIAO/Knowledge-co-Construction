@@ -480,7 +480,16 @@ const popoverRenderFooter = computed(() => {
 
 <template>
   <n-message-provider>
-    <n-popover trigger="click" :show-arrow="false" style="min-width: 250px">
+    <n-popover
+      trigger="click"
+      :show-arrow="false"
+      style="
+        min-width: 250px;
+        max-width: 500px;
+        max-height: 500px;
+        overflow: auto;
+      "
+    >
       <template #trigger>
         <div
           class="interaction-node"

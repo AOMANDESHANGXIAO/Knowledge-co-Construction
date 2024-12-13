@@ -567,14 +567,14 @@ const initMsgs = useStorage(
               style="position: relative"
             >
               <Icon :name="button.icon" />
-              <div
+              <!-- <div
                 class="notification-badge"
                 v-if="
                   notResponsedList.length > 0 && button.title === '小组交互'
                 "
               >
                 {{ notResponsedList.length }}
-              </div>
+              </div> -->
             </button>
           </div>
         </template>
