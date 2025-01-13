@@ -1,8 +1,7 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
 import { User } from './type.ts'
-// import router from '@/router/index.ts'
 import { routerBus } from '@/router/index.ts'
+import { useLocalStorage } from '@vueuse/core'
 
 export const useUserStore = defineStore(
   'user',
@@ -16,49 +15,37 @@ export const useUserStore = defineStore(
       group_id: null,
       group_code: '',
       group_name: '',
-      group_color: '',
+      group_color: ''
     }
-    const userInfo = ref<User>(defaultUserInfo)
+    const userInfo = useLocalStorage<User>('userInfo', defaultUserInfo)
+
+    const getToken = () => userInfo.value.token
 
     const setUserInfo = (params: User) => {
       userInfo.value = {
         ...userInfo.value,
-        ...params,
+        ...params
       }
-      // 保存到localStorage
-      localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
     }
 
     function getOneUserInfo<T = User[keyof User]>(key: keyof User): T {
       return userInfo.value[key] as T
     }
 
-    const loadUserInfoFromLocalStorage = () => {
-      const storedUserInfo = localStorage.getItem('userInfo')
-      if (storedUserInfo) {
-        userInfo.value = JSON.parse(storedUserInfo)
-      }
-    }
-
     const logout = () => {
-      console.log('退出登录了...')
       userInfo.value = defaultUserInfo
-      // 退出登录时清除localStorage
-      localStorage.removeItem('userInfo')
       routerBus.emit('logout')
     }
-
-    // 在store初始化时加载用户信息
-    loadUserInfoFromLocalStorage()
 
     return {
       userInfo,
       setUserInfo,
+      getToken,
       getOneUserInfo,
-      logout,
+      logout
     }
   },
   {
-    persist: true,
+    persist: true
   }
 )
