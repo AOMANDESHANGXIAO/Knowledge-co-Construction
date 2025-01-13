@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useUserStore } from '@/store/modules/user'
+import { useUserStore } from '@/store/useUserStore.ts'
 import ManageHeader from '@/components/common/manageHeader/index.vue'
 import analysisItem from '@/components/common/analysisItem/index.vue'
 import RadarGraph from '@/components/common/radarGraph/index.vue'

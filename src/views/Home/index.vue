@@ -3,10 +3,10 @@ import flowComponent from '@/components/vueFlow/index.vue'
 import { LayoutDirection } from '@/components/vueFlow/type.ts'
 import Icon from '@/components/Icons/HomePageIcon/index.vue'
 import { IconName } from '@/components/Icons/HomePageIcon/type.ts'
-import { useUserStore } from '@/store/modules/user'
-import useQueryParam from '@/hooks/router/useQueryParam'
-import useRefresh from '../../hooks/Element/useRefresh'
-import useRequest from '@/hooks/Async/useRequest'
+import { useUserStore } from '@/store/useUserStore.ts'
+import useQueryParam from '@/hooks/useQueryParam.ts'
+import useForceUpdateComponent from '../../hooks/useForceUpdateComponent.ts'
+import useRequest from '@/hooks/useRequest.ts'
 import _ from 'lodash'
 import router from '@/router/index.ts'
 import MsgNotice from './components/messageNotice/index.vue'
@@ -179,7 +179,7 @@ const contentList = ref<GetInteractionResponse['list']>([])
 const showContentList = ref(true)
 const target = ref('')
 const mode = ref<'post' | 'patch'>('post')
-const { key, refresh: refreshArgumentEditor } = useRefresh()
+const { key, refresh: refreshArgumentEditor } = useForceUpdateComponent()
 const resetOptions = () => {
   options[editorType.value].inputValues.forEach(item => {
     item.value = ''
@@ -302,7 +302,7 @@ const onMountedVueFlow = () => {
     centerNodeId.value = ''
   }, 1000)
 }
-const { key: vueFlowKey, refresh: vueFlowRefresh } = useRefresh()
+const { key: vueFlowKey, refresh: vueFlowRefresh } = useForceUpdateComponent()
 const onOK = (inputValues: inputValues) => {
   if (!okValidator(inputValues)) {
     notification.warning({
@@ -500,7 +500,7 @@ const { run: getInteractionData } = useRequest({
 const showChatGptDialog = ref(false)
 const openChatGptDialog = () => {
   showChatGptDialog.value = true
-}
+
 const setMsgs = (msgs: { role: 'user' | 'assistant'; content: string }[]) => {
   initMsgs.value = msgs
 }

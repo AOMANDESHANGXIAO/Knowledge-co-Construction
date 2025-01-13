@@ -2,10 +2,10 @@
 import { Handle, Position } from '@vue-flow/core'
 import { GroupNodeProps } from '@/components/vueFlow/components/groupNode/type.ts'
 import { Refresh } from '@element-plus/icons-vue'
-import { useUserStore } from '@/store/modules/user'
+import { useUserStore } from '@/store/useUserStore.ts'
 import ViewPointAPI from '@/apis/viewpoint'
 import { GetInteractionResponse } from '@/apis/viewpoint/interface'
-import useRequest from '@/hooks/Async/useRequest'
+import useRequest from '@/hooks/useRequest.ts'
 import { useMessage } from 'naive-ui'
 import { InteractionNodeType } from '@/apis/viewpoint/interface'
 

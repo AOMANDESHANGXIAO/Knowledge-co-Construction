@@ -1,99 +1,103 @@
-// router/index.ts
-import { createRouter, createWebHashHistory } from 'vue-router'
-import type { RouteRecordRaw } from 'vue-router'
-import { useEventBus } from '@vueuse/core'
+// router/useUserStore.ts
+import {createRouter, createWebHashHistory} from 'vue-router'
+import type {RouteRecordRaw} from 'vue-router'
+// import {useEventBus} from '@vueuse/core'
+import useEventBus from "@/hooks/useEventBus.ts";
+import {useUserStore} from "@/store/useUserStore.ts";
+
+const {getToken} = useUserStore()
 
 const routes: Array<RouteRecordRaw> = [
-  {
-    name: 'index',
-    path: '/',
-    redirect() {
-      if (localStorage.getItem('userInfo')) {
-        return { path: '/manage' }
-      }
-      return { path: '/login' }
-    },
-  },
-  {
-    name: 'manage',
-    path: '/manage',
-    meta: {
-      title: 'manage',
-    },
-    component: () => import('@/views/Manage/index.vue'),
-    redirect() {
-      return { path: '/manage/team' }
-    },
-    children: [
-      {
-        name: 'manage-team-page',
-        path: 'team',
-        meta: {
-          title: 'manage-team',
+    {
+        name: 'index',
+        path: '/',
+        redirect() {
+            if (getToken()) {
+                return {path: '/manage'}
+            }
+            return {path: '/login'}
         },
-        component: () => import('@/views/Manage/Team/index.vue'),
-      },
-      {
-        name: 'manage-my-page',
-        path: 'my',
+    },
+    {
+        name: 'manage',
+        path: '/manage',
         meta: {
-          title: 'manage-my',
+            title: 'manage',
         },
-        component: () => import('@/views/Manage/My/index.vue'),
-      },
-      {
-        name: 'manage-talk-page',
-        path: 'talk',
+        component: () => import('@/views/Manage/index.vue'),
+        redirect() {
+            return {path: '/manage/team'}
+        },
+        children: [
+            {
+                name: 'manage-team-page',
+                path: 'team',
+                meta: {
+                    title: 'manage-team',
+                },
+                component: () => import('@/views/Manage/Team/index.vue'),
+            },
+            {
+                name: 'manage-my-page',
+                path: 'my',
+                meta: {
+                    title: 'manage-my',
+                },
+                component: () => import('@/views/Manage/My/index.vue'),
+            },
+            {
+                name: 'manage-talk-page',
+                path: 'talk',
+                meta: {
+                    title: 'manage-talk',
+                },
+                component: () => import('@/views/Manage/Talk/index.vue'),
+            },
+        ],
+    },
+    {
+        name: 'home',
+        path: '/home',
         meta: {
-          title: 'manage-talk',
+            title: 'home',
         },
-        component: () => import('@/views/Manage/Talk/index.vue'),
-      },
-    ],
-  },
-  {
-    name: 'home',
-    path: '/home',
-    meta: {
-      title: 'home',
+        component: () => import('@/views/Home/index.vue'),
     },
-    component: () => import('@/views/Home/index.vue'),
-  },
-  // 页面不存在时的路由
-  {
-    name: '404',
-    path: '/:pathMatch(.*)*',
-    meta: {
-      title: '404',
+    // 页面不存在时的路由
+    {
+        name: '404',
+        path: '/:pathMatch(.*)*',
+        meta: {
+            title: '404',
+        },
+        component: () => import('@/views/Error/404.vue'),
     },
-    component: () => import('@/views/Error/404.vue'),
-  },
-  {
-    name: 'login',
-    path: '/login',
-    meta: {
-      title: 'login',
+    {
+        name: 'login',
+        path: '/login',
+        meta: {
+            title: 'login',
+        },
+        component: () => import('@/views/Login/index.vue'),
     },
-    component: () => import('@/views/Login/index.vue'),
-  },
 ]
 
 const router = createRouter({
-  history: createWebHashHistory(),
-  routes,
+    history: createWebHashHistory(),
+    routes,
 })
 
-const routerBus = useEventBus<string>('router')
-
-function routerEventListener(event: string) {
-  if (event === 'logout') {
-    console.log('退出登录事件...')
-    /**
-     * 不起作用?WHY
-     */
-    router.push('/')
-  }
+interface RouterEvent {
+    logout: string
 }
-routerBus.on(routerEventListener)
-export { routerBus }
+
+const routerBus = useEventBus<RouterEvent>()
+
+const handleLayout = () => {
+    router.push('/')
+}
+
+routerBus.on('logout', handleLayout)
+
+export {routerBus}
 export default router

@@ -2,7 +2,7 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
 import { escapeData } from '@/utils/escapeHandler'
-import { useUserStore } from '@/store/modules/user'
+import { useUserStore } from '@/store/useUserStore.ts'
 // 定义请求超时时间
 axios.defaults.timeout = 10000
 // 定义请求返回格式

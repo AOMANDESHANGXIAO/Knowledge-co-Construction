@@ -12,7 +12,7 @@ import type {
   GraphSeriesOption,
 } from 'echarts/charts'
 import { ComputedRef, Ref } from 'vue'
-import { useUserStore } from '@/store/modules/user'
+import { useUserStore } from '@/store/useUserStore.ts'
 import _ from 'lodash'
 
 interface RadarSeriesOptionType extends RadarSeriesOption {

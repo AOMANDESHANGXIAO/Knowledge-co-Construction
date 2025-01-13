@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { streamChat } from '@/apis/gpt'
-import useQueryParam from '@/hooks/router/useQueryParam'
-import { useUserStore } from '@/store/modules/user'
+import useQueryParam from '@/hooks/useQueryParam.ts'
+import { useUserStore } from '@/store/useUserStore.ts'
 import { marked } from 'marked'
 import { TrashBinOutline } from '@vicons/ionicons5'
 import Icon from './icon.vue'

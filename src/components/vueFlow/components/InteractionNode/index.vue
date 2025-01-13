@@ -3,14 +3,14 @@ import { Handle, Position } from '@vue-flow/core'
 // import icon from './components/icon/index.vue'
 // import { useAnimate } from '@vueuse/core' // 引入 useAnimation
 // import animate from '@/components/vueFlow/animate.ts'
-import eventBus from '@/hooks/eventBus.ts'
+import eventBus from '@/hooks/useEventBus.ts'
 import {
   InteractionNodeType,
   GetInteractionResponse,
 } from '@/apis/viewpoint/interface.ts'
 import ViewPointAPI from '@/apis/viewpoint'
-import { useUserStore } from '@/store/modules/user'
-import useRequest from '@/hooks/Async/useRequest'
+import { useUserStore } from '@/store/useUserStore.ts'
+import useRequest from '@/hooks/useRequest.ts'
 import { BLUE, GREEN, YELLOW, PURPLE, RED } from '@/config'
 import { Refresh } from '@vicons/ionicons5'
 import { useMessage } from 'naive-ui'

@@ -9,7 +9,7 @@ import {
 } from '@/apis/user/index.ts'
 import router from '@/router/index.ts'
 import { SignInParams } from '@/apis/user/type.ts'
-import { useUserStore } from '@/store/modules/user/index.ts'
+import { useUserStore } from '@/store/useUserStore.ts'
 
 const themeColor = useCssVar('--theme-color')
 

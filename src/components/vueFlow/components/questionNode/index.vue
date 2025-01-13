@@ -2,7 +2,7 @@
 import { Handle, Position } from '@vue-flow/core'
 import { useAnimate } from '@vueuse/core' // 引入 useAnimation
 import animate from '@/components/vueFlow/animate.ts'
-import eventBus from '@/hooks/eventBus.ts'
+import eventBus from '@/hooks/useEventBus.ts'
 
 interface QuestionNodeProps {
   id: string

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import manageHeader from '@/components/common/manageHeader/index.vue'
-import {useUserStore} from '@/store/modules/user'
+import {useUserStore} from '@/store/useUserStore.ts'
 import talkCard from '@/components/common/talkCard/index.vue'
 import type {ListItem} from './type.ts'
 import {queryTopicListApi} from '@/apis/manageTalk/index.ts'
 import {Search} from '@element-plus/icons-vue'
 import router from '@/router/index.ts'
-import useRequest from "@/hooks/Async/useRequest.ts";
+import useRequest from "@/hooks/useRequest.ts";
 
 const userStore = useUserStore()
 

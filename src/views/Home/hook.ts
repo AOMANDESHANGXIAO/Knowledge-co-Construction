@@ -14,7 +14,7 @@ import { ref, watch } from 'vue'
 import flowComponent from '@/components/vueFlow/index.vue'
 import { GroupNodeProps } from '@/components/vueFlow/components/groupNode/type.ts'
 import argumentFlowComponent from './components/ArgumentFlowComponent/index.vue'
-import useState from '@/hooks/State/useState'
+import useState from '@/hooks/useState.ts'
 import { Status} from './components/ArgumentFlowComponent/type'
 import { ElMessage, ElNotification } from 'element-plus'
 import { proposeIdeaApi, replyIdeaApi, modifyIdeaApi } from '@/apis/flow'
@@ -24,8 +24,8 @@ import {
   ModifyIdeaParams,
 } from '@/apis/flow/type'
 import { LayoutDirection } from '../../components/vueFlow/type'
-import useRequest from '@/hooks/Async/useRequest'
-import useRefresh from '../../hooks/Element/useRefresh'
+import useRequest from '@/hooks/useRequest.ts'
+import useForceUpdateComponent from '../../hooks/useForceUpdateComponent.ts'
 import { queryTopicContentApi } from '@/apis/manageTalk'
 import { TopicContent } from '@/apis/manageTalk/type'
 import { NodeType, EdgeType } from './components/ArgumentFlowComponent/type'
@@ -78,7 +78,7 @@ function useMyVueFlow({ topic_id, student_id, group_id }: UseMyVueFlowProps) {
 
   const [reply, setReply] = useState<'none' | 'reject' | 'approve'>('none')
 
-  const { key, refresh } = useRefresh()
+  const { key, refresh } = useForceUpdateComponent()
 
   const refreshVueFlow = () => {
     vueFlowRef.value?.refreshData()

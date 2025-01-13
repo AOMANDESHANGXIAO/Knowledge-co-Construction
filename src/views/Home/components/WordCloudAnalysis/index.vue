@@ -2,8 +2,8 @@
 import _ from 'lodash'
 import MyWordCloudUI from '@/components/common/MyWordCloudUI/index.vue'
 import { DataAnalysisAPI } from '@/apis/dataAnalysis'
-import useRequest from '@/hooks/Async/useRequest'
-import useQueryParam from '@/hooks/router/useQueryParam'
+import useRequest from '@/hooks/useRequest.ts'
+import useQueryParam from '@/hooks/useQueryParam.ts'
 defineOptions({
   name: 'index',
 })

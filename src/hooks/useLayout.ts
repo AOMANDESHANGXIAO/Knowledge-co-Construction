@@ -13,7 +13,7 @@ export function useLayout() {
 
   const previousDirection = ref('LR')
 
-  function layout(nodes, edges, direction) {
+  function layout(nodes:any, edges:any, direction: any) {
     // we create a new graph instance, in case some nodes/edges were removed, otherwise dagre would act as if they were still there
     const dagreGraph = new dagre.graphlib.Graph()
 
@@ -29,15 +29,12 @@ export function useLayout() {
     for (const node of nodes) {
       // // if you need width+height of nodes for your layout, you can use the dimensions property of the internal node (`GraphNode` type)
       const graphNode = findNode(node.id)
-      // console.log('graphNode', graphNode)
-      // console.log('graphNode.dimensions', graphNode?.dimensions)
 
       dagreGraph.setNode(node.id, {
         width: graphNode?.dimensions.width || 150,
         height: graphNode?.dimensions.height || 50,
       })
 
-      // console.log('dagreGraph', dagreGraph)
     }
 
     for (const edge of edges) {
@@ -47,7 +44,7 @@ export function useLayout() {
     dagre.layout(dagreGraph)
 
     // set nodes with updated positions
-    return nodes.map(node => {
+    return nodes.map((node:any) => {
       const nodeWithPosition = dagreGraph.node(node.id)
 
       return {

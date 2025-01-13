@@ -5,7 +5,7 @@ import analysisItem from '@/components/common/analysisItem/index.vue'
 import memberAnalysis from '@/components/common/memberAnalysis/index.vue'
 import manageHeader from '@/components/common/manageHeader/index.vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import { useUserStore } from '@/store/modules/user'
+import { useUserStore } from '@/store/useUserStore.ts'
 import { useColorStore } from '@/store/modules/color'
 import {
   createGroupApi,

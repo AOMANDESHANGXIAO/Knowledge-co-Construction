@@ -11,7 +11,7 @@ import {
   responseQuestionApi,
 } from '@/apis/flow'
 import { CreateNewIdeaArgs } from '@/apis/flow/type'
-import useRequest from '@/hooks/Async/useRequest'
+import useRequest from '@/hooks/useRequest.ts'
 /**
  *
  * @param nodes

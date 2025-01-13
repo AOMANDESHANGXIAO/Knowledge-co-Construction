@@ -3,7 +3,7 @@ import Icon from '@/components/Icons/ManagePageIcon/index.vue'
 import { Name } from '@/components/Icons/ManagePageIcon/type.ts'
 import { useRouter, useRoute } from 'vue-router'
 import LogOutButton from '@/components/LogOutButton/index.vue'
-import { useUserStore } from '@/store/modules/user/index.ts'
+import { useUserStore } from '@/store/useUserStore.ts'
 // import router from '@/router'
 // 根据当前的路由确定el-menu-item的激活状态
 const router = useRouter()

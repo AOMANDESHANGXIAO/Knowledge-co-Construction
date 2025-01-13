@@ -3,6 +3,7 @@ import _ from 'lodash'
 /**
  *
  * @param initialValue
+ * @param option
  * @returns
  * @description 这是一个仿React风格的管理state hook，在此基础上我们扩展了功能，使其可以记录上一次的state
  */

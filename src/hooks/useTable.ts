@@ -1,6 +1,6 @@
-import useRequest from './useRequest'
+import useRequest from './useRequest.ts'
 import Service from '@/apis'
-import useState from '../State/useState'
+import useState from './useState.ts'
 import {Ref} from 'vue'
 
 /**
