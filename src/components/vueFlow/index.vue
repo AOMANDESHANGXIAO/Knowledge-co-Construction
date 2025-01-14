@@ -26,11 +26,6 @@ import {
   NotResponsed,
 } from '@/apis/viewpoint/interface'
 
-/**
- * WARNING: 设置nodes和edges状态时在一个函数内最好只更新一次
- * 不要在一个函数内更新多次
- * 否则会引起BUG！！
- */
 defineOptions({
   name: 'ViewPointTree',
 })
@@ -258,7 +253,7 @@ const vueFlowSlotsList = [
 
 <template>
   <div class="layout-flow">
-
+    <!-- vueflow是第三方组件，官方文档查阅: https://vueflow.dev/ -->
     <VueFlow
         :nodes="nodes"
         :edges="edges"
