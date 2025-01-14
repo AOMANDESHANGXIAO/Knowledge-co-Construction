@@ -1,7 +1,5 @@
-// router/useUserStore.ts
 import {createRouter, createWebHashHistory} from 'vue-router'
 import type {RouteRecordRaw} from 'vue-router'
-// import {useEventBus} from '@vueuse/core'
 import useEventBus from "@/hooks/useEventBus.ts";
 import {useUserStore} from "@/store/useUserStore.ts";
 
@@ -93,8 +91,8 @@ interface RouterEvent {
 
 const routerBus = useEventBus<RouterEvent>()
 
-const handleLayout = () => {
-    router.push('/')
+const handleLayout = async () => {
+    await router.push('/')
 }
 
 routerBus.on('logout', handleLayout)

@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
-import { escapeData } from '@/utils/escapeHandler'
+import { escapeData } from '@/utils/escape.ts'
 import { useUserStore } from '@/store/useUserStore.ts'
 // 定义请求超时时间
 axios.defaults.timeout = 10000
@@ -45,7 +45,7 @@ const SUCCESS_STATUS_POST_CODE = 201
 const TOKEN_UNAUTHORIZED_CODE = 401
 const SERVER_ERROR_CODE = 500
 
-// axios respone拦截器
+// axios response拦截器
 Service.interceptors.response.use(
   async function (response) {
     if (response.status == SUCCESS_STATUS_GET_CODE || response.status == SUCCESS_STATUS_POST_CODE) {

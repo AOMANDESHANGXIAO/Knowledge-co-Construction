@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import colorPicker from '@/components/common/colorPicker/index.vue'
-import waveAnimation from '@/components/common/waveAnimation/index.vue'
+import waveAnimation from '@/components/UI/WaveAnimation/index.vue'
 import analysisItem from '@/components/common/analysisItem/index.vue'
-import memberAnalysis from '@/components/common/memberAnalysis/index.vue'
-import manageHeader from '@/components/common/manageHeader/index.vue'
+import memberAnalysis from '@/components/Layout/MemberAnalysis/index.vue'
+import manageHeader from '@/components/Layout/ManageHeader/index.vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useUserStore } from '@/store/useUserStore.ts'
 import { useColorStore } from '@/store/modules/color'

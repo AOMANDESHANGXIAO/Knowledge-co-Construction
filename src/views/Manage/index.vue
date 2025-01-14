@@ -1,25 +1,19 @@
 <script setup lang="ts">
 import Icon from '@/components/Icons/ManagePageIcon/index.vue'
 import { Name } from '@/components/Icons/ManagePageIcon/type.ts'
-import { useRouter, useRoute } from 'vue-router'
-import LogOutButton from '@/components/LogOutButton/index.vue'
+import { useRouter } from 'vue-router'
+import LogOutButton from '@/components/UI/LogOutButton/index.vue'
 import { useUserStore } from '@/store/useUserStore.ts'
-// import router from '@/router'
 // 根据当前的路由确定el-menu-item的激活状态
 const router = useRouter()
-
 const defaultActive = computed(() => {
   // 获取当前的路由的path
   return router.currentRoute.value.path
 })
 
-const route = useRoute()
 const { logout } = useUserStore()
 const handleLogOut = () => {
-  console.log('loyOut')
   logout()
-  // router.go(0)
-  console.log('2')
 }
 </script>
 
@@ -62,7 +56,7 @@ const handleLogOut = () => {
         </el-menu>
       </el-col>
       <el-col :span="21" style="height: 100%">
-        <router-view :key="route.path" />
+        <router-view :key="$route.fullPath" />
       </el-col>
     </el-row>
   </div>

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import router from '@/router/index.ts'
 defineOptions({
-  group_name: '404-page',
+  name: '404-page'
 })
 
 const backHome = () => {
@@ -12,8 +12,8 @@ const backHome = () => {
 <template>
   <div>
     <h1>404 NOT FOUND!</h1>
-    <el-button type="primary" size="large" @click="backHome"
-      >回到首页</el-button
+    <n-button type="primary" @click="backHome"
+      >回到首页</n-button
     >
   </div>
 </template>

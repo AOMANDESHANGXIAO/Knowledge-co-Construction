@@ -1,33 +1,36 @@
-import { ref, UnwrapRef, Ref } from 'vue'
+import {shallowRef, UnwrapRef, ShallowRef} from 'vue'
 import _ from 'lodash'
 /**
  *
  * @param initialValue
- * @param option
  * @returns
- * @description 这是一个仿React风格的管理state hook，在此基础上我们扩展了功能，使其可以记录上一次的state
+ * @description 管理状态的hooks
+ * @example const [state, setState] = useState(0)
  */
+type UpdateFunction<T> = (value: T) => UnwrapRef<T>
+type ReturnType<T> = [ShallowRef<UnwrapRef<T>>, (newValue: UnwrapRef<T>|UpdateFunction<T>) => void]
+
 function useState<T>(
   initialValue: T,
-  option?: {
-    onUpdate?: () => void
-  }
-): [Ref<UnwrapRef<T>>, (newValue: UnwrapRef<T>) => void, Ref<UnwrapRef<T>>] {
-  const onUpdate = option?.onUpdate
-  const throttledOnUpdate = _.throttle(onUpdate || (() => {}), 1000)
-  const state = ref<T>(initialValue)
-  const previousState = ref<T>(initialValue)
+): ReturnType<T> {
 
-  function setState(newValue: UnwrapRef<T>): void {
-    previousState.value = state.value
-    state.value = newValue
-    throttledOnUpdate()
+  const state = shallowRef(initialValue)
+
+  function setState(newValue: UnwrapRef<T>|UpdateFunction<T>): void {
+    let isNotChanged = false
+    if(!isNotChanged) {
+      return
+    }
+    // 一次tick只会更新一次
+    setTimeout(() => {
+      state.value = _.isFunction(newValue) ? newValue(state.value) : newValue
+      isNotChanged = false
+    },0)
   }
 
   return [
-    state as Ref<UnwrapRef<T>>,
-    setState,
-    previousState as Ref<UnwrapRef<T>>,
+   state as ShallowRef<UnwrapRef<T>>,
+   setState,
   ]
 }
 export default useState

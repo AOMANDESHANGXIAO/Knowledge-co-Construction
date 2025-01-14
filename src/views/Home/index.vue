@@ -9,7 +9,7 @@ import useForceUpdateComponent from '../../hooks/useForceUpdateComponent.ts'
 import useRequest from '@/hooks/useRequest.ts'
 import _ from 'lodash'
 import router from '@/router/index.ts'
-import MsgNotice from './components/messageNotice/index.vue'
+import MsgNotice from '@/views/Home/components/ViewpointFallbackNotice/index.vue'
 import { BLUE, GREEN, PURPLE, RED, THEME_COLOR, YELLOW } from '@/config.ts'
 import ContextMenu from '@imengyu/vue3-context-menu'
 import ArgumentEditor from './components/ArgumentEditor/index.vue'
@@ -30,13 +30,13 @@ import {
   InteractionNodeType,
 } from '../../apis/viewpoint/interface'
 import { useNotification } from 'naive-ui'
-import GroupAnalysis from './components/GroupAnalysis/index.vue'
-import WordCloudAnalysis from './components/WordCloudAnalysis/index.vue'
+import GroupAnalysis from '@/views/Home/components/GroupAnalysisModal/index.vue'
+import WordCloudAnalysis from '@/views/Home/components/WordCloudAnalysisModal/index.vue'
 import {
   DataAnalysisAPI,
   GetGroupInteractionResponse,
 } from '@/apis/dataAnalysis'
-import ChatGptInput from './components/newChatGpt/index.vue'
+import ChatGptInput from '@/views/Home/components/GenAIModal/index.vue'
 import { useStorage } from '@vueuse/core'
 
 const { getOneUserInfo } = useUserStore()

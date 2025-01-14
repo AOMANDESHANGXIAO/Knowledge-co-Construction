@@ -8,7 +8,7 @@ import {
   QueryReviseData,
   QueryGroupMemeberData,
 } from './type.ts'
-import { Response } from '../libcommon/index.ts'
+import { Response } from '../libcommon/escape.ts'
 
 const createGroupApi = (params: CreateGroupParams): Promise<Response> => {
   return Service.post('/group/create', params)

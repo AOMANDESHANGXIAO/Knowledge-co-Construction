@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { GetInteractionResponse } from '@/apis/viewpoint/interface'
-import ChatGptInput from '../newChatGpt/index.vue'
+import ChatGptInput from '@/views/Home/components/GenAIModal/index.vue'
 import { Span } from 'naive-ui/es/legacy-grid/src/interface'
 import { useStorage } from '@vueuse/core'
 import { useMessage } from 'naive-ui'

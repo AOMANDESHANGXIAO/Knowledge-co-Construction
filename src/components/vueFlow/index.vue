@@ -1,22 +1,21 @@
 <script setup lang="ts">
-import { VueFlow, Panel, useVueFlow, Position } from '@vue-flow/core'
-import { Background } from '@vue-flow/background'
-import { MiniMap } from '@vue-flow/minimap'
+import {VueFlow, Panel, useVueFlow, Position} from '@vue-flow/core'
+import {Background} from '@vue-flow/background'
+import {MiniMap} from '@vue-flow/minimap'
 import '@vue-flow/minimap/dist/style.css'
-import { Controls } from '@vue-flow/controls'
+import {Controls} from '@vue-flow/controls'
 import '@vue-flow/controls/dist/style.css'
-import { nextTick } from 'vue'
+import {nextTick} from 'vue'
 import topicNode from './components/topicNode/index.vue'
 import groupNode from './components/groupNode/index.vue'
 import InteractionNode from './components/InteractionNode/index.vue'
 import useRequest from '@/hooks/useRequest.ts'
 import useQueryParam from '@/hooks/useQueryParam.ts'
-import { EDGE_COLORS } from './option'
-import type { LayoutDir } from './type'
-import { useLayout } from '@/hooks/useLayout.ts'
-import { getGroupNodeId } from './utils'
-// import { useNotification } from './hook'
-import { useUserStore } from '@/store/useUserStore.ts'
+import {EDGE_COLORS} from './option'
+import type {LayoutDir} from './type'
+import {useLayout} from '@/hooks/useLayout.ts'
+import {getGroupNodeId} from './utils'
+import {useUserStore} from '@/store/useUserStore.ts'
 import useState from '@/hooks/useState.ts'
 import eventBus from '@/hooks/useEventBus.ts'
 import ViewPointAPI from '@/apis/viewpoint'
@@ -32,29 +31,30 @@ import {
  * 不要在一个函数内更新多次
  * 否则会引起BUG！！
  */
-
 defineOptions({
-  option: 'flow-component',
-  name: 'MyVueFlow',
+  name: 'ViewPointTree',
 })
 
 const props = withDefaults(
-  defineProps<{
-    updateVueFlowEffects?: () => void
-    onMountedEffect?: () => void
-    onUpdateValues?: (args: {
-      nodes: Node[]
-      edges: Edge[]
-      notResponsed: NotResponsed[]
-    }) => void
-    centerId: string
-  }>(),
-  {
-    updateVueFlowEffects: () => {},
-    onMountedEffect: () => {},
-    onUpdateValues: () => {},
-    centerId: '',
-  }
+    defineProps<{
+      updateVueFlowEffects?: () => void
+      onMountedEffect?: () => void
+      onUpdateValues?: (args: {
+        nodes: Node[]
+        edges: Edge[]
+        notResponsed: NotResponsed[]
+      }) => void
+      centerId: string
+    }>(),
+    {
+      updateVueFlowEffects: () => {
+      },
+      onMountedEffect: () => {
+      },
+      onUpdateValues: () => {
+      },
+      centerId: '',
+    }
 )
 
 onMounted(() => {
@@ -85,12 +85,10 @@ onEdgesChange(async changes => {
 
 const topicId = useQueryParam<number>('topic_id')
 
-const { getOneUserInfo } = useUserStore()
+const {getOneUserInfo} = useUserStore()
 
 const student_id = getOneUserInfo<string>('id')
 const group_id = getOneUserInfo<string>('group_id')
-
-// const { setHighlightNotification } = useNotification()
 
 const stateFormatter = (data: GetViewPointListResponse) => {
   return {
@@ -116,16 +114,18 @@ const stateFormatter = (data: GetViewPointListResponse) => {
     notResponsed: data.notResponsed,
   }
 }
+
 interface VueFlowEdge extends Edge {
   style: {
     stroke: string
   }
 }
+
 const [nodes, setNodes] = useState<Node[]>([])
 
 const [edges, setEdges] = useState<VueFlowEdge[]>([])
 
-const { loading, run } = useRequest({
+const {loading, run} = useRequest({
   apiFn: async () => {
     return ViewPointAPI.getViewPointList({
       topic_id: topicId.value,
@@ -137,18 +137,18 @@ const { loading, run } = useRequest({
     edges: VueFlowEdge[]
     notResponsed: NotResponsed[]
   }) => {
-    console.log('queryFlowDataApidata', data)
     setNodes(data.nodes)
     setEdges(data.edges)
     props.updateVueFlowEffects && props.updateVueFlowEffects()
     props.onUpdateValues &&
-      props.onUpdateValues({
-        nodes: data.nodes,
-        edges: data.edges,
-        notResponsed: data.notResponsed,
-      })
+    props.onUpdateValues({
+      nodes: data.nodes,
+      edges: data.edges,
+      notResponsed: data.notResponsed,
+    })
   },
-  onFail: () => {},
+  onFail: () => {
+  },
   formatter: stateFormatter,
   onFinally: () => {
     setFitView()
@@ -160,7 +160,7 @@ const { loading, run } = useRequest({
  * init flow data
  */
 
-const { layout } = useLayout()
+const {layout} = useLayout()
 
 const handleLayout = async (direction: LayoutDir) => {
   const sourcePosition = direction === 'LR' ? Position.Right : Position.Bottom
@@ -172,19 +172,15 @@ const handleLayout = async (direction: LayoutDir) => {
     node.data.sourcePosition = sourcePosition
     node.data.targetPosition = targetPosition
   })
-  console.log('props.centerId', props.centerId)
   const centerNodeId = props.centerId || getGroupNodeId(nodesValue, +group_id)
-  // 查找团队节点
 
   nodesValue = layout(nodesValue, edgesValue, direction)
 
   setNodes(nodesValue)
   setEdges(edgesValue)
-  // console.log('vueFlowed centerNodeId 1', centerNodeId)
   await nextTick(() => {
     setTimeout(() => {
       if (centerNodeId) {
-        // console.log('vueFlowed centerNodeId 2', centerNodeId)
         setFitViewOnNodeCenter(centerNodeId)
       } else {
         fitView()
@@ -231,63 +227,69 @@ defineExpose({
   getState,
   setFitViewOnNodeCenter,
 })
+/**
+ * vueFlow插槽列表
+ */
+const vueFlowSlotsList = [
+  {
+    name: 'node-topic',
+    component: topicNode
+  }, {
+    name: 'node-group',
+    component: groupNode
+  }, {
+    name: 'node-idea',
+    component: InteractionNode
+  }, {
+    name: 'node-agree',
+    component: InteractionNode
+  }, {
+    name: 'node-disagree',
+    component: InteractionNode
+  }, {
+    name: 'node-ask',
+    component: InteractionNode
+  }, {
+    name: 'node-response',
+    component: InteractionNode
+  }
+]
 </script>
 
 <template>
-  <div class="layout-flow" style="width: 100vw; height: 100vh">
-    <!-- flow -->
+  <div class="layout-flow">
+
     <VueFlow
-      :nodes="nodes"
-      :edges="edges"
-      v-if="!loading"
-      :apply-default="false"
+        :nodes="nodes"
+        :edges="edges"
+        :apply-default="false"
     >
-      <!-- bind your custom node type to a component by using slots, slot names are always `node-<type>` -->
-      <template #node-topic="props">
-        <topicNode :data="props.data" v-bind="$attrs" />
-      </template>
-      <template #node-group="props">
-        <groupNode :data="props.data" v-bind="$attrs" />
-      </template>
-      <template #node-idea="props">
-        <InteractionNode :data="props.data" v-bind="$attrs" />
-      </template>
-      <template #node-agree="props">
-        <InteractionNode :data="props.data" v-bind="$attrs"></InteractionNode>
-      </template>
-      <template #node-disagree="props">
-        <InteractionNode :data="props.data" v-bind="$attrs"></InteractionNode>
-      </template>
-      <template #node-ask="props">
-        <InteractionNode :data="props.data" v-bind="$attrs"></InteractionNode>
-      </template>
-      <template #node-response="props">
-        <InteractionNode :data="props.data" v-bind="$attrs"></InteractionNode>
+
+      <template v-for="(item,index) in vueFlowSlotsList" :key="index" #[item.name]="props">
+        <component :is="item.component" :data="props.data" v-bind="$attrs"/>
       </template>
 
       <Background
-        :variant="'lines'"
-        :size="200"
-        patternColor="#fff"
-        :gap="180"
+          :variant="'lines'"
+          :size="200"
+          patternColor="#fff"
+          :gap="180"
       />
 
-      <MiniMap pannable zoomable />
+      <MiniMap pannable zoomable/>
 
-      <Controls />
+      <Controls/>
 
-      <!-- 提供一个右上角的插槽 -->
+      <!-- 右上角插槽 -->
       <Panel class="process-panel" position="top-right">
         <slot name="top-right"></slot>
       </Panel>
 
-      <!-- 提供一个左上角的插槽 -->
+      <!-- 左上角插槽 -->
       <Panel class="process-panel" position="top-left">
         <slot name="top-left"></slot>
       </Panel>
     </VueFlow>
-    <!-- loader -->
-    <div class="loader" v-else></div>
   </div>
 </template>
 
@@ -297,15 +299,7 @@ defineExpose({
 
 /* import the default theme, this is optional but generally recommended */
 @import '@vue-flow/core/dist/theme-default.css';
-/* HTML: <div class="loader"></div> */
-.loader {
-  width: 45px;
-  aspect-ratio: 1;
-  --c: no-repeat linear-gradient(#000 0 0);
-  background: var(--c) 0% 50%, var(--c) 50% 50%, var(--c) 100% 50%;
-  background-size: 20% 100%;
-  animation: l1 1s infinite linear;
-}
+
 @keyframes l1 {
   0% {
     background-size: 20% 100%, 20% 100%, 20% 100%;
@@ -323,14 +317,14 @@ defineExpose({
     background-size: 20% 100%, 20% 100%, 20% 100%;
   }
 }
+
 .layout-flow {
   background-color: #1a192b;
-  height: 100%;
-  width: 100%;
+  height: 100vh;
+  width: 100vw;
 }
 
-.process-panel,
-.layout-panel {
+.process-panel {
   display: flex;
   gap: 10px;
 }
@@ -362,12 +356,6 @@ defineExpose({
   justify-content: center;
 }
 
-.checkbox-panel {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .process-panel button:hover,
 .layout-panel button:hover {
   background-color: #2563eb;
@@ -387,18 +375,6 @@ defineExpose({
   display: block;
 }
 
-.stop-btn:hover .spinner {
-  display: none;
-}
-
-.spinner {
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #2563eb;
-  border-radius: 50%;
-  width: 10px;
-  height: 10px;
-  animation: spin 1s linear infinite;
-}
 
 @keyframes spin {
   0% {

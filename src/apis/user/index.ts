@@ -7,7 +7,7 @@ import {
   SignUpData,
   QueryUserCollInfoData,
 } from './type.ts'
-import { Response } from '../libcommon/index.ts'
+import { Response } from '../libcommon/escape.ts'
 
 const queryClassRoomList = (): Promise<Response<ClassRoomList>> => {
   return Service.get('/classroom/queryClassroomList')
